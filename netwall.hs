@@ -280,4 +280,4 @@ main = do
                                    , wall = []
                                    , groups = [] }
     log "starting server"
-    WS.runServer "127.0.0.1" 9255 $ app state
+    WS.runServer "0.0.0.0" 9255 $ app state

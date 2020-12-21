@@ -13,7 +13,7 @@ window.addEventListener('load', () => {
         wall = [], groups = [],
         isPlayer = false;
 
-    ws = new WebSocket('ws://localhost:9255/');
+    ws = new WebSocket('ws://a.tck.mn:9255/');
 
     var negotiate = regen => {
         var key = (regen !== true && localStorage.getItem('key')) || genkey();
