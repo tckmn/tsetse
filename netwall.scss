@@ -1,0 +1,126 @@
+html,body {
+    background-color: black;
+    color: #d8d8d8;
+    padding: 0;
+    margin: 0;
+}
+
+div#container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+div#wrap {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+div#wall {
+    font: 18pt sans-serif;
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 60vw;
+    max-width: 166vh;
+    max-height: 100vh;
+
+    > div {
+        display: flex;
+        flex-grow: 1;
+
+        > div.cell {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+
+            flex: 1 1 0;
+            margin: 1%;
+
+            background-color: #181818;
+            transition: background-color 0.1s;
+            border-radius: 5px;
+
+            &:not(.solved):hover { cursor: pointer; }
+            &:hover    { background-color: #282828; }
+            &.wrong    { background-color: #ab4642; }
+            &.selected { background-color: #383838; }
+        }
+
+        &#r1 div.cell.solved { background-color: mix(#000, #7cafc2); }
+        &#r2 div.cell.solved { background-color: mix(#000, #a1b56c); }
+        &#r3 div.cell.solved { background-color: mix(#000, #ba8baf); }
+        &#r4 div.cell.solved { background-color: mix(#000, #f7ca88); }
+    }
+}
+
+div#bar {
+    display: flex;
+    font: 11pt monospace;
+    padding: 5px;
+
+    > div#key.player {
+        color: #0f0;
+    }
+
+    > div#discon {
+        display: none;
+        color: #f00;
+        margin-left: 20px;
+    }
+
+    > div#admin {
+        display: none;
+        > span {
+            margin: 0 20px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    }
+}
+
+div#modals > div {
+    display: none;
+    flex-direction: column;
+    position: fixed;
+    width: 50vw;
+    height: 50vh;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    background-color: #3f3d4c;
+    border-radius: 5px;
+    padding: 20px;
+
+    textarea#settxt {
+        width: 100%;
+        box-sizing: border-box;
+        flex-grow: 1;
+    }
+
+    div#cltlist {
+        display: flex;
+        flex-direction: column;
+        font: 11pt monospace;
+
+        > div {
+            display: flex;
+            align-items: center;
+            white-space: pre;
+        }
+    }
+}
+
+button, textarea, input {
+    background-color: #282828;
+    border: 1px solid #383838;
+    border-radius: 3px;
+    color: #d8d8d8;
+    padding: 3px 10px;
+}
