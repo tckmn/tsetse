@@ -7,7 +7,7 @@
 import Prelude hiding (log)
 
 import Control.Concurrent
-import Control.Exception (finally)
+import Control.Exception (catch, finally, IOException)
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
@@ -49,6 +49,7 @@ data ServerState = ServerState { clients :: [Client]
 
 idLength = 5
 secretLength = 10
+pwdfile = "pwd"
 
 
 -- random utility functions (first generic, then codebase-specific)
@@ -260,19 +261,23 @@ withClientsUpdate s@ServerState{clients,secrets,players,admins} =
     where clientsEnc = encodeClients clients secrets players admins
 
 
+setpass :: IOException -> IO Text
+setpass _ = do
+    putStr "please set an admin password: "
+    pwd <- T.getLine
+    T.writeFile pwdfile pwd
+    return pwd
+
 main :: IO ()
 main = do
-    pwd <- chomp <$> T.readFile "pwd"
-    if pwd == "password"
-       then putStrLn "change the password ya dingus"
-       else do
-           state <- newMVar $ ServerState { clients = []
-                                          , secrets = M.empty
-                                          , players = []
-                                          , admins = []
-                                          , nextConn = 0
-                                          , password = pwd
-                                          , wall = []
-                                          , groups = [] }
-           log "starting server"
-           WS.runServer "127.0.0.1" 9255 $ app state
+    pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
+    state <- newMVar $ ServerState { clients = []
+                                   , secrets = M.empty
+                                   , players = []
+                                   , admins = []
+                                   , nextConn = 0
+                                   , password = pwd
+                                   , wall = []
+                                   , groups = [] }
+    log "starting server"
+    WS.runServer "127.0.0.1" 9255 $ app state
