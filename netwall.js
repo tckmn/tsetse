@@ -9,8 +9,8 @@ window.addEventListener('load', () => {
 
     var stage = NEGOTIATE, retrycount = 0,
         cells = $$('div.cell'),
-        cltlist = $('#cltlist'),
-        wall = [], groups = [],
+        cltlist = $('#cltlist'), strikelist = $$('.strike'),
+        wall = [], groups = [], strikes = 3,
         isPlayer = false;
 
     ws = new WebSocket('ws://a.tck.mn:9255/');
@@ -77,9 +77,12 @@ window.addEventListener('load', () => {
                         });
                         break;
                     case 'w':
+                        // make sure to keep this in sync with ABC in netwall.hs
                         wall = data.split('\n');
                         groups = [];
+                        strikes = 3;
                         render();
+                        renderStrikes();
                         break;
                     case 'g':
                         groups = data.split('/').map(x => +x);
@@ -87,6 +90,10 @@ window.addEventListener('load', () => {
                         break;
                     case 'G':
                         flash(data.split('/').map(x => +x));
+                        break;
+                    case 's':
+                        strikes = +data;
+                        renderStrikes();
                         break;
                 }
                 break;
@@ -106,7 +113,14 @@ window.addEventListener('load', () => {
             cell.textContent = wall[realidx];
             cell.dataset.idx = realidx;
             cell.classList.toggle('solved', idx < groups.length);
+            cell.classList.remove('selected');
         });
+    };
+
+    var renderStrikes = () => {
+        for (var i = 0; i < 3; ++i) {
+            strikelist[i].classList.toggle('used', strikes < 3-i);
+        }
     };
 
     var flash = idxs => {

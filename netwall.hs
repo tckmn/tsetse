@@ -11,7 +11,7 @@ import Control.Exception (catch, finally, IOException)
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
-import Data.Char (isUpper, isAscii)
+import Data.Char (isUpper, isAscii, isSpace)
 import Data.Functor
 import Data.List
 import Data.Map (Map)
@@ -45,7 +45,9 @@ data ServerState = ServerState { clients :: [Client]
                                , nextConn :: Int
                                , password :: Text
                                , wall :: [(Int,Text)]
-                               , groups :: [Int] }
+                               , groups :: [Int]
+                               , strikes :: Int
+                               }
 
 idLength = 5
 secretLength = 10
@@ -56,6 +58,9 @@ pwdfile = "pwd"
 
 chomp :: Text -> Text
 chomp = T.reverse . T.dropWhile (=='\n') . T.reverse
+
+strip :: Text -> Text
+strip = T.reverse . T.dropWhile isSpace . T.reverse . T.dropWhile isSpace
 
 shuffle :: [a] -> IO [a]
 shuffle [] = pure []
@@ -143,12 +148,13 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
     let connect = do
         logC conn "connected"
         let c = Client cid conn
-        modifyMVar_ state $ \s@ServerState{clients,secrets,players,admins,wall,groups} -> do
+        modifyMVar_ state $ \s@ServerState{clients,secrets,players,admins,wall,groups,strikes} -> do
             -- catch up
             when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
             when (cid `elem` players) $ sendWS conn $ encodePlayer True
             when (not $ null wall)    $ sendWS conn $ encodeWall wall
             when (not $ null groups)  $ sendWS conn $ encodeGuess True groups
+            when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
             -- add client to list (and tell admins)
             withClientsUpdate s { clients = c:clients
                                 , secrets = M.insert cid sec secrets }
@@ -176,15 +182,18 @@ play state (Client cid conn) "a" pwd =
 
 -- admin submitted a new wall
 play state (Client cid conn) "w" walldata =
-    modifyMVar_ state $ \s@ServerState{clients,wall,groups} -> reqa s cid $ do
+    modifyMVar_ state $ \s@ServerState{clients,wall,groups,strikes} -> reqa s cid $ do
         -- jesus christ, what a line
         new <- sequence $ liftM2 zip (shuffle [0..15]) . pure <$> parseWall walldata
         -- tell everyone about it
         sequence_ $ broadcast clients . encodeWall <$> new
-        return s { wall   = fromMaybe wall   new
-                 , groups = fromMaybe groups ([] <$ new)}
+        -- make sure to keep this in sync with ABC in netwall.js
+        return s { wall    = fromMaybe wall    new
+                 , groups  = fromMaybe groups  ([] <$ new)
+                 , strikes = fromMaybe strikes (3 <$ new)
+                 }
     where parseWall "" = Just []
-          parseWall s = let cells = T.splitOn "\n" $ chomp s
+          parseWall s = let cells = filter (not . T.null) . map strip . T.splitOn "\n" $ chomp s
                          in cells <$ guard (length cells == 16)
 
 -- (un)make someone an admin
@@ -210,13 +219,14 @@ play state (Client cid conn) "P" req =
 play state (Client cid conn) "g" guess =
     modifyMVar_ state $ \s@ServerState{clients,groups} -> reqp s cid $
         fromMaybe (return s) (makeGuess s <$> parseGuess s guess)
-    where parseGuess s@ServerState{groups} guess = do
+    where parseGuess s@ServerState{groups,strikes} guess = do
+              guard $ strikes /= 0
               xs <- sequence $ fmap fst . hush . T.decimal <$> T.splitOn "/" guess
               guard $ all ($xs) [(==4) . length,
                                  liftM2 (==) id nub,
                                  all (liftM2 (&&) (between 0 15) (`notElem` groups))]
               return xs
-          makeGuess s@ServerState{clients,groups,wall} guess =
+          makeGuess s@ServerState{clients,groups,wall,strikes} guess =
               if sort guess `elem` (map sort . chunksOf 4 $ fst <$> wall)
                  then do
                      let groups' = groups ++ guess
@@ -226,8 +236,11 @@ play state (Client cid conn) "g" guess =
                      broadcast clients $ encodeGuess True groups''
                      return s { groups = groups'' }
                  else do
+                     let strike = length groups == 8
+                         strikes' = strikes - if strike then 1 else 0
                      broadcast clients $ encodeGuess False guess
-                     return s
+                     when strike $ broadcast clients $ encodeStrikes strikes'
+                     return s { strikes = strikes' }
 
 play _ (Client _ conn) _ _ = logC conn "misbehaving client??"
 
@@ -242,6 +255,8 @@ encodeWall :: [(Int,Text)] -> Text
 encodeWall = ('w' `T.cons`) . T.intercalate "\n" . map snd . sortOn fst
 encodeGuess :: Bool -> [Int] -> Text
 encodeGuess yes idxs = T.pack $ (if yes then 'g' else 'G'):intercalate "/" (show <$> idxs)
+encodeStrikes :: Int -> Text
+encodeStrikes = T.pack . ('s':) . show
 encodeClients :: [Client] -> Map ClientId Text -> [ClientId] -> [ClientId] -> Text
 encodeClients clients secrets players admins =
     ('c' `T.cons`) . T.intercalate "/" . map stringify . sortOn sortPred $ M.toList secrets
@@ -281,6 +296,8 @@ main = do
                                    , nextConn = 0
                                    , password = pwd
                                    , wall = []
-                                   , groups = [] }
+                                   , groups = []
+                                   , strikes = 3
+                                   }
     log "starting server"
     WS.runServer "0.0.0.0" 9255 $ app state

@@ -8,25 +8,38 @@
         <link rel='stylesheet' type='text/css' href='netwall.css'></link>
     </head>
     <body>
+
         <div id='wrap'>
+
+            <div class='bar' id='topbar'>
+                <div id='timer'>0:00</div>
+                <div class='strike'></div>
+                <div class='strike'></div>
+                <div class='strike'></div>
+            </div>
+
             <div id='wall'>
                 <div id='r1'><div class='cell'></div><div class='cell'></div><div class='cell'></div><div class='cell'></div></div>
                 <div id='r2'><div class='cell'></div><div class='cell'></div><div class='cell'></div><div class='cell'></div></div>
                 <div id='r3'><div class='cell'></div><div class='cell'></div><div class='cell'></div><div class='cell'></div></div>
                 <div id='r4'><div class='cell'></div><div class='cell'></div><div class='cell'></div><div class='cell'></div></div>
             </div>
-        </div>
-        <div id='bar'>
-            <div id='key'></div>
-            <div id='discon'>disconnected</div>
-            <div style='flex-grow:1'></div>
-            <div id='admin'>
-                <span id='set'>set wall</span>
-                <span id='clr'>clear wall</span>
-                <span id='clt'>clients</span>
+
+            <div class='bar' id='botbar'>
+                <div id='key'></div>
+                <div id='discon'>disconnected</div>
+                <div style='flex-grow:1'></div>
+                <div id='admin'>
+                    <span id='set'>set wall</span>
+                    <span id='clr'>clear wall</span>
+                    <span id='clt'>clients</span>
+                </div>
             </div>
+
         </div>
+
         <div id='modals'>
+
             <div id='setm'>
                 <textarea id='settxt'></textarea>
                 <div>
@@ -34,6 +47,7 @@
                     <button class='dismiss'>cancel</button>
                 </div>
             </div>
+
             <div id='clrm'>
                 <div>sure about that?</div>
                 <div>
@@ -41,12 +55,15 @@
                     <button class='dismiss'>no</button>
                 </div>
             </div>
+
             <div id='cltm'>
                 <div>
                     <button class='dismiss'>close</button>
                 </div>
                 <div id='cltlist'></div>
             </div>
+
         </div>
+
     </body>
 </html>

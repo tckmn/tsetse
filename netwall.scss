@@ -9,68 +9,33 @@ div#wrap {
     display: flex;
     height: 100vh;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
 }
 
-div#wall {
-    font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
-    width: 95vw;
-    height: 60vw;
-    max-width: 95vh*100/60;
-    max-height: 95vh;
-
-    font-size: 20pt;
-    @media (max-width: 1000px) { font-size: 20pt; }
-    @media (max-width: 900px)  { font-size: 18pt; }
-    @media (max-width: 800px)  { font-size: 16pt; }
-    @media (max-width: 700px)  { font-size: 14pt; }
-    @media (max-width: 600px)  { font-size: 12pt; }
-    @media (max-width: 500px)  { font-size: 10pt; }
-
-    > div {
-        display: flex;
-        flex-grow: 1;
-
-        > div.cell {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            text-align: center;
-
-            flex: 1 1 0;
-            margin: 1%;
-
-            background-color: #181818;
-            transition: background-color 0.1s;
-            border-radius: 5px;
-
-            &:not(.solved):hover { cursor: pointer; }
-            &:hover    { background-color: #282828; }
-            &.wrong    { background-color: #ab4642; }
-            &.selected { background-color: #383838; }
-        }
-
-        &#r1 div.cell.solved { background-color: mix(#000, #7cafc2); }
-        &#r2 div.cell.solved { background-color: mix(#000, #a1b56c); }
-        &#r3 div.cell.solved { background-color: mix(#000, #ba8baf); }
-        &#r4 div.cell.solved { background-color: mix(#000, #f7ca88); }
-    }
-}
-
-div#bar {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
+div.bar {
     display: flex;
     font: 11pt monospace;
     padding: 5px;
     box-sizing: border-box;
-    pointer-events: none;
+    background-color: #181818;
+    border: 2px solid #000;
+}
 
+div#topbar {
+    > div#timer {
+        flex-grow: 1;
+        text-align: center;
+    }
+
+    > div.strike {
+        width: 11pt;
+        height: 11pt;
+        border-radius: 11pt;
+        background-color: green;
+        &.used { background-color: red; }
+    }
+}
+
+div#botbar {
     > div#key.player {
         color: #0f0;
     }
@@ -87,8 +52,53 @@ div#bar {
             margin: 0 20px;
             cursor: pointer;
             text-decoration: underline;
-            pointer-events: auto;
         }
+    }
+}
+
+div#wall {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+
+    > div {
+        display: flex;
+        flex-grow: 1;
+        max-height: 180px;
+        @media (max-width: 1000px) { max-height: 18vw; }
+
+        font-size: 20pt;
+        @for $i from 10 through 5 {
+            @media (max-width: $i*100px) { font-size: $i*2pt; }
+        }
+
+        > div.cell {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+
+            background-color: #181818;
+            transition: background-color 0.1s;
+            border-radius: 5px;
+
+            width: 220px;
+            margin: 10px;
+            @media (max-width: 1000px) { width: 22vw; margin: 1vw; }
+
+            &:not(.solved):hover { cursor: pointer; }
+            &:hover    { background-color: #282828; }
+            &.wrong    { background-color: #ab4642; }
+            &.selected { background-color: #383838; }
+        }
+
+        &#r1 div.cell.solved { background-color: mix(#000, #7cafc2); }
+        &#r2 div.cell.solved { background-color: mix(#000, #a1b56c); }
+        &#r3 div.cell.solved { background-color: mix(#000, #ba8baf); }
+        &#r4 div.cell.solved { background-color: mix(#000, #f7ca88); }
     }
 }
 
