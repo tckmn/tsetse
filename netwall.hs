@@ -220,8 +220,11 @@ play state (Client cid conn) "g" guess =
               if sort guess `elem` (map sort . chunksOf 4 $ fst <$> wall)
                  then do
                      let groups' = groups ++ guess
-                     broadcast clients $ encodeGuess True groups'
-                     return s { groups = groups' }
+                         groups'' = if length groups' == 12
+                                       then groups' ++ filter (`notElem` groups') [0..15]
+                                       else groups'
+                     broadcast clients $ encodeGuess True groups''
+                     return s { groups = groups'' }
                  else do
                      broadcast clients $ encodeGuess False guess
                      return s
