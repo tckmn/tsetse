@@ -245,7 +245,7 @@ encodeGuess yes idxs = T.pack $ (if yes then 'g' else 'G'):intercalate "/" (show
 encodeClients :: [Client] -> Map ClientId Text -> [ClientId] -> [ClientId] -> Text
 encodeClients clients secrets players admins =
     ('c' `T.cons`) . T.intercalate "/" . map stringify . sortOn sortPred $ M.toList secrets
-    where sortPred (cid,sec) = fromMaybe (-1) $ findIndex ((==cid) . clientId) clients
+    where sortPred (cid,sec) = fromMaybe (length clients) $ findIndex ((==cid) . clientId) clients
           stringify (cid,sec) = T.concat [fmtCount . length . withCid cid $ clients,
                                           fmtYN "p" (cid `elem` players),
                                           fmtYN "a" (cid `elem` admins), " ",
