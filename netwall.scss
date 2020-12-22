@@ -14,13 +14,21 @@ div#wrap {
 }
 
 div#wall {
-    font: 18pt sans-serif;
+    font-family: sans-serif;
     display: flex;
     flex-direction: column;
     width: 95vw;
     height: 60vw;
     max-width: 95vh*100/60;
     max-height: 95vh;
+
+    font-size: 20pt;
+    @media (max-width: 1000px) { font-size: 20pt; }
+    @media (max-width: 900px)  { font-size: 18pt; }
+    @media (max-width: 800px)  { font-size: 16pt; }
+    @media (max-width: 700px)  { font-size: 14pt; }
+    @media (max-width: 600px)  { font-size: 12pt; }
+    @media (max-width: 500px)  { font-size: 10pt; }
 
     > div {
         display: flex;
