@@ -6,7 +6,7 @@
 
 import Prelude hiding (log)
 
-import Control.Concurrent
+import Control.Concurrent (MVar, newMVar, readMVar, modifyMVar, modifyMVar_)
 import Control.Exception (catch, finally, IOException)
 import Control.Monad
 import Control.Monad.Trans
