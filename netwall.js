@@ -138,7 +138,8 @@ window.addEventListener('load', () => {
     });
 
     cells.forEach((cell, idx) => {
-        cell.addEventListener('click', () => {
+        fn = e => {
+            e.preventDefault();
             if (isPlayer && wall.length && idx >= groups.length) {
                 cell.classList.toggle('selected');
                 var guesses = Array.from($$('.selected'));
@@ -147,7 +148,9 @@ window.addEventListener('load', () => {
                     ws.send('g' + guesses.map(g => g.dataset.idx).join('/'));
                 }
             }
-        });
+        };
+        cell.addEventListener('mousedown', fn);
+        cell.addEventListener('touchstart', fn);
     });
 
 });
