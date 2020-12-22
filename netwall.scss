@@ -5,15 +5,9 @@ html,body {
     margin: 0;
 }
 
-div#container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
 div#wrap {
     display: flex;
-    flex-grow: 1;
+    height: 100vh;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -23,10 +17,10 @@ div#wall {
     font: 18pt sans-serif;
     display: flex;
     flex-direction: column;
-    width: 100vw;
+    width: 95vw;
     height: 60vw;
-    max-width: 166vh;
-    max-height: 100vh;
+    max-width: 95vh*100/60;
+    max-height: 95vh;
 
     > div {
         display: flex;
@@ -59,9 +53,15 @@ div#wall {
 }
 
 div#bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
     display: flex;
     font: 11pt monospace;
     padding: 5px;
+    box-sizing: border-box;
+    pointer-events: none;
 
     > div#key.player {
         color: #0f0;
@@ -79,6 +79,7 @@ div#bar {
             margin: 0 20px;
             cursor: pointer;
             text-decoration: underline;
+            pointer-events: auto;
         }
     }
 }
