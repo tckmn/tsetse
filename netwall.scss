@@ -21,17 +21,31 @@ div.bar {
 }
 
 div#topbar {
-    > div#timer {
-        flex-grow: 1;
-        text-align: center;
+    > div#score {
+        flex: 1;
     }
 
-    > div.strike {
-        width: 11pt;
-        height: 11pt;
-        border-radius: 11pt;
-        background-color: green;
-        &.used { background-color: red; }
+    > div#timer {
+        width: 600px;
+        max-width: 50%;
+        text-align: center;
+        text-shadow: 0 0 2px #000, 0 0 2px #000;
+        background: linear-gradient(to right, mix(#86c1b9, #000) 0 50%, #000 50% 100%);
+    }
+
+    > div#strikes {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+
+        > div.strike {
+            width: 11pt;
+            height: 11pt;
+            border-radius: 11pt;
+            margin: 0 5pt;
+            background-color: #86c1b9;
+            &.used { background-color: mix(#86c1b9, #000, 25%); }
+        }
     }
 }
 
