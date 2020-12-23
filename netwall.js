@@ -107,7 +107,6 @@ window.addEventListener('load', () => {
 
     var render = () => {
         var rest = Array.from(Array(16).keys()).filter(x => groups.indexOf(x) === -1);
-        console.log(rest);
         cells.forEach((cell, idx) => {
             var realidx = groups[idx] !== undefined ? groups[idx] : rest[idx-groups.length];
             cell.textContent = wall[realidx];
