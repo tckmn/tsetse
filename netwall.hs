@@ -283,7 +283,8 @@ encodeAdmin = encodeYN 'a'
 encodePlayer :: Bool -> Text
 encodePlayer = encodeYN 'p'
 encodeWall :: Integer -> Int -> [(Int,Text)] -> Text
-encodeWall st du = ('w' `T.cons`) . T.intercalate "\n" . (T.pack (show st):) . (T.pack (show du):) . map snd . sortOn fst
+encodeWall st du = ('w' `T.cons`) . T.intercalate "\n" . w st . w du . map snd . sortOn fst
+    where w x = (T.pack (show x):)
 encodeGuess :: Bool -> [Int] -> Text
 encodeGuess yes idxs = T.pack $ (if yes then 'g' else 'G'):intercalate "/" (show <$> idxs)
 encodeStrikes :: Int -> Text
