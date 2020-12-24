@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RecordWildCards #-}
 
 import Prelude hiding (log)
 
@@ -11,12 +12,13 @@ import Control.Exception (catch, finally, IOException)
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
-import Data.Char (isUpper, isAscii, isSpace)
+import Data.Char (isUpper, isAscii, isSpace, isDigit)
 import Data.Functor
 import Data.List
 import Data.Map (Map)
 import Data.Maybe
 import Data.Text (Text)
+import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Data.Time.LocalTime (getZonedTime)
 import System.Random (randomRIO)
@@ -47,6 +49,8 @@ data ServerState = ServerState { clients :: [Client]
                                , wall :: [(Int,Text)]
                                , groups :: [Int]
                                , strikes :: Int
+                               , startTime :: Integer
+                               , duration :: Int
                                }
 
 idLength = 5
@@ -72,6 +76,9 @@ shuffle xs = do
 hush :: Either a b -> Maybe b
 hush = either (const Nothing) Just
 
+decimal :: Integral a => Text -> Maybe a
+decimal = fmap fst . hush . T.decimal
+
 between :: Ord a => a -> a -> a -> Bool
 between a b x = a <= x && x <= b
 
@@ -79,11 +86,18 @@ chunksOf :: Int -> [a] -> [[a]]
 chunksOf _ [] = []
 chunksOf n xs = take n xs:chunksOf n (drop n xs)
 
+timeMillis :: Integral a => IO a
+timeMillis = round . (1000*) <$> getPOSIXTime
+
 reqa :: ServerState -> ClientId -> IO ServerState -> IO ServerState
 reqa s@ServerState{admins} cid blk = if cid `elem` admins then blk else return s
 
 reqp :: ServerState -> ClientId -> IO ServerState -> IO ServerState
 reqp s@ServerState{players} cid blk = if cid `elem` players then blk else return s
+
+timeSync :: Connection -> Text -> IO ()
+timeSync conn echo = timeMillis >>=
+    sendWS conn . T.concat . ([echo, "/"] ++) . pure . T.pack . show
 
 -- logging (not saved to a file, use tee)
 
@@ -125,16 +139,16 @@ app state pending = do
 negotiate :: MVar ServerState -> Connection -> IO ()
 negotiate state conn = fmap (maybe () id) . runMaybeT $ do
     lift $ logC conn "negotiate attempt"
-    msg <- lift $ recvWS conn
+    (key, stamp) <- lift $ T.splitAt (idLength + secretLength) <$> recvWS conn
     ServerState{secrets} <- lift $ readMVar state
 
-    lift . when (T.length msg /= idLength + secretLength ||
-                 T.any (not . liftM2 (&&) isUpper isAscii) msg) $ do
+    lift . when (T.any (not . liftM2 (&&) isUpper isAscii) key ||
+                 T.null stamp || T.any (not . isDigit) stamp) $ do
         logC conn "misbehaving client??"
         sendWS conn "e"
         guard False
 
-    let (cid, sec) = T.splitAt idLength msg
+    let (cid, sec) = T.splitAt idLength key
 
     lift . when (maybe False (/= sec) $ M.lookup cid secrets) $ do
         logC conn "client id clash, trying again"
@@ -142,17 +156,17 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
         negotiate state conn
         guard False
 
-    lift $ sendWS conn "g"
+    lift $ timeSync conn $ T.cons 'g' stamp
     -- end of negotiation, client is good
 
     let connect = do
         logC conn "connected"
         let c = Client cid conn
-        modifyMVar_ state $ \s@ServerState{clients,secrets,players,admins,wall,groups,strikes} -> do
+        modifyMVar_ state $ \s@ServerState{..} -> do
             -- catch up
             when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
             when (cid `elem` players) $ sendWS conn $ encodePlayer True
-            when (not $ null wall)    $ sendWS conn $ encodeWall wall
+            when (not $ null wall)    $ sendWS conn $ encodeWall startTime duration wall
             when (not $ null groups)  $ sendWS conn $ encodeGuess True groups
             when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
             -- add client to list (and tell admins)
@@ -182,15 +196,17 @@ play state (Client cid conn) "a" pwd =
 
 -- admin submitted a new wall
 play state (Client cid conn) "w" walldata =
-    modifyMVar_ state $ \s@ServerState{clients,wall,groups,strikes} -> reqa s cid $ do
+    modifyMVar_ state $ \s@ServerState{clients,wall,groups,strikes,startTime,duration} -> reqa s cid $ do
         -- jesus christ, what a line
         new <- sequence $ liftM2 zip (shuffle [0..15]) . pure <$> parseWall walldata
         -- tell everyone about it
-        sequence_ $ broadcast clients . encodeWall <$> new
+        now <- timeMillis
+        sequence_ $ broadcast clients . encodeWall now duration <$> new
         -- make sure to keep this in sync with ABC in netwall.js
-        return s { wall    = fromMaybe wall    new
-                 , groups  = fromMaybe groups  ([] <$ new)
-                 , strikes = fromMaybe strikes (3 <$ new)
+        return s { wall      = fromMaybe wall               new
+                 , groups    = fromMaybe groups    $ []  <$ new
+                 , strikes   = fromMaybe strikes   $ 3   <$ new
+                 , startTime = fromMaybe startTime $ now <$ new
                  }
     where parseWall "" = Just []
           parseWall s = let cells = filter (not . T.null) . map strip . T.splitOn "\n" $ chomp s
@@ -217,11 +233,13 @@ play state (Client cid conn) "P" req =
 
 -- player submitted a guess
 play state (Client cid conn) "g" guess =
-    modifyMVar_ state $ \s@ServerState{clients,groups} -> reqp s cid $
-        fromMaybe (return s) (makeGuess s <$> parseGuess s guess)
-    where parseGuess s@ServerState{groups,strikes} guess = do
+    modifyMVar_ state $ \s@ServerState{clients,groups} -> reqp s cid $ do
+        now <- timeMillis
+        fromMaybe (return s) (makeGuess s <$> parseGuess s now guess)
+    where parseGuess s@ServerState{groups,strikes,startTime,duration} now guess = do
               guard $ strikes /= 0
-              xs <- sequence $ fmap fst . hush . T.decimal <$> T.splitOn "/" guess
+              guard $ now - startTime < (fromIntegral duration)*1000
+              xs <- sequence $ decimal <$> T.splitOn "/" guess
               guard $ all ($xs) [(==4) . length,
                                  liftM2 (==) id nub,
                                  all (liftM2 (&&) (between 0 15) (`notElem` groups))]
@@ -242,6 +260,9 @@ play state (Client cid conn) "g" guess =
                      when strike $ broadcast clients $ encodeStrikes strikes'
                      return s { strikes = strikes' }
 
+-- timesync
+play state (Client _ conn) "t" stamp = timeSync conn $ T.cons 't' stamp
+
 play _ (Client _ conn) _ _ = logC conn "misbehaving client??"
 
 
@@ -251,8 +272,8 @@ encodeAdmin :: Bool -> Text
 encodeAdmin = encodeYN 'a'
 encodePlayer :: Bool -> Text
 encodePlayer = encodeYN 'p'
-encodeWall :: [(Int,Text)] -> Text
-encodeWall = ('w' `T.cons`) . T.intercalate "\n" . map snd . sortOn fst
+encodeWall :: Integer -> Int -> [(Int,Text)] -> Text
+encodeWall st du = ('w' `T.cons`) . T.intercalate "\n" . (T.pack (show st):) . (T.pack (show du):) . map snd . sortOn fst
 encodeGuess :: Bool -> [Int] -> Text
 encodeGuess yes idxs = T.pack $ (if yes then 'g' else 'G'):intercalate "/" (show <$> idxs)
 encodeStrikes :: Int -> Text
@@ -298,6 +319,8 @@ main = do
                                    , wall = []
                                    , groups = []
                                    , strikes = 3
+                                   , startTime = 0
+                                   , duration = 150
                                    }
     log "starting server"
     WS.runServer "0.0.0.0" 9255 $ app state

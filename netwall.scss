@@ -30,7 +30,6 @@ div#topbar {
         max-width: 50%;
         text-align: center;
         text-shadow: 0 0 2px #000, 0 0 2px #000;
-        background: linear-gradient(to right, mix(#86c1b9, #000) 0 50%, #000 50% 100%);
     }
 
     > div#strikes {
@@ -42,7 +41,7 @@ div#topbar {
             width: 11pt;
             height: 11pt;
             border-radius: 11pt;
-            margin: 0 5pt;
+            margin: 0 2%;
             background-color: #86c1b9;
             &.used { background-color: mix(#86c1b9, #000, 25%); }
         }

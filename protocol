@@ -16,7 +16,9 @@ play:
     [a]dmin yes (1) or no (0)
     [p]layer yes (1) or no (0)
     [c]lient list (for admins)
-    [w]all initialized
+    [w]all initialized (includes start time)
     [g]roups guessed
     [G]roup guessed incorrectly
     [s]trike count
+
+[t]imesync protocol goes both ways
