@@ -208,9 +208,19 @@ play state (Client cid conn) "w" walldata =
                  , strikes   = fromMaybe strikes   $ 3   <$ new
                  , startTime = fromMaybe startTime $ now <$ new
                  }
-    where parseWall "" = Just []
-          parseWall s = let cells = filter (not . T.null) . map strip . T.splitOn "\n" $ chomp s
+    where parseWall s = let cells = filter (not . T.null) . map strip . T.splitOn "\n" $ chomp s
                          in cells <$ guard (length cells == 16)
+
+-- admin cleared wall
+play state (Client cid conn) "W" _ =
+    modifyMVar_ state $ \s@ServerState{clients,wall,groups,strikes,startTime,duration} -> reqa s cid $ do
+        broadcast clients "W"
+        -- make sure to keep this in sync with DEF in netwall.js
+        return s { wall      = []
+                 , groups    = []
+                 , strikes   = 3
+                 , startTime = 0
+                 }
 
 -- (un)make someone an admin
 -- ugly code duplication between this and the "P" case, but whatever

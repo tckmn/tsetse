@@ -92,6 +92,16 @@ window.addEventListener('load', () => {
                         renderStrikes();
                         resetTimer();
                         break;
+                    case 'W':
+                        // make sure to keep this in sync with DEF in netwall.hs
+                        wall = [];
+                        groups = [];
+                        strikes = 3;
+                        startTime = 0;
+                        render();
+                        renderStrikes();
+                        resetTimer();
+                        break;
                     case 'g':
                         groups = data.split('/').map(x => +x);
                         render();
@@ -191,7 +201,7 @@ window.addEventListener('load', () => {
 
     var actions = {
         set: () => { ws.send('w' + $('#settxt').value); },
-        clr: () => { ws.send('w'); }
+        clr: () => { ws.send('W'); }
     };
 
     $$('#admin > span').forEach(link => {

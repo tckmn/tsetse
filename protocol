@@ -9,6 +9,7 @@ play:
 - client to server:
     [a]uthenticate with admin password
     [w]all set (by admin)
+    [W]all cleared (by admin)
     [A]dminify someone yes (1) or no (0)
     [P]layerify someone yes (1) or no (0)
     [g]uess submitted (by player)
@@ -16,7 +17,8 @@ play:
     [a]dmin yes (1) or no (0)
     [p]layer yes (1) or no (0)
     [c]lient list (for admins)
-    [w]all initialized (includes start time)
+    [w]all initialized (includes start time and duration)
+    [W]all cleared
     [g]roups guessed
     [G]roup guessed incorrectly
     [s]trike count
