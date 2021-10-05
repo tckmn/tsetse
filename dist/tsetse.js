@@ -16,7 +16,7 @@ window.addEventListener('load', () => {
         latencies = [], latency = 0,
         startTime = 0, duration = 0, timerIntr;
 
-    ws = new WebSocket('ws://a.tck.mn:9255/');
+    ws = new WebSocket('ws://' + location.hostname + ':9255/');
 
     var negotiate = regen => {
         var key = (regen !== true && localStorage.getItem('key')) || genkey();

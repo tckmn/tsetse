@@ -331,7 +331,7 @@ main = do
                                    , groups = []
                                    , strikes = 3
                                    , startTime = 0
-                                   , duration = 150
+                                   , duration = 180
                                    }
     log "starting server"
     WS.runServer "0.0.0.0" 9255 $ app state
