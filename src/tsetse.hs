@@ -4,6 +4,10 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 import Prelude hiding (log)
 
@@ -40,18 +44,44 @@ clientId   (Client cid _)  = cid
 clientConn (Client _ conn) = conn
 withCid cid = filter ((==cid) . clientId)
 
-data ServerState = ServerState { clients :: [Client]
-                               , secrets :: Map ClientId Text
-                               , players :: [ClientId]
-                               , admins :: [ClientId]
-                               , nextConn :: Int
-                               , password :: Text
-                               , wall :: [(Int,Text)]
-                               , groups :: [Int]
-                               , strikes :: Int
-                               , startTime :: Integer
-                               , duration :: Int
-                               }
+-- newtype GameIO a = GameIO { runGameIO :: ServerState -> IO a }
+
+class Game g msg | g -> msg where
+    tomsg :: g -> Text -> Maybe msg
+    recv :: Client -> g -> msg -> IO g
+
+data OCWallGame = OCWallGame { wall :: [(Int,Text)]
+                             , groups :: [Int]
+                             , strikes :: Int
+                             , startTime :: Integer
+                             , duration :: Int
+                             }
+
+data OCWallMsg = OCWallMsg { asdf :: Int }
+
+instance Game OCWallGame OCWallMsg where
+    tomsg _ t = Just $ OCWallMsg 10
+    recv c g msg = return g
+
+data SetGame = SetGame { cards :: [Int]
+                       }
+
+data SetMsg = SetMsg { asdfasdf :: Int }
+
+instance Game SetGame SetMsg where
+    tomsg _ t = Just $ SetMsg 100
+    recv c g msg = return g
+
+
+data ServerState = forall g msg. Game g msg =>
+    ServerState { clients :: [Client]
+                , secrets :: Map ClientId Text
+                , players :: [ClientId]
+                , admins :: [ClientId]
+                , nextConn :: Int
+                , password :: Text
+                , game :: g
+                }
 
 idLength = 5
 secretLength = 10
@@ -164,18 +194,31 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
         let c = Client cid conn
         modifyMVar_ state $ \s@ServerState{..} -> do
             -- catch up
-            when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
-            when (cid `elem` players) $ sendWS conn $ encodePlayer True
-            when (not $ null wall)    $ sendWS conn $ encodeWall startTime duration wall
-            when (not $ null groups)  $ sendWS conn $ encodeGuess True groups
-            when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
+            -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
+            -- when (cid `elem` players) $ sendWS conn $ encodePlayer True
+            -- when (not $ null wall)    $ sendWS conn $ encodeWall startTime duration wall
+            -- when (not $ null groups)  $ sendWS conn $ encodeGuess True groups
+            -- when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
             -- add client to list (and tell admins)
             withClientsUpdate s { clients = c:clients
                                 , secrets = M.insert cid sec secrets }
         -- main loop
         forever $ do
             msg <- recvWS conn
-            uncurry (play state c) $ T.splitAt 1 msg
+            modifyMVar_ state $ \s@ServerState{..} -> do
+                game' <- case tomsg game msg of
+                           Just x -> recv c game x
+                           Nothing -> return game
+                -- return $ s { game = game' }
+                return $ ServerState { clients
+                                     , secrets
+                                     , players
+                                     , admins
+                                     , nextConn
+                                     , password
+                                     , game = game'
+                                     }
+            -- uncurry (play state c) $ T.splitAt 1 msg
 
     let disconnect = do
         logC conn "disconnected"
@@ -184,6 +227,7 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
 
     lift $ connect `finally` disconnect
 
+{-
 
 play :: MVar ServerState -> Client -> Text -> Text -> IO ()
 
@@ -276,6 +320,7 @@ play state (Client _ conn) "t" stamp = timeSync conn $ T.cons 't' stamp
 play _ (Client _ conn) _ _ = logC conn "misbehaving client??"
 
 
+
 encodeYN :: Char -> Bool -> Text
 encodeYN ch yes = T.pack $ ch:(if yes then "1" else "0")
 encodeAdmin :: Bool -> Text
@@ -304,11 +349,13 @@ encodeClients clients secrets players admins =
           fmtYN s True  = s
           fmtYN s False = " "
 
+-}
+
 withClientsUpdate :: ServerState -> IO ServerState
 withClientsUpdate s@ServerState{clients,secrets,players,admins} =
     forM_ (filter ((`elem` admins) . clientId) clients)
           (flip sendWS clientsEnc . clientConn) $> s
-    where clientsEnc = encodeClients clients secrets players admins
+    where clientsEnc = "" -- encodeClients clients secrets players admins
 
 
 setpass :: IOException -> IO Text
@@ -327,11 +374,12 @@ main = do
                                    , admins = []
                                    , nextConn = 0
                                    , password = pwd
-                                   , wall = []
-                                   , groups = []
-                                   , strikes = 3
-                                   , startTime = 0
-                                   , duration = 180
+                                   , game = SetGame { cards = [] }
+                                   -- , wall = []
+                                   -- , groups = []
+                                   -- , strikes = 3
+                                   -- , startTime = 0
+                                   -- , duration = 180
                                    }
     log "starting server"
     WS.runServer "0.0.0.0" 9255 $ app state
