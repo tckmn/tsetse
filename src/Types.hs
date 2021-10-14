@@ -1,31 +1,11 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Types where
 
-import Control.Concurrent (MVar, newMVar, readMVar, modifyMVar, modifyMVar_)
-import Control.Exception (catch, finally, IOException)
 import Control.Monad
-import Control.Monad.Trans
-import Control.Monad.Trans.Maybe
-import Data.Char (isUpper, isAscii, isSpace, isDigit)
-import Data.Functor
-import Data.List
 import Data.Map (Map)
-import Data.Maybe
 import Data.Text (Text)
-import Data.Time.Clock.POSIX (getPOSIXTime)
-import Data.Time.Format (formatTime, defaultTimeLocale)
-import Data.Time.LocalTime (getZonedTime)
-import GHC.Generics
-import System.Random (randomRIO)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T

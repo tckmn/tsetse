@@ -1,14 +1,9 @@
 #!/usr/bin/env runhaskell
 
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TupleSections #-}
 
 import Prelude hiding (log)
 
@@ -26,7 +21,6 @@ import Data.Text (Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Data.Time.LocalTime (getZonedTime)
-import GHC.Generics
 import System.Random (randomRIO)
 import qualified Data.Map as M
 import qualified Data.Text as T

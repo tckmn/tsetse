@@ -1,12 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Cset where
@@ -22,6 +16,8 @@ import Templates
 data CsetGame = CsetGame { cards :: [Int]
                          }
 
+$(makeMonadFns ''CsetGame)
+
 data SetMsg = SetMsg { asdfasdf :: Int }
     deriving Generic
 
@@ -31,7 +27,5 @@ instance ToJSON SetMsg where
     toJSON = genericToJSON jsonOpts
     toEncoding = genericToEncoding jsonOpts
 
-
 instance Game CsetGame SetMsg where
     recv c msg = return ()
-

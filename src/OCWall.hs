@@ -1,12 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module OCWall where
@@ -26,7 +20,7 @@ data OCWallGame = OCWallGame { wall :: [(Int,Text)]
                              , duration :: Int
                              }
 
-$(makeSetters ''OCWallGame)
+$(makeMonadFns ''OCWallGame)
 
 data OCWallMsg = OCWallSetWall { categories :: [Text] }
                | OCWallGuess { guess :: [Int] }
@@ -44,5 +38,5 @@ instance Game OCWallGame OCWallMsg where
         return ()
 
     recv c OCWallGuess{..} = do
-        setStrikes 10
+        modStrikes pred
         return ()
