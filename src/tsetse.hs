@@ -8,6 +8,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 import Prelude hiding (log)
 
@@ -25,63 +26,22 @@ import Data.Text (Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Data.Time.LocalTime (getZonedTime)
+import GHC.Generics
 import System.Random (randomRIO)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Read as T
+import qualified Data.Text.Encoding as T
+import qualified Data.ByteString.Lazy as LB
 
+import Data.Aeson
 import qualified Network.WebSockets as WS
 
+import Types
+import OCWall
+import Cset
 
-type ClientId = Text
-data Connection = Connection WS.Connection Int
-instance Eq Connection where
-    (Connection _ n1) == (Connection _ n2) = n1 == n2
-
-data Client = Client ClientId Connection
-clientId   (Client cid _)  = cid
-clientConn (Client _ conn) = conn
-withCid cid = filter ((==cid) . clientId)
-
--- newtype GameIO a = GameIO { runGameIO :: ServerState -> IO a }
-
-class Game g msg | g -> msg where
-    tomsg :: g -> Text -> Maybe msg
-    recv :: Client -> g -> msg -> IO g
-
-data OCWallGame = OCWallGame { wall :: [(Int,Text)]
-                             , groups :: [Int]
-                             , strikes :: Int
-                             , startTime :: Integer
-                             , duration :: Int
-                             }
-
-data OCWallMsg = OCWallMsg { asdf :: Int }
-
-instance Game OCWallGame OCWallMsg where
-    tomsg _ t = Just $ OCWallMsg 10
-    recv c g msg = return g
-
-data SetGame = SetGame { cards :: [Int]
-                       }
-
-data SetMsg = SetMsg { asdfasdf :: Int }
-
-instance Game SetGame SetMsg where
-    tomsg _ t = Just $ SetMsg 100
-    recv c g msg = return g
-
-
-data ServerState = forall g msg. Game g msg =>
-    ServerState { clients :: [Client]
-                , secrets :: Map ClientId Text
-                , players :: [ClientId]
-                , admins :: [ClientId]
-                , nextConn :: Int
-                , password :: Text
-                , game :: g
-                }
 
 idLength = 5
 secretLength = 10
@@ -206,9 +166,7 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
         forever $ do
             msg <- recvWS conn
             modifyMVar_ state $ \s@ServerState{..} -> do
-                game' <- case tomsg game msg of
-                           Just x -> recv c game x
-                           Nothing -> return game
+                (_, game') <- runGameIO (fromMaybe (return ()) (recvT c msg)) s game
                 -- return $ s { game = game' }
                 return $ ServerState { clients
                                      , secrets
@@ -374,7 +332,7 @@ main = do
                                    , admins = []
                                    , nextConn = 0
                                    , password = pwd
-                                   , game = SetGame { cards = [] }
+                                   , game = CsetGame { cards = [] }
                                    -- , wall = []
                                    -- , groups = []
                                    -- , strikes = 3
