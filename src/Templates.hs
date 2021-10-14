@@ -3,13 +3,18 @@
 module Templates where
 
 import Control.Monad
+import Data.Char
 import Language.Haskell.TH
 
 import Types
-import Util
 
-makeMonadFns :: Name -> DecsQ
-makeMonadFns t = do
+fn :: String -> Name -> PatQ
+fn s = pure . VarP . mkName . (s++) . capitalize . nameBase
+    where capitalize "" = ""
+          capitalize (c:s) = toUpper c : s
+
+makeGameFns :: Name -> DecsQ
+makeGameFns t = do
     TyConI (DataD _ _ _ _ [RecC _ fields] _) <- reify t
 
     foldr1 (liftM2 (++)) [[d|
@@ -26,4 +31,13 @@ makeMonadFns t = do
 
       |] | (name, _, _) <- fields]
 
-  where fn s = pure . VarP . mkName . (s++) . capitalize . nameBase
+makeStateFns :: Name -> DecsQ
+makeStateFns t = do
+    TyConI (DataD _ _ _ _ [ForallC _ _ (RecC _ fields)] _) <- reify t
+
+    foldr1 (liftM2 (++)) [[d|
+
+        $(fn "get" name) = GameIO $ \s g ->
+            return (Right ($(pure $ VarE name) s), g)
+
+      |] | (name, _, _) <- fields, nameBase name /= "game"]

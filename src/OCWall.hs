@@ -12,6 +12,7 @@ import Data.Aeson
 
 import Types
 import Templates
+import ServerTemplates
 
 data OCWallGame = OCWallGame { wall :: [(Int,Text)]
                              , groups :: [Int]
@@ -20,7 +21,7 @@ data OCWallGame = OCWallGame { wall :: [(Int,Text)]
                              , duration :: Int
                              }
 
-$(makeMonadFns ''OCWallGame)
+$(makeGameFns ''OCWallGame)
 
 data OCWallMsg = OCWallSetWall { categories :: [Text] }
                | OCWallGuess { guess :: [Int] }

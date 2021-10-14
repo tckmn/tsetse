@@ -20,6 +20,7 @@ import qualified Network.WebSockets as WS
 -- import Control.Monad.Reader
 -- import Control.Monad.State
 -- import Control.Monad.Except
+-- type GameIO' g = ReaderT ServerState (StateT g (ExceptT String IO)) ???
 
 type ClientId = Text
 data Connection = Connection WS.Connection Int
@@ -33,11 +34,6 @@ withCid cid = filter ((==cid) . clientId)
 
 -- what an absolute beast of a monad
 newtype GameIO g a = GameIO { runGameIO :: ServerState -> g -> IO (Either String a, g) }
--- type GameIO' g = ReaderT ServerState (StateT g (ExceptT String IO)) ???
-
--- instance Applicative (GameIO g) where
---     pure x = GameIO $ \s g -> return (x, g)
---     (GameIO f) <*> (GameIO x) = 
 
 instance Monad (GameIO g) where
     return x = GameIO $ \s g -> return (Right x, g)

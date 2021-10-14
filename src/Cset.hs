@@ -12,11 +12,12 @@ import Data.Aeson
 
 import Types
 import Templates
+import ServerTemplates
 
 data CsetGame = CsetGame { cards :: [Int]
                          }
 
-$(makeMonadFns ''CsetGame)
+$(makeGameFns ''CsetGame)
 
 data SetMsg = SetMsg { asdfasdf :: Int }
     deriving Generic
