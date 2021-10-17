@@ -16,11 +16,11 @@ import qualified Data.ByteString.Lazy as LB
 import Data.Aeson
 import qualified Network.WebSockets as WS
 
--- import Control.Monad.Trans
--- import Control.Monad.Reader
--- import Control.Monad.State
--- import Control.Monad.Except
--- type GameIO' g = ReaderT ServerState (StateT g (ExceptT String IO)) ???
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
+import Control.Monad.Reader
+import Control.Monad.State
+type GameIO' g = ReaderT ServerState (StateT g (MaybeT IO))
 
 type ClientId = Text
 data Connection = Connection WS.Connection Int
@@ -33,15 +33,15 @@ clientConn (Client _ conn) = conn
 withCid cid = filter ((==cid) . clientId)
 
 -- what an absolute beast of a monad
-newtype GameIO g a = GameIO { runGameIO :: ServerState -> g -> IO (Either String a, g) }
+newtype GameIO g a = GameIO { runGameIO :: ServerState -> g -> IO (Maybe a, g) }
 
 instance Monad (GameIO g) where
-    return x = GameIO $ \s g -> return (Right x, g)
+    return x = GameIO $ \s g -> return (Just x, g)
     (GameIO h) >>= f = GameIO $ \s g -> do
         (a, g') <- h s g
         case a of
-          Left e -> return (Left e, g')
-          Right a -> let GameIO h' = f a in h' s g'
+          Nothing -> return (Nothing, g')
+          Just a -> let GameIO h' = f a in h' s g'
 
 instance Applicative (GameIO g) where
     pure = return

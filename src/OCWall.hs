@@ -14,6 +14,8 @@ import Types
 import Templates
 import ServerTemplates
 
+import Control.Monad.State
+
 data OCWallGame = OCWallGame { wall :: [(Int,Text)]
                              , groups :: [Int]
                              , strikes :: Int
@@ -21,7 +23,8 @@ data OCWallGame = OCWallGame { wall :: [(Int,Text)]
                              , duration :: Int
                              }
 
-$(makeGameFns ''OCWallGame)
+-- $(makeGameFns ''OCWallGame)
+-- $(makeGameFns' ''OCWallGame)
 
 data OCWallMsg = OCWallSetWall { categories :: [Text] }
                | OCWallGuess { guess :: [Int] }
@@ -39,5 +42,11 @@ instance Game OCWallGame OCWallMsg where
         return ()
 
     recv c OCWallGuess{..} = do
-        modStrikes pred
+        -- let x = modStrikes pred :: GameIO' OCWallGame Int
+        let x = do
+            g <- get
+            put g
+            return 10
+
+        let y = x :: GameIO' OCWallGame Int
         return ()
