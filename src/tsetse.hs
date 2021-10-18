@@ -29,7 +29,8 @@ import qualified Data.Text.Read as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Lazy as LB
 
-import Data.Aeson
+import Control.Lens
+import Data.Aeson hiding ((.=))
 import qualified Network.WebSockets as WS
 
 import Types
@@ -73,11 +74,11 @@ chunksOf n xs = take n xs:chunksOf n (drop n xs)
 timeMillis :: Integral a => IO a
 timeMillis = round . (1000*) <$> getPOSIXTime
 
-reqa :: ServerState -> ClientId -> IO ServerState -> IO ServerState
-reqa s@ServerState{admins} cid blk = if cid `elem` admins then blk else return s
+-- reqa :: ServerState -> ClientId -> IO ServerState -> IO ServerState
+-- reqa s@ServerState{admins} cid blk = if cid `elem` admins then blk else return s
 
-reqp :: ServerState -> ClientId -> IO ServerState -> IO ServerState
-reqp s@ServerState{players} cid blk = if cid `elem` players then blk else return s
+-- reqp :: ServerState -> ClientId -> IO ServerState -> IO ServerState
+-- reqp s@ServerState{players} cid blk = if cid `elem` players then blk else return s
 
 timeSync :: Connection -> Text -> IO ()
 timeSync conn echo = timeMillis >>=
@@ -116,7 +117,7 @@ app :: MVar ServerState -> WS.ServerApp
 app state pending = do
     conn <- WS.acceptRequest pending
     connid <- modifyMVar state $
-        \s@ServerState{nextConn} -> return (s{nextConn=nextConn+1}, nextConn)
+        \s -> return (s & nextConn %~ succ, s ^. nextConn)
     WS.withPingThread conn 30 (pure ()) $ negotiate state (Connection conn connid)
 
 
@@ -124,7 +125,7 @@ negotiate :: MVar ServerState -> Connection -> IO ()
 negotiate state conn = fmap (maybe () id) . runMaybeT $ do
     lift $ logC conn "negotiate attempt"
     (key, stamp) <- lift $ T.splitAt (idLength + secretLength) <$> recvWS conn
-    ServerState{secrets} <- lift $ readMVar state
+    server <- lift $ readMVar state
 
     lift . when (T.any (not . liftM2 (&&) isUpper isAscii) key ||
                  T.null stamp || T.any (not . isDigit) stamp) $ do
@@ -134,7 +135,7 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
 
     let (cid, sec) = T.splitAt idLength key
 
-    lift . when (maybe False (/= sec) $ M.lookup cid secrets) $ do
+    lift . when (maybe False (/= sec) $ M.lookup cid (server^.secrets)) $ do
         logC conn "client id clash, trying again"
         sendWS conn "r"
         negotiate state conn
@@ -146,7 +147,7 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
     let connect = do
         logC conn "connected"
         let c = Client cid conn
-        modifyMVar_ state $ \s@ServerState{..} -> do
+        modifyMVar_ state $ \s -> do
             -- catch up
             -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
             -- when (cid `elem` players) $ sendWS conn $ encodePlayer True
@@ -154,28 +155,29 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
             -- when (not $ null groups)  $ sendWS conn $ encodeGuess True groups
             -- when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
             -- add client to list (and tell admins)
-            withClientsUpdate s { clients = c:clients
-                                , secrets = M.insert cid sec secrets }
+            withClientsUpdate $ s & clients %~ (c:)
+                                  & secrets %~ M.insert cid sec
         -- main loop
         forever $ do
             msg <- recvWS conn
             modifyMVar_ state $ \s@ServerState{..} -> do
-                (_, game') <- runGameIO (fromMaybe (return ()) (recvT c msg)) s game
+                (_, game') <- runGameIO (fromMaybe (return ()) (recvT c msg)) s _game
+                -- return $ s & game .= game'
                 -- return $ s { game = game' }
-                return $ ServerState { clients
-                                     , secrets
-                                     , players
-                                     , admins
-                                     , nextConn
-                                     , password
-                                     , game = game'
+                return $ ServerState { _clients
+                                     , _secrets
+                                     , _players
+                                     , _admins
+                                     , _nextConn
+                                     , _password
+                                     , _game = game'
                                      }
             -- uncurry (play state c) $ T.splitAt 1 msg
 
     let disconnect = do
         logC conn "disconnected"
-        modifyMVar_ state $ \s@ServerState{clients,secrets} ->
-            withClientsUpdate s { clients = filter ((/= conn) . clientConn) clients }
+        modifyMVar_ state $ \s ->
+            withClientsUpdate $ s & clients %~ filter ((/= conn) . clientConn)
 
     lift $ connect `finally` disconnect
 
@@ -304,8 +306,8 @@ encodeClients clients secrets players admins =
 -}
 
 withClientsUpdate :: ServerState -> IO ServerState
-withClientsUpdate s@ServerState{clients,secrets,players,admins} =
-    forM_ (filter ((`elem` admins) . clientId) clients)
+withClientsUpdate s@ServerState{..} =
+    forM_ (filter ((`elem` _admins) . clientId) _clients)
           (flip sendWS clientsEnc . clientConn) $> s
     where clientsEnc = "" -- encodeClients clients secrets players admins
 
@@ -320,13 +322,13 @@ setpass _ = do
 main :: IO ()
 main = do
     pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
-    state <- newMVar $ ServerState { clients = []
-                                   , secrets = M.empty
-                                   , players = []
-                                   , admins = []
-                                   , nextConn = 0
-                                   , password = pwd
-                                   , game = CsetGame { cards = [] }
+    state <- newMVar $ ServerState { _clients = []
+                                   , _secrets = M.empty
+                                   , _players = []
+                                   , _admins = []
+                                   , _nextConn = 0
+                                   , _password = pwd
+                                   , _game = CsetGame { cards = [] }
                                    -- , wall = []
                                    -- , groups = []
                                    -- , strikes = 3

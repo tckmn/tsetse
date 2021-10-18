@@ -17,7 +17,7 @@ import ServerTemplates
 data CsetGame = CsetGame { cards :: [Int]
                          }
 
-$(makeGameFns ''CsetGame)
+-- $(makeGameFns ''CsetGame)
 
 data SetMsg = SetMsg { asdfasdf :: Int }
     deriving Generic

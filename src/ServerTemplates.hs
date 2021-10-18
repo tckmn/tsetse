@@ -5,4 +5,4 @@ module ServerTemplates where
 import Types
 import Templates
 
-$(makeStateFns ''ServerState)
+-- $(makeStateFns ''ServerState)

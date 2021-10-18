@@ -8,20 +8,24 @@ module OCWall where
 import Data.Text (Text)
 import GHC.Generics
 
-import Data.Aeson
+import Control.Lens
+import Data.Aeson hiding ((.=))
 
 import Types
 import Templates
 import ServerTemplates
 
+import Control.Monad.Reader
 import Control.Monad.State
 
-data OCWallGame = OCWallGame { wall :: [(Int,Text)]
-                             , groups :: [Int]
-                             , strikes :: Int
-                             , startTime :: Integer
-                             , duration :: Int
+data OCWallGame = OCWallGame { _wall :: [(Int,Text)]
+                             , _groups :: [Int]
+                             , _strikes :: Int
+                             , _startTime :: Integer
+                             , _duration :: Int
                              }
+makeLenses ''OCWallGame
+
 
 -- $(makeGameFns ''OCWallGame)
 -- $(makeGameFns' ''OCWallGame)
@@ -43,10 +47,12 @@ instance Game OCWallGame OCWallMsg where
 
     recv c OCWallGuess{..} = do
         -- let x = modStrikes pred :: GameIO' OCWallGame Int
-        let x = do
-            g <- get
-            put g
-            return 10
-
-        let y = x :: GameIO' OCWallGame Int
+        s <- use strikes
+        s' <- gets . view $ strikes
+        strikes += 1
+        strikes %= succ
+        strikes .= 2
+        cs <- flip magnify ask clients
+        cs' <- asks . view $ clients
+        cs'' <- view clients
         return ()
