@@ -2,7 +2,13 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Types where
+module Types
+    ( module Control.Lens
+    , module Control.Monad.Reader
+    , module Control.Monad.State
+    , Text
+    , module Types
+    ) where
 
 import Control.Monad
 import Data.Map (Map)
@@ -23,6 +29,9 @@ import Control.Monad.Trans.Maybe
 import Control.Monad.Reader
 import Control.Monad.State
 
+import Language.Haskell.TH
+
+-- clients
 type ClientId = Text
 data Connection = Connection WS.Connection Int
 instance Eq Connection where
@@ -33,35 +42,18 @@ clientId   (Client cid _)  = cid
 clientConn (Client _ conn) = conn
 withCid cid = filter ((==cid) . clientId)
 
--- what an absolute beast of a monad
+-- main game monad
 type GameIO g = ReaderT ServerState (MaybeT (StateT g IO))
 runGameIO :: GameIO g a -> ServerState -> g -> IO (Maybe a, g)
 runGameIO = ((runStateT . runMaybeT) .) . runReaderT
--- newtype GameIO g a = GameIO { runGameIO :: ServerState -> g -> IO (Maybe a, g) }
 
--- instance Monad (GameIO g) where
---     return x = GameIO $ \s g -> return (Just x, g)
---     (GameIO h) >>= f = GameIO $ \s g -> do
---         (a, g') <- h s g
---         case a of
---           Nothing -> return (Nothing, g')
---           Just a -> let GameIO h' = f a in h' s g'
-
--- instance Applicative (GameIO g) where
---     pure = return
---     (<*>) = ap
-
--- instance Functor (GameIO g) where
---     fmap = liftM
-
-jsonOpts = defaultOptions { sumEncoding = TaggedObject "t" "" }
-
+-- main game type
 class FromJSON msg => Game g msg | g -> msg where
     recv :: Client -> msg -> GameIO g ()
     recvT :: Client -> Text -> Maybe (GameIO g ())
     recvT c t = recv c <$> decode (LB.fromStrict $ T.encodeUtf8 t)
 
-
+-- main server type
 data ServerState = forall g msg. Game g msg =>
     ServerState { _clients :: [Client]
                 , _secrets :: Map ClientId Text
@@ -73,3 +65,14 @@ data ServerState = forall g msg. Game g msg =>
                 }
 
 makeLenses ''ServerState
+
+-- jsonifying message types
+jsonOpts = defaultOptions { sumEncoding = TaggedObject "t" "" }
+makeJSON :: Name -> DecsQ
+makeJSON t = [d|
+    instance FromJSON $(pure $ ConT t) where
+        parseJSON = genericParseJSON jsonOpts
+    instance ToJSON $(pure $ ConT t) where
+        toJSON = genericToJSON jsonOpts
+        toEncoding = genericToEncoding jsonOpts
+    |]

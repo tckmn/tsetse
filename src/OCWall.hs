@@ -5,18 +5,8 @@
 
 module OCWall where
 
-import Data.Text (Text)
 import GHC.Generics
-
-import Control.Lens
-import Data.Aeson hiding ((.=))
-
 import Types
-import Templates
-import ServerTemplates
-
-import Control.Monad.Reader
-import Control.Monad.State
 
 data OCWallGame = OCWallGame { _wall :: [(Int,Text)]
                              , _groups :: [Int]
@@ -26,33 +16,20 @@ data OCWallGame = OCWallGame { _wall :: [(Int,Text)]
                              }
 makeLenses ''OCWallGame
 
+data Msg = SetWall { categories :: [Text] }
+         | Guess { guess :: [Int] }
+         deriving Generic
+makeJSON ''Msg
 
--- $(makeGameFns ''OCWallGame)
--- $(makeGameFns' ''OCWallGame)
+instance Game OCWallGame Msg where
 
-data OCWallMsg = OCWallSetWall { categories :: [Text] }
-               | OCWallGuess { guess :: [Int] }
-               deriving Generic
-
-instance FromJSON OCWallMsg where
-    parseJSON = genericParseJSON jsonOpts
-instance ToJSON OCWallMsg where
-    toJSON = genericToJSON jsonOpts
-    toEncoding = genericToEncoding jsonOpts
-
-instance Game OCWallGame OCWallMsg where
-
-    recv c OCWallSetWall{..} = do
+    recv c SetWall{..} = do
         return ()
 
-    recv c OCWallGuess{..} = do
-        -- let x = modStrikes pred :: GameIO' OCWallGame Int
+    recv c Guess{..} = do
         s <- use strikes
-        s' <- gets . view $ strikes
         strikes += 1
         strikes %= succ
         strikes .= 2
-        cs <- flip magnify ask clients
-        cs' <- asks . view $ clients
-        cs'' <- view clients
+        cs <- view clients
         return ()

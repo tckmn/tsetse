@@ -42,20 +42,23 @@ makeStateFns t = do
 
       |] | (name, _, _) <- fields, nameBase name /= "game"]
 
--- makeGameFns' :: Name -> DecsQ
--- makeGameFns' t = do
---     TyConI (DataD _ _ _ _ [RecC _ fields] _) <- reify t
 
---     foldr1 (liftM2 (++)) [[d|
+===
 
---         $(fn "get" name) = \s g ->
---             return (Just ($(pure $ VarE name) g), g)
 
---         $(fn "set" name) = \n -> \s g ->
---             return (Just $([|n|]), $(pure $ RecUpdE (VarE 'g) [(name, VarE 'n)]))
+newtype GameIO g a = GameIO { runGameIO :: ServerState -> g -> IO (Maybe a, g) }
 
---         $(fn "mod" name) = \f -> \s g ->
---             let r = f $ $(pure $ VarE name) g in
---             return (Just r, $(pure $ RecUpdE (VarE 'g) [(name, VarE 'r)]))
+instance Monad (GameIO g) where
+    return x = GameIO $ \s g -> return (Just x, g)
+    (GameIO h) >>= f = GameIO $ \s g -> do
+        (a, g') <- h s g
+        case a of
+          Nothing -> return (Nothing, g')
+          Just a -> let GameIO h' = f a in h' s g'
 
---       |] | (name, _, _) <- fields]
+instance Applicative (GameIO g) where
+    pure = return
+    (<*>) = ap
+
+instance Functor (GameIO g) where
+    fmap = liftM

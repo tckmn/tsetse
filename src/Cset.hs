@@ -5,28 +5,17 @@
 
 module Cset where
 
-import Data.Text (Text)
 import GHC.Generics
-
-import Data.Aeson
-
 import Types
-import Templates
-import ServerTemplates
 
-data CsetGame = CsetGame { cards :: [Int]
+data CsetGame = CsetGame { _cards :: [Int]
                          }
+makeLenses ''CsetGame
 
--- $(makeGameFns ''CsetGame)
+data Msg = Foo { asdfasdf :: Int }
+         | Bar { jkljkl :: Text }
+         deriving Generic
+makeJSON ''Msg
 
-data SetMsg = SetMsg { asdfasdf :: Int }
-    deriving Generic
-
-instance FromJSON SetMsg where
-    parseJSON = genericParseJSON jsonOpts
-instance ToJSON SetMsg where
-    toJSON = genericToJSON jsonOpts
-    toEncoding = genericToEncoding jsonOpts
-
-instance Game CsetGame SetMsg where
+instance Game CsetGame Msg where
     recv c msg = return ()

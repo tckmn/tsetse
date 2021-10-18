@@ -17,7 +17,6 @@ import Data.Functor
 import Data.List
 import Data.Map (Map)
 import Data.Maybe
-import Data.Text (Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Data.Time.LocalTime (getZonedTime)
@@ -29,7 +28,6 @@ import qualified Data.Text.Read as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Lazy as LB
 
-import Control.Lens
 import Data.Aeson hiding ((.=))
 import qualified Network.WebSockets as WS
 
@@ -328,7 +326,7 @@ main = do
                                    , _admins = []
                                    , _nextConn = 0
                                    , _password = pwd
-                                   , _game = CsetGame { cards = [] }
+                                   , _game = CsetGame { _cards = [] }
                                    -- , wall = []
                                    -- , groups = []
                                    -- , strikes = 3
