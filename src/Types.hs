@@ -6,6 +6,7 @@ module Types
     ( module Control.Lens
     , module Control.Monad.Reader
     , module Control.Monad.State
+    , module System.Random
     , Text
     , module Types
     ) where
@@ -22,6 +23,7 @@ import qualified Data.ByteString.Lazy as LB
 
 import Control.Lens
 import Data.Aeson
+import System.Random
 import qualified Network.WebSockets as WS
 
 import Control.Monad.Trans
@@ -49,6 +51,7 @@ runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 
 -- main game type
 class FromJSON msg => Game g msg | g -> msg where
+    new :: StdGen -> (g, StdGen)
     recv :: Client -> msg -> GameIO g ()
     recvT :: Client -> Text -> Maybe (GameIO g ())
     recvT c t = recv c <$> decode (LB.fromStrict $ T.encodeUtf8 t)

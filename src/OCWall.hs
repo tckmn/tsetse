@@ -23,6 +23,13 @@ makeJSON ''Msg
 
 instance Game OCWallGame Msg where
 
+    new g = (OCWallGame { _wall = []
+                        , _groups = []
+                        , _strikes = 3
+                        , _startTime = 0
+                        , _duration = 180
+                        }, g)
+
     recv c SetWall{..} = do
         return ()
 

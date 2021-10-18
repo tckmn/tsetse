@@ -326,12 +326,7 @@ main = do
                                    , _admins = []
                                    , _nextConn = 0
                                    , _password = pwd
-                                   , _game = CsetGame { _cards = [] }
-                                   -- , wall = []
-                                   -- , groups = []
-                                   -- , strikes = 3
-                                   -- , startTime = 0
-                                   -- , duration = 180
+                                   , _game = fst $ new (mkStdGen 0) :: CsetGame
                                    }
     log "starting server"
     WS.runServer "0.0.0.0" 9255 $ app state
