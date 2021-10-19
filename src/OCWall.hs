@@ -30,6 +30,8 @@ instance Game OCWallGame Msg where
                         , _duration = 180
                         }, g)
 
+    catchup = return ()
+
     recv SetWall{..} = do
         return ()
 

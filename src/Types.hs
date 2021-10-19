@@ -41,10 +41,13 @@ import Language.Haskell.TH
 type GameIO g = ReaderT (Client, ServerState) (MaybeT (StateT g IO))
 runGameIO :: GameIO g a -> (Client, ServerState) -> g -> IO (Maybe a, g)
 runGameIO = ((runStateT . runMaybeT) .) . runReaderT
+-- runGameIO' :: GameIO g a -> Client -> ServerState -> IO (Maybe a, g)
+-- runGameIO' g c s@ServerState{_game} = runGameIO g (c, s) _game
 
 -- main game type
 class FromJSON msg => Game g msg | g -> msg where
     new :: StdGen -> (g, StdGen)
+    catchup :: GameIO g ()
     recv :: msg -> GameIO g ()
     recvT :: Text -> Maybe (GameIO g ())
     recvT t = recv <$> decode (LB.fromStrict $ T.encodeUtf8 t)

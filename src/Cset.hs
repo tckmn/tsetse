@@ -35,7 +35,7 @@ data Msg = Claim { set :: [Card] }
 makeJSON ''Msg
 
 data OutMsg = Highlight { o_set :: [Card], o_good :: Bool }
-            | NewCards { o_cards :: [Card] }
+            | Cards { o_cards :: [Card] }
             deriving Generic
 makeJSON ''OutMsg
 
@@ -46,6 +46,10 @@ instance Game CsetGame Msg where
              in (CsetGame { _deck = deck
                           , _cards = cards
                           }, g)
+
+    catchup = do
+        cs <- use cards
+        send $ Cards cs
 
     recv Claim{..} = do
         -- you can't claim a set that's not on the board
@@ -64,4 +68,4 @@ instance Game CsetGame Msg where
         -- oh my god what a beautiful line
         newCards <- deck %%= splitAt 5
         cs <- cards <%= map (\c -> fromMaybe c . lookup c $ zip set newCards)
-        broadcast $ NewCards cs
+        broadcast $ Cards cs

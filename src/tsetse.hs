@@ -116,8 +116,10 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
     let connect = do
         logC conn "connected"
         let c = Client cid conn
-        modifyMVar_ state $ \s -> do
+
+        modifyMVar_ state $ \s@ServerState{_game} -> do
             -- catch up
+            runGameIO catchup (c, s) _game
             -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
             -- when (cid `elem` players) $ sendWS conn $ encodePlayer True
             -- when (not $ null wall)    $ sendWS conn $ encodeWall startTime duration wall
@@ -126,6 +128,7 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
             -- add client to list (and tell admins)
             withClientsUpdate $ s & clients %~ (c:)
                                   & secrets %~ M.insert cid sec
+
         -- main loop
         forever $ do
             msg <- recvWS conn
