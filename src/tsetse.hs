@@ -17,6 +17,7 @@ import Data.Functor
 import Data.List
 import Data.Map (Map)
 import Data.Maybe
+import Data.Tuple (swap)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import System.Random (randomRIO)
 import qualified Data.Map as M
@@ -85,8 +86,8 @@ timeSync conn echo = timeMillis >>=
 app :: MVar ServerState -> WS.ServerApp
 app state pending = do
     conn <- WS.acceptRequest pending
-    connid <- modifyMVar state $
-        \s -> return (s & nextConn %~ succ, s ^. nextConn)
+    -- i'm really sorry for this but i couldn't resist
+    connid <- modifyMVar state $ return . swap . (nextConn <<%~ succ)
     WS.withPingThread conn 30 (pure ()) $ negotiate state (Connection conn connid)
 
 
