@@ -18,8 +18,6 @@ import Data.List
 import Data.Map (Map)
 import Data.Maybe
 import Data.Time.Clock.POSIX (getPOSIXTime)
-import Data.Time.Format (formatTime, defaultTimeLocale)
-import Data.Time.LocalTime (getZonedTime)
 import System.Random (randomRIO)
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -82,33 +80,6 @@ timeSync :: Connection -> Text -> IO ()
 timeSync conn echo = timeMillis >>=
     sendWS conn . T.concat . ([echo, "/"] ++) . pure . T.pack . show
 
--- logging (not saved to a file, use tee)
-
-log :: String -> IO ()
-log s = getZonedTime >>= putStrLn . (++s) . formatTime defaultTimeLocale "[%F %T] "
-
-logC :: Connection -> String -> IO ()
-logC (Connection _ connid) s = log $ pad connid ++ ": " ++ s
-    where pad = reverse . take 5 . (++repeat '0') . reverse . show
-
-
--- sending and receiving websocket messages
-
-sendWS :: Connection -> Text -> IO ()
-sendWS c@(Connection conn connid) t = do
-    logC c $ "SEND " ++ T.unpack t
-    WS.sendTextData conn t
-
-recvWS :: Connection -> IO Text
-recvWS c@(Connection conn connid) = do
-    t <- WS.receiveData conn
-    logC c $ "RECV " ++ T.unpack t
-    return t
-
-broadcast :: [Client] -> Text -> IO ()
-broadcast clients msg = forM_ clients $ flip sendWS msg . clientConn
-
-
 -- main logic
 
 app :: MVar ServerState -> WS.ServerApp
@@ -159,7 +130,7 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
         forever $ do
             msg <- recvWS conn
             modifyMVar_ state $ \s@ServerState{..} -> do
-                (_, game') <- runGameIO (fromMaybe (return ()) (recvT c msg)) s _game
+                (_, game') <- runGameIO (fromMaybe (return ()) (recvT msg)) (c, s) _game
                 -- return $ s & game .= game'
                 -- return $ s { game = game' }
                 return $ ServerState { _clients
@@ -175,7 +146,7 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
     let disconnect = do
         logC conn "disconnected"
         modifyMVar_ state $ \s ->
-            withClientsUpdate $ s & clients %~ filter ((/= conn) . clientConn)
+            withClientsUpdate $ s & clients %~ filter ((/= conn) . _conn)
 
     lift $ connect `finally` disconnect
 
@@ -305,8 +276,8 @@ encodeClients clients secrets players admins =
 
 withClientsUpdate :: ServerState -> IO ServerState
 withClientsUpdate s@ServerState{..} =
-    forM_ (filter ((`elem` _admins) . clientId) _clients)
-          (flip sendWS clientsEnc . clientConn) $> s
+    forM_ (filter ((`elem` _admins) . _cid) _clients)
+          (flip sendWS clientsEnc . _conn) $> s
     where clientsEnc = "" -- encodeClients clients secrets players admins
 
 

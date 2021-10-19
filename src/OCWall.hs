@@ -16,8 +16,8 @@ data OCWallGame = OCWallGame { _wall :: [(Int,Text)]
                              }
 makeLenses ''OCWallGame
 
-data Msg = SetWall { categories :: [Text] }
-         | Guess { guess :: [Int] }
+data Msg = SetWall { i_categories :: [Text] }
+         | Guess { i_guess :: [Int] }
          deriving Generic
 makeJSON ''Msg
 
@@ -30,13 +30,12 @@ instance Game OCWallGame Msg where
                         , _duration = 180
                         }, g)
 
-    recv c SetWall{..} = do
+    recv SetWall{..} = do
         return ()
 
-    recv c Guess{..} = do
+    recv Guess{..} = do
         s <- use strikes
         strikes += 1
         strikes %= succ
         strikes .= 2
-        cs <- view clients
         return ()

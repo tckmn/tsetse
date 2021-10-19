@@ -7,6 +7,7 @@ module Types
     , module Control.Monad.Reader
     , module Control.Monad.State
     , module System.Random
+    , module Network
     , Text
     , module Types
     ) where
@@ -19,6 +20,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Read as T
 import qualified Data.Text.Encoding as T
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as LB
 
 import Control.Lens
@@ -31,30 +33,21 @@ import Control.Monad.Trans.Maybe
 import Control.Monad.Reader
 import Control.Monad.State
 
+import Network
+
 import Language.Haskell.TH
 
--- clients
-type ClientId = Text
-data Connection = Connection WS.Connection Int
-instance Eq Connection where
-    (Connection _ n1) == (Connection _ n2) = n1 == n2
-
-data Client = Client ClientId Connection
-clientId   (Client cid _)  = cid
-clientConn (Client _ conn) = conn
-withCid cid = filter ((==cid) . clientId)
-
 -- main game monad
-type GameIO g = ReaderT ServerState (MaybeT (StateT g IO))
-runGameIO :: GameIO g a -> ServerState -> g -> IO (Maybe a, g)
+type GameIO g = ReaderT (Client, ServerState) (MaybeT (StateT g IO))
+runGameIO :: GameIO g a -> (Client, ServerState) -> g -> IO (Maybe a, g)
 runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 
 -- main game type
 class FromJSON msg => Game g msg | g -> msg where
     new :: StdGen -> (g, StdGen)
-    recv :: Client -> msg -> GameIO g ()
-    recvT :: Client -> Text -> Maybe (GameIO g ())
-    recvT c t = recv c <$> decode (LB.fromStrict $ T.encodeUtf8 t)
+    recv :: msg -> GameIO g ()
+    recvT :: Text -> Maybe (GameIO g ())
+    recvT t = recv <$> decode (LB.fromStrict $ T.encodeUtf8 t)
 
 -- main server type
 data ServerState = forall g msg. Game g msg =>
@@ -66,11 +59,18 @@ data ServerState = forall g msg. Game g msg =>
                 , _password :: Text
                 , _game :: g
                 }
-
 makeLenses ''ServerState
 
 -- jsonifying message types
-jsonOpts = defaultOptions { sumEncoding = TaggedObject "t" "" }
+killPrefix :: String -> String -> String
+killPrefix o "" = o
+killPrefix o ('_':s) = s
+killPrefix o (_:s) = killPrefix o s
+
+jsonOpts = defaultOptions { sumEncoding = TaggedObject "t" ""
+                          , fieldLabelModifier = join killPrefix
+                          }
+
 makeJSON :: Name -> DecsQ
 makeJSON t = [d|
     instance FromJSON $(pure $ ConT t) where
@@ -79,3 +79,15 @@ makeJSON t = [d|
         toJSON = genericToJSON jsonOpts
         toEncoding = genericToEncoding jsonOpts
     |]
+
+-- common game monad tasks
+
+liftWS :: ToJSON a => (t -> Text -> IO ()) -> Getting t (Client, ServerState) t -> a -> GameIO g ()
+liftWS fn lens msg = view lens >>= \x -> liftIO . fn x . lb2t $ encode msg
+    where lb2t = T.decodeUtf8 . B.concat . LB.toChunks
+
+send :: ToJSON a => a -> GameIO g ()
+send = liftWS sendWS (_1.conn)
+
+broadcast :: ToJSON a => a -> GameIO g ()
+broadcast = liftWS broadcastWS (_2.clients)
