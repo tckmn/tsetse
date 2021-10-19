@@ -14,12 +14,10 @@ import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
 import Data.Char (isUpper, isAscii, isSpace, isDigit)
 import Data.Functor
-import Data.List
 import Data.Map (Map)
-import Data.Maybe
+import Data.Maybe (fromMaybe)
 import Data.Tuple (swap)
 import Data.Time.Clock.POSIX (getPOSIXTime)
-import System.Random (randomRIO)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -41,25 +39,6 @@ pwdfile = "pwd"
 
 
 -- random utility functions (first generic, then codebase-specific)
-
-chomp :: Text -> Text
-chomp = T.reverse . T.dropWhile (=='\n') . T.reverse
-
-strip :: Text -> Text
-strip = T.reverse . T.dropWhile isSpace . T.reverse . T.dropWhile isSpace
-
-shuffle :: [a] -> IO [a]
-shuffle [] = pure []
-shuffle xs = do
-    idx <- randomRIO (0, length xs - 1)
-    let (left, (x:right)) = splitAt idx xs
-    (x:) <$> shuffle (left++right)
-
-hush :: Either a b -> Maybe b
-hush = either (const Nothing) Just
-
-decimal :: Integral a => Text -> Maybe a
-decimal = fmap fst . hush . T.decimal
 
 between :: Ord a => a -> a -> a -> Bool
 between a b x = a <= x && x <= b
@@ -294,6 +273,7 @@ setpass _ = do
 
 main :: IO ()
 main = do
+    let chomp = T.reverse . T.dropWhile (=='\n') . T.reverse
     pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
     state <- newMVar $ ServerState { _clients = []
                                    , _secrets = M.empty
