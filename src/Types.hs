@@ -17,11 +17,6 @@ import Data.Map (Map)
 import Data.Text (Text)
 import qualified Data.Map as M
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.Text.Read as T
-import qualified Data.Text.Encoding as T
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as LB
 
 import Control.Lens
 import Data.Aeson
@@ -33,6 +28,7 @@ import Control.Monad.Trans.Maybe
 import Control.Monad.Reader
 import Control.Monad.State
 
+import Util
 import Network
 
 import Language.Haskell.TH
@@ -50,15 +46,30 @@ class FromJSON msg => Game g msg | g -> msg where
     catchup :: GameIO g ()
     recv :: msg -> GameIO g ()
     recvT :: Text -> Maybe (GameIO g ())
-    recvT t = recv <$> decode (LB.fromStrict $ T.encodeUtf8 t)
+    recvT t = recv <$> decodeT t
+
+-- main user type
+data User = User { _uid :: ClientId
+                 , _secret :: Text
+                 , _uname :: Text
+                 }
+-- TODO why doesn't this work???
+-- makeLenses ''User
+uid :: Lens' User ClientId
+uid = lens _uid (\x y -> x { _uid = y })
+secret :: Lens' User Text
+secret = lens _secret (\x y -> x { _secret = y })
+uname :: Lens' User Text
+uname = lens _uname (\x y -> x { _uname = y })
 
 -- main server type
 data ServerState = forall g msg. Game g msg =>
     ServerState { _clients :: [Client]
-                , _secrets :: Map ClientId Text
+                , _users :: [User]
                 , _players :: [ClientId]
                 , _admins :: [ClientId]
                 , _nextConn :: Int
+                , _nextClient :: ClientId
                 , _password :: Text
                 , _game :: g
                 }
@@ -85,9 +96,8 @@ makeJSON t = [d|
 
 -- common game monad tasks
 
-liftWS :: ToJSON a => (t -> Text -> IO ()) -> Getting t (Client, ServerState) t -> a -> GameIO g ()
-liftWS fn lens msg = view lens >>= \x -> liftIO . fn x . lb2t $ encode msg
-    where lb2t = T.decodeUtf8 . B.concat . LB.toChunks
+liftWS :: ToJSON a => (t -> a -> IO ()) -> Getting t (Client, ServerState) t -> a -> GameIO g ()
+liftWS fn lens msg = view lens >>= \x -> liftIO $ fn x msg
 
 send :: ToJSON a => a -> GameIO g ()
 send = liftWS sendWS (_1.conn)

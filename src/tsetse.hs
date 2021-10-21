@@ -4,14 +4,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RankNTypes #-}
 
 import Prelude hiding (log)
 
-import Control.Concurrent (MVar, newMVar, readMVar, modifyMVar, modifyMVar_)
+import Control.Applicative
+import Control.Concurrent (MVar, newMVar, withMVar, modifyMVar, modifyMVar_)
 import Control.Exception (catch, finally, IOException)
 import Control.Monad
-import Control.Monad.Trans
-import Control.Monad.Trans.Maybe
 import Data.Char (isUpper, isAscii, isSpace, isDigit)
 import Data.Functor
 import Data.Map (Map)
@@ -21,14 +21,13 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import qualified Data.Text.Read as T
-import qualified Data.Text.Encoding as T
-import qualified Data.ByteString.Lazy as LB
 
 import Data.Aeson hiding ((.=))
 import qualified Network.WebSockets as WS
 
+import Util
 import Types
+import GM
 import OCWall
 import Cset
 
@@ -60,40 +59,52 @@ timeSync :: Connection -> Text -> IO ()
 timeSync conn echo = timeMillis >>=
     sendWS conn . T.concat . ([echo, "/"] ++) . pure . T.pack . show
 
+-- i'm really sorry for this but i couldn't resist
+(.&++) :: Enum t => MVar s -> Lens' s t -> IO t
+state .&++ lens = modifyMVar state $ return . swap . (lens <<%~ succ)
+
 -- main logic
 
 app :: MVar ServerState -> WS.ServerApp
 app state pending = do
     conn <- WS.acceptRequest pending
-    -- i'm really sorry for this but i couldn't resist
-    connid <- modifyMVar state $ return . swap . (nextConn <<%~ succ)
+    connid <- state .&++ nextConn
     WS.withPingThread conn 30 (pure ()) $ negotiate state (Connection conn connid)
 
+previewMVar v lens = withMVar v $ return . preview lens
+overMVar v lens = modifyMVar_ v $ return . lens
 
 negotiate :: MVar ServerState -> Connection -> IO ()
-negotiate state conn = fmap (maybe () id) . runMaybeT $ do
-    lift $ logC conn "negotiate attempt"
-    (key, stamp) <- lift $ T.splitAt (idLength + secretLength) <$> recvWS conn
-    server <- lift $ readMVar state
+negotiate state conn = do
+    logC conn "negotiate attempt"
 
-    lift . when (T.any (not . liftM2 (&&) isUpper isAscii) key ||
-                 T.null stamp || T.any (not . isDigit) stamp) $ do
-        logC conn "misbehaving client??"
-        sendWS conn "e"
-        guard False
+    greeting <- recvWS conn
+    cid <- case (decodeT greeting, decodeT greeting) of
+      (Just Identify{..}, _) -> do
+          u <- previewMVar state $ users.folded.filtered ((==i_cid) . _uid)
+          case u of
+            Just u | u^.secret == i_secret -> do
+                sendWS conn $ Identified (u^.uname)
+                return $ Just i_cid
+            _ -> do
+                sendWS conn $ NotIdentified
+                negotiate state conn
+                return Nothing
+      (_, Just Register{..}) -> do
+          uid <- state .&++ nextClient
+          secret <- makeSecret
+          overMVar state $ users %~ (User { _uid = uid
+                                          , _secret = secret
+                                          , _uname = i_uname
+                                          }:)
+          return $ Just uid
+      _ -> return Nothing
 
-    let (cid, sec) = T.splitAt idLength key
 
-    lift . when (maybe False (/= sec) $ M.lookup cid (server^.secrets)) $ do
-        logC conn "client id clash, trying again"
-        sendWS conn "r"
-        negotiate state conn
-        guard False
-
-    lift $ timeSync conn $ T.cons 'g' stamp
+    -- timeSync conn $ T.cons 'g' stamp
     -- end of negotiation, client is good
 
-    let connect = do
+    let connect cid = do
         logC conn "connected"
         let c = Client cid conn
 
@@ -107,20 +118,21 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
             -- when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
             -- add client to list (and tell admins)
             withClientsUpdate $ s & clients %~ (c:)
-                                  & secrets %~ M.insert cid sec
+                                  -- & secrets %~ M.insert cid sec
 
         -- main loop
         forever $ do
             msg <- recvWS conn
             modifyMVar_ state $ \s@ServerState{..} -> do
-                (_, game') <- runGameIO (fromMaybe (return ()) (recvT msg)) (c, s) _game
+                (_, game') <- runGameIO (sequence_ $ recvT msg) (c, s) _game
                 -- return $ s & game .= game'
                 -- return $ s { game = game' }
                 return $ ServerState { _clients
-                                     , _secrets
+                                     , _users
                                      , _players
                                      , _admins
                                      , _nextConn
+                                     , _nextClient
                                      , _password
                                      , _game = game'
                                      }
@@ -131,7 +143,7 @@ negotiate state conn = fmap (maybe () id) . runMaybeT $ do
         modifyMVar_ state $ \s ->
             withClientsUpdate $ s & clients %~ filter ((/= conn) . _conn)
 
-    lift $ connect `finally` disconnect
+    forM_ cid $ \cid -> connect cid `finally` disconnect
 
 {-
 
@@ -258,10 +270,10 @@ encodeClients clients secrets players admins =
 -}
 
 withClientsUpdate :: ServerState -> IO ServerState
-withClientsUpdate s@ServerState{..} =
-    forM_ (filter ((`elem` _admins) . _cid) _clients)
-          (flip sendWS clientsEnc . _conn) $> s
-    where clientsEnc = "" -- encodeClients clients secrets players admins
+withClientsUpdate s@ServerState{..} = return () $> s
+    -- forM_ (filter ((`elem` _admins) . _cid) _clients)
+    --       (flip sendWS clientsEnc . _conn) $> s
+    -- where clientsEnc = "" -- encodeClients clients secrets players admins
 
 
 setpass :: IOException -> IO Text
@@ -276,10 +288,11 @@ main = do
     let chomp = T.reverse . T.dropWhile (=='\n') . T.reverse
     pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
     state <- newMVar $ ServerState { _clients = []
-                                   , _secrets = M.empty
+                                   , _users = []
                                    , _players = []
                                    , _admins = []
                                    , _nextConn = 0
+                                   , _nextClient = 0
                                    , _password = pwd
                                    , _game = fst $ new (mkStdGen 0) :: CsetGame
                                    }
