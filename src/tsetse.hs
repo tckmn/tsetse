@@ -97,6 +97,7 @@ negotiate state conn = do
                                           , _secret = secret
                                           , _uname = i_uname
                                           }:)
+          sendWS conn $ Registered uid secret
           return $ Just uid
       _ -> return Nothing
 

@@ -1,14 +1,10 @@
 var $ = document.querySelector.bind(document),
-    $$ = document.querySelectorAll.bind(document);
-
-var NEGOTIATE = 0, PLAY = 1, ERROR = -1;
-
-var ws;
+    $$ = document.querySelectorAll.bind(document),
+    ws;
 
 window.addEventListener('load', () => {
 
-    var stage = NEGOTIATE, retrycount = 0,
-        cells = $$('div.cell'),
+    var cells = $$('div.cell'),
         cltlist = $('#cltlist'), strikelist = $$('.strike'),
         wall = [], groups = [], strikes = 3,
         isPlayer = false,
@@ -17,114 +13,109 @@ window.addEventListener('load', () => {
         startTime = 0, duration = 0, timerIntr;
 
     ws = new WebSocket('ws://' + location.hostname + ':9255/');
+    var send = (t, obj) => ws.send(JSON.stringify({...obj, t: t}));
 
-    var negotiate = regen => {
-        var key = (regen !== true && localStorage.getItem('key')) || genkey();
-        ws.send(key + Math.round(new Date()));
+    ws.onopen = () => {
+        var userinfo = localStorage.getItem('userinfo');
+        if (userinfo) send('Identify', JSON.parse(userinfo));
+        else send('Register', { uname: prompt('enter a username') });
     };
-    ws.onopen = negotiate;
 
     ws.onmessage = e => {
-        var data = e.data.slice(1);
-        switch (stage) {
-
-            case NEGOTIATE:
-                switch (e.data[0]) {
-                    case 'g':
-                        $('#key').textContent = localStorage.getItem('key').slice(0,5);
-                        timeSync(data);
-                        stage = PLAY;
-                        break;
-                    case 'r':
-                        if (retrycount++ < 10) {
-                            negotiate(true);
-                            break;
-                        }
-                        //fallthrough
-                    default:
-                        stage = ERROR;
-                        alert(e.data === 'e' ? 'sorry, something weird happened' :
-                              e.data === 'r' ? 'sorry, something very weird happened' :
-                                               'sorry, something extremely weird happened');
-                }
-                break;
-
-            case PLAY:
-                switch (e.data[0]) {
-                    case 'a':
-                        if (data === '1') {
-                            console.log('you are an admin');
-                            $('#admin').style.display = 'block';
-                        } else {
-                            console.log('you are not an admin');
-                            $('#admin').style.display = 'none';
-                        }
-                        break;
-                    case 'p':
-                        $('#key').classList.toggle('player', isPlayer = data === '1');
-                        break;
-                    case 'c':
-                        while (cltlist.lastChild) cltlist.removeChild(cltlist.lastChild);
-                        data.split('/').forEach(clt => {
-                            var div = document.createElement('div');
-                            div.appendChild(document.createTextNode(clt + ' '));
-                            var btn1 = document.createElement('button'),
-                                btn2 = document.createElement('button');
-                            btn1.textContent = 'p';
-                            btn2.textContent = 'a';
-                            [btn1, btn2].forEach(btn => {
-                                btn.addEventListener('click', () => {
-                                    ws.send(toggleFlag(btn.textContent, clt));
-                                });
-                                div.appendChild(btn);
-                            });
-                            cltlist.appendChild(div);
-                        });
-                        break;
-                    case 'w':
-                        // make sure to keep this in sync with ABC in netwall.hs
-                        wall = data.split('\n');
-                        groups = [];
-                        strikes = 3;
-                        startTime = +wall.shift();
-                        duration = +wall.shift();
-                        render();
-                        renderStrikes();
-                        resetTimer();
-                        break;
-                    case 'W':
-                        // make sure to keep this in sync with DEF in netwall.hs
-                        wall = [];
-                        groups = [];
-                        strikes = 3;
-                        startTime = 0;
-                        render();
-                        renderStrikes();
-                        resetTimer();
-                        break;
-                    case 'g':
-                        groups = data.split('/').map(x => +x);
-                        render();
-                        break;
-                    case 'G':
-                        flash(data.split('/').map(x => +x));
-                        break;
-                    case 's':
-                        strikes = +data;
-                        renderStrikes();
-                        break;
-                    case 't':
-                        timeSync(data);
-                        break;
-                }
-                break;
-
-        }
+        var msg = JSON.parse(e.data); handlers[msg.t](msg);
     };
 
-    ws.onclose = () => {
-        $('#discon').style.display = 'block';
+    ws.onclose = () => { $('#discon').style.display = 'block'; };
+
+
+    var handlers = {
+
+        Registered: msg => {
+            localStorage.setItem('userinfo', JSON.stringify({
+                cid: msg.cid,
+                secret: msg.secret
+            }));
+        },
+
+        Identified: msg => {
+        },
+
+        NotIdentified: msg => {
+            localStorage.clear();
+            location.reload();
+        },
+
+        Cards: msg => {
+            console.log(msg);
+        },
+
     };
+
+                    // case 'a':
+                    //     if (data === '1') {
+                    //         console.log('you are an admin');
+                    //         $('#admin').style.display = 'block';
+                    //     } else {
+                    //         console.log('you are not an admin');
+                    //         $('#admin').style.display = 'none';
+                    //     }
+                    //     break;
+                    // case 'p':
+                    //     $('#key').classList.toggle('player', isPlayer = data === '1');
+                    //     break;
+                    // case 'c':
+                    //     while (cltlist.lastChild) cltlist.removeChild(cltlist.lastChild);
+                    //     data.split('/').forEach(clt => {
+                    //         var div = document.createElement('div');
+                    //         div.appendChild(document.createTextNode(clt + ' '));
+                    //         var btn1 = document.createElement('button'),
+                    //             btn2 = document.createElement('button');
+                    //         btn1.textContent = 'p';
+                    //         btn2.textContent = 'a';
+                    //         [btn1, btn2].forEach(btn => {
+                    //             btn.addEventListener('click', () => {
+                    //                 ws.send(toggleFlag(btn.textContent, clt));
+                    //             });
+                    //             div.appendChild(btn);
+                    //         });
+                    //         cltlist.appendChild(div);
+                    //     });
+                    //     break;
+                    // case 'w':
+                    //     // make sure to keep this in sync with ABC in netwall.hs
+                    //     wall = data.split('\n');
+                    //     groups = [];
+                    //     strikes = 3;
+                    //     startTime = +wall.shift();
+                    //     duration = +wall.shift();
+                    //     render();
+                    //     renderStrikes();
+                    //     resetTimer();
+                    //     break;
+                    // case 'W':
+                    //     // make sure to keep this in sync with DEF in netwall.hs
+                    //     wall = [];
+                    //     groups = [];
+                    //     strikes = 3;
+                    //     startTime = 0;
+                    //     render();
+                    //     renderStrikes();
+                    //     resetTimer();
+                    //     break;
+                    // case 'g':
+                    //     groups = data.split('/').map(x => +x);
+                    //     render();
+                    //     break;
+                    // case 'G':
+                    //     flash(data.split('/').map(x => +x));
+                    //     break;
+                    // case 's':
+                    //     strikes = +data;
+                    //     renderStrikes();
+                    //     break;
+                    // case 't':
+                    //     timeSync(data);
+                    //     break;
 
     var render = () => {
         var rest = Array.from(Array(16).keys()).filter(x => groups.indexOf(x) === -1);
