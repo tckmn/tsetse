@@ -43,7 +43,8 @@ instance Game CsetGame Msg where
 
     new = do
         shuf <- shuffle fullDeck
-        let (cards, deck) = splitAt 12 shuf
+        -- let (cards, deck) = splitAt 12 shuf
+        let (cards, deck) = splitAt 12 fullDeck
         return CsetGame { _deck = deck
                         , _cards = cards
                         }
@@ -55,20 +56,20 @@ instance Game CsetGame Msg where
     recv Claim{..} = do
         -- make sure the request is well-formed
         cs <- use cards
-        let idxs = nub idxs
-            set = [c | idx <- idxs, let Just c = cs^?ix idx]
+        let idxs' = nub idxs
+            set = [c | idx <- idxs', let Just c = cs^?ix idx]
         guard $ length set == 5
 
         -- flash em red if they're not a set
         unless (checkSet set) $ do
-            send $ Highlight idxs False
+            send $ Highlight idxs' False
             empty
 
         -- they're a set! tell everyone
-        broadcast $ Highlight idxs True
+        broadcast $ Highlight idxs' True
         liftIO $ threadDelay 5000000
 
         -- oh my god what a beautiful line
         newCards <- deck %%= splitAt 5
-        cs <- cards <%= (itraversed %@~ \i c -> fromMaybe c . lookup i $ zip idxs newCards)
+        cs <- cards <%= (itraversed %@~ \i c -> fromMaybe c . lookup i $ zip idxs' newCards)
         broadcast $ Cards cs
