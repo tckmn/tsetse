@@ -4,7 +4,7 @@ var $ = document.querySelector.bind(document),
 
 window.addEventListener('load', () => {
 
-    var cells = $$('div.cell'),
+    var wall = $('#wall'), cells = [],
         cltlist = $('#cltlist'), strikelist = $$('.strike'),
         offsets = [], offset = 0,
         latencies = [], latency = 0,
@@ -38,6 +38,36 @@ window.addEventListener('load', () => {
         return el;
     };
 
+    var clrWall = () => {
+        while (wall.firstChild) wall.removeChild(wall.firstChild);
+        cells = [];
+    };
+
+    var addCell = (content, idx) => {
+        var cell = document.createElement('div');
+        cell.dataset.idx = idx;
+        cell.classList.add('cell');
+        cell.appendChild(content);
+        wall.appendChild(cell);
+        cells.push(cell);
+
+        fn = e => {
+            e.preventDefault();
+            if (true) {
+                cell.classList.toggle('selected');
+                var guesses = Array.from($$('.selected'));
+                if (guesses.length === 5) {
+                    guesses.forEach(g => g.classList.remove('selected'));
+                    send('Claim', {
+                        idxs: guesses.map(g => +g.dataset.idx)
+                    });
+                }
+            }
+        };
+        cell.addEventListener('mousedown', fn);
+        cell.addEventListener('touchstart', fn);
+    };
+
     var handlers = {
 
         Registered: msg => {
@@ -57,15 +87,21 @@ window.addEventListener('load', () => {
 
         Cards: msg => {
 
+            clrWall();
+
             var five = [0,1,2,3,4],
                 colors = ['#f00', '#90f', '#00f', '#0d0', '#f09600'],
                 sep = 2.5,
-                pentW = 0.2, lineW = 0.2, outlineW = 0.1;
+                pentW = 0.2, lineW = 0.2, outlineW = 0.08;
 
             msg.cards.forEach((card, idx) => {
+
                 var svg = svgel('svg', {
-                    _viewBox: `-1 -${sep/2} 2 ${sep*3}`
+                    _viewBox: `-1.5 -${sep/2+0.2} 3 ${sep*3+0.2}`
                 });
+
+                // svg.appendChild(svgel('rect', {x:-1.5,y:-sep/2,width:3,height:sep*3,fill:'red'}));
+
                 card.forEach((p, i) => {
                     var x = j => Math.sin(Math.PI*2/5*j),
                         y = j => -Math.cos(Math.PI*2/5*j)+sep*i,
@@ -103,8 +139,9 @@ window.addEventListener('load', () => {
                         stroke: colors[p], strokeWidth: lineW
                     }));
                 });
-                cells[idx].appendChild(svg);
-                // cells[idx].textContent = card.join(',');
+
+                addCell(svg, idx);
+
             });
 
         },
@@ -267,22 +304,6 @@ window.addEventListener('load', () => {
         modal.querySelector('.dismiss').addEventListener('click', () => {
             modal.style.display = 'none';
         });
-    });
-
-    cells.forEach((cell, idx) => {
-        fn = e => {
-            e.preventDefault();
-            if (true) {
-                cell.classList.toggle('selected');
-                var guesses = Array.from($$('.selected'));
-                if (guesses.length === 4) {
-                    guesses.forEach(g => g.classList.remove('selected'));
-                    ws.send('g' + guesses.map(g => g.dataset.idx).join('/'));
-                }
-            }
-        };
-        cell.addEventListener('mousedown', fn);
-        cell.addEventListener('touchstart', fn);
     });
 
 });

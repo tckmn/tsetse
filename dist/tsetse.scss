@@ -72,36 +72,40 @@ div#botbar {
 
 div#wall {
     font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
     flex-grow: 1;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    // grid-template-rows: 1fr 1fr 1fr;
+    // grid-template: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) / minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);
+    grid-gap: 10px 10px;
 
-    > div {
-        display: flex;
-        flex-grow: 1;
-        max-height: 180px;
-        @media (max-width: 1000px) { max-height: 18vw; }
+    // > div {
+    //     display: flex;
+    //     flex-grow: 1;
+    //     max-height: 180px;
+    //     @media (max-width: 1000px) { max-height: 18vw; }
 
-        font-size: 20pt;
-        @for $i from 10 through 5 {
-            @media (max-width: $i*100px) { font-size: $i*2pt; }
-        }
+    //     font-size: 20pt;
+    //     @for $i from 10 through 5 {
+    //         @media (max-width: $i*100px) { font-size: $i*2pt; }
+    //     }
 
         > div.cell {
+            position: relative;
             display: flex;
             flex-direction: column;
+            align-items: center;
             justify-content: center;
-            text-align: center;
+            // text-align: center;
 
             background-color: white;
             transition: background-color 0.1s;
             border-radius: 5px;
 
-            width: 220px;
-            margin: 10px;
-            @media (max-width: 1000px) { width: 22vw; margin: 1vw; }
+            // width: 220px;
+            // margin: 10px;
+            // @media (max-width: 1000px) { width: 22vw; margin: 1vw; }
 
             &:not(.solved):hover { cursor: pointer; }
             &:hover    { background-color: #282828; }
@@ -109,12 +113,14 @@ div#wall {
             &.selected { background-color: #383838; }
         }
 
-        &#r1 div.cell.solved { background-color: mix(#000, #7cafc2); }
-        &#r2 div.cell.solved { background-color: mix(#000, #a1b56c); }
-        &#r3 div.cell.solved { background-color: mix(#000, #ba8baf); }
-        &#r4 div.cell.solved { background-color: mix(#000, #f7ca88); }
-    }
+        // &#r1 div.cell.solved { background-color: mix(#000, #7cafc2); }
+        // &#r2 div.cell.solved { background-color: mix(#000, #a1b56c); }
+        // &#r3 div.cell.solved { background-color: mix(#000, #ba8baf); }
+        // &#r4 div.cell.solved { background-color: mix(#000, #f7ca88); }
+    // }
 }
+
+svg { position: absolute; width: 100%; height: 100%; }
 
 div#modals > div {
     display: none;
