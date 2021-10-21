@@ -41,11 +41,12 @@ makeJSON ''OutMsg
 
 instance Game CsetGame Msg where
 
-    new g = let (shuf, g') = shuffle fullDeck g
-                (cards, deck) = splitAt 12 shuf
-             in (CsetGame { _deck = deck
-                          , _cards = cards
-                          }, g)
+    new = do
+        shuf <- shuffle fullDeck
+        let (cards, deck) = splitAt 12 shuf
+        return CsetGame { _deck = deck
+                        , _cards = cards
+                        }
 
     catchup = do
         cs <- use cards

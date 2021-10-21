@@ -287,6 +287,7 @@ main :: IO ()
 main = do
     let chomp = T.reverse . T.dropWhile (=='\n') . T.reverse
     pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
+    g <- new
     state <- newMVar $ ServerState { _clients = []
                                    , _users = []
                                    , _players = []
@@ -294,7 +295,7 @@ main = do
                                    , _nextConn = 0
                                    , _nextClient = 0
                                    , _password = pwd
-                                   , _game = fst $ new (mkStdGen 0) :: CsetGame
+                                   , _game = g :: CsetGame
                                    }
     log "starting server"
     WS.runServer "0.0.0.0" 9255 $ app state

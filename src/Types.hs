@@ -42,7 +42,7 @@ runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 
 -- main game type
 class FromJSON msg => Game g msg | g -> msg where
-    new :: StdGen -> (g, StdGen)
+    new :: IO g
     catchup :: GameIO g ()
     recv :: msg -> GameIO g ()
     recvT :: Text -> Maybe (GameIO g ())

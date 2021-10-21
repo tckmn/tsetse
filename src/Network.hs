@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Network where
 
@@ -11,6 +12,7 @@ import Control.Monad
 import Data.Text (Text)
 import qualified Data.Map as M
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 import Util
 import Data.Aeson
@@ -28,24 +30,24 @@ makeLenses ''Client
 withCid cid = filter ((==cid) . _cid)
 
 -- logging
-log :: String -> IO ()
-log s = getZonedTime >>= putStrLn . (++s) . formatTime defaultTimeLocale "[%F %T] "
+log :: Text -> IO ()
+log s = getZonedTime >>= T.putStrLn . (<>s) . T.pack . formatTime defaultTimeLocale "[%F %T] "
 
-logC :: Connection -> String -> IO ()
-logC (Connection _ connid) s = log $ pad connid ++ ": " ++ s
-    where pad = reverse . take 5 . (++repeat '0') . reverse . show
+logC :: Connection -> Text -> IO ()
+logC (Connection _ connid) s = log $ pad connid <> ": " <> s
+    where pad = T.pack . reverse . take 5 . (++repeat '0') . reverse . show
 
 -- sending and receiving websocket messages
 sendWS :: ToJSON a => Connection -> a -> IO ()
 sendWS c@(Connection conn connid) msg = do
     let t = encodeT msg
-    logC c $ "SEND " ++ T.unpack t
+    logC c $ "SEND " <> t
     WS.sendTextData conn t
 
 recvWS :: Connection -> IO Text
 recvWS c@(Connection conn connid) = do
     t <- WS.receiveData conn
-    logC c $ "RECV " ++ T.unpack t
+    logC c $ "RECV " <> t
     return t
 
 broadcastWS :: ToJSON a => [Client] -> a -> IO ()
