@@ -6,8 +6,6 @@ window.addEventListener('load', () => {
 
     var cells = $$('div.cell'),
         cltlist = $('#cltlist'), strikelist = $$('.strike'),
-        wall = [], groups = [], strikes = 3,
-        isPlayer = false,
         offsets = [], offset = 0,
         latencies = [], latency = 0,
         startTime = 0, duration = 0, timerIntr;
@@ -18,7 +16,8 @@ window.addEventListener('load', () => {
     ws.onopen = () => {
         var userinfo = localStorage.getItem('userinfo');
         if (userinfo) send('Identify', JSON.parse(userinfo));
-        else send('Register', { uname: prompt('enter a username') });
+        // else send('Register', { uname: prompt('enter a username') });
+        else send('Register', { uname: 'tckmn' });
     };
 
     ws.onmessage = e => {
@@ -27,6 +26,17 @@ window.addEventListener('load', () => {
 
     ws.onclose = () => { $('#discon').style.display = 'block'; };
 
+
+    var svgel = (name, props) => {
+        var el = document.createElementNS('http://www.w3.org/2000/svg', name);
+        if (props) for (prop in props) {
+            el.setAttribute(prop[0] == '_' ?
+                prop.slice(1) :
+                prop.replace(/[A-Z]/g, m => '-'+m.toLowerCase()),
+                props[prop]);
+        }
+        return el;
+    };
 
     var handlers = {
 
@@ -46,7 +56,57 @@ window.addEventListener('load', () => {
         },
 
         Cards: msg => {
-            console.log(msg);
+
+            var five = [0,1,2,3,4],
+                colors = ['#f00', '#90f', '#00f', '#0d0', '#f09600'],
+                sep = 2.5,
+                pentW = 0.2, lineW = 0.2, outlineW = 0.1;
+
+            msg.cards.forEach((card, idx) => {
+                var svg = svgel('svg', {
+                    _viewBox: `-1 -${sep/2} 2 ${sep*3}`
+                });
+                card.forEach((p, i) => {
+                    var x = j => Math.sin(Math.PI*2/5*j),
+                        y = j => -Math.cos(Math.PI*2/5*j)+sep*i,
+                        stroke = ['#aaa','#666','#000'][i];
+
+                    // the pentagon
+                    svg.appendChild(svgel('path', {
+                        d: five.map(j => `${j?'L':'M'} ${x(j)} ${y(j)}`).join(' ') + 'Z',
+                        stroke: stroke, strokeWidth: pentW, fill: 'transparent'
+                    }));
+
+                    // outline of line from center to point
+                    svg.appendChild(svgel('path', {
+                        d: `M 0 ${sep*i} L ${x(p)} ${y(p)}`,
+                        stroke: stroke, strokeWidth: lineW + 2*outlineW
+                    }));
+
+                    // circles at points
+                    five.forEach(j => {
+                        svg.appendChild(svgel('circle', {
+                            cx: x(j), cy: y(j), r: 0.2,
+                            stroke: stroke, strokeWidth: outlineW, fill: colors[j]
+                        }));
+                    });
+
+                    // circle at center
+                    svg.appendChild(svgel('circle', {
+                        cx: 0, cy: sep*i, r: 0.2,
+                        stroke: stroke, strokeWidth: outlineW, fill: colors[p]
+                    }));
+
+                    // line from center to point
+                    svg.appendChild(svgel('path', {
+                        d: `M 0 ${sep*i} L ${x(p)} ${y(p)}`,
+                        stroke: colors[p], strokeWidth: lineW
+                    }));
+                });
+                cells[idx].appendChild(svg);
+                // cells[idx].textContent = card.join(',');
+            });
+
         },
 
     };
@@ -212,7 +272,7 @@ window.addEventListener('load', () => {
     cells.forEach((cell, idx) => {
         fn = e => {
             e.preventDefault();
-            if (isPlayer && wall.length && idx >= groups.length) {
+            if (true) {
                 cell.classList.toggle('selected');
                 var guesses = Array.from($$('.selected'));
                 if (guesses.length === 4) {
@@ -226,21 +286,6 @@ window.addEventListener('load', () => {
     });
 
 });
-
-var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-function genkey() {
-    var key = Array(15).fill().map(() => alphabet[Math.random() * alphabet.length | 0]).join('');
-    localStorage.setItem('key', key);
-    return key;
-}
-
-function admin(pwd) {
-    ws.send('a' + pwd);
-}
-
-function toggleFlag(flag, clt) {
-    return flag.toUpperCase() + (clt.indexOf(flag) === -1 ? '1' : '0') + clt.substr(4,5);
-}
 
 function insertSorted(arr, val) {
     for (var i = 0; i < arr.length; ++i) {

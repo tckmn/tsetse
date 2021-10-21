@@ -2,8 +2,10 @@ module Util
     ( shuffle
     , makeSecret
     , encodeT, decodeT
+    , (.==.)
     ) where
 
+import Control.Applicative
 import Control.Monad
 import Data.Aeson
 import Data.Text (Text)
@@ -28,3 +30,6 @@ encodeT :: ToJSON a => a -> Text
 encodeT = T.decodeUtf8 . LB.toStrict . encode
 decodeT :: FromJSON a => Text -> Maybe a
 decodeT = decode . LB.fromStrict . T.encodeUtf8
+
+(.==.) :: (Eq a, Applicative f) => f a -> f a -> f Bool
+(.==.) = liftA2 (==)

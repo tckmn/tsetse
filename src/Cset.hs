@@ -23,18 +23,18 @@ makeJSON ''Card
 fullDeck = [Card (i,j,k) | let r = [0,1,2,3,4], i <- r, j <- r, k <- r]
 
 checkSet :: [Card] -> Bool
-checkSet cards = length cards == 5 && length (nub cards) == 5 && mconcat cards == mempty
+checkSet = mconcat .==. pure mempty
 
 data CsetGame = CsetGame { _deck :: [Card]
                          , _cards :: [Card]
                          }
 makeLenses ''CsetGame
 
-data Msg = Claim { set :: [Card] }
+data Msg = Claim { idxs :: [Int] }
          deriving Generic
 makeJSON ''Msg
 
-data OutMsg = Highlight { o_set :: [Card], o_good :: Bool }
+data OutMsg = Highlight { o_set :: [Int], o_good :: Bool }
             | Cards { o_cards :: [Card] }
             deriving Generic
 makeJSON ''OutMsg
@@ -53,20 +53,22 @@ instance Game CsetGame Msg where
         send $ Cards cs
 
     recv Claim{..} = do
-        -- you can't claim a set that's not on the board
+        -- make sure the request is well-formed
         cs <- use cards
-        guard $ all (`elem` cs) set
+        let idxs = nub idxs
+            set = [c | idx <- idxs, let Just c = cs^?ix idx]
+        guard $ length set == 5
 
         -- flash em red if they're not a set
         unless (checkSet set) $ do
-            send $ Highlight set False
+            send $ Highlight idxs False
             empty
 
         -- they're a set! tell everyone
-        broadcast $ Highlight set True
+        broadcast $ Highlight idxs True
         liftIO $ threadDelay 5000000
 
         -- oh my god what a beautiful line
         newCards <- deck %%= splitAt 5
-        cs <- cards <%= map (\c -> fromMaybe c . lookup c $ zip set newCards)
+        cs <- cards <%= (itraversed %@~ \i c -> fromMaybe c . lookup i $ zip idxs newCards)
         broadcast $ Cards cs
