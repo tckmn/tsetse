@@ -108,9 +108,15 @@ div#wall {
             // @media (max-width: 1000px) { width: 22vw; margin: 1vw; }
 
             &:not(.solved):hover { cursor: pointer; }
-            &:hover    { background-color: #282828; }
+
+            &:hover    { background-color: #ddd; }
+            &.selected { background-color: #ccc; }
+
+            &.right    { background-color: #a1b56c; }
             &.wrong    { background-color: #ab4642; }
-            &.selected { background-color: #383838; }
+
+            // &:hover    { background-color: #282828; }
+            // &.selected { background-color: #383838; }
         }
 
         // &#r1 div.cell.solved { background-color: mix(#000, #7cafc2); }

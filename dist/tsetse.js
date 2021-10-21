@@ -146,6 +146,18 @@ window.addEventListener('load', () => {
 
         },
 
+        Highlight: msg => {
+
+            var kls = msg.good ? 'right' : 'wrong';
+            cells.forEach(cell => {
+                if (msg.idxs.indexOf(+cell.dataset.idx) !== -1) cell.classList.add(kls);
+            });
+            if (!msg.good) setTimeout(() => {
+                cells.forEach(cell => cell.classList.remove(kls));
+            }, 200);
+
+        },
+
     };
 
                     // case 'a':
@@ -257,15 +269,6 @@ window.addEventListener('load', () => {
         pctLeft = 100*secs/duration;
         timer.innerText = Math.floor(secs/60) + ':' + padsec(secs%60);
         timer.style.background = 'linear-gradient(to right, #43615d 0 '+pctLeft+'%, #000 '+pctLeft+'% 100%)';
-    };
-
-    var flash = idxs => {
-        cells.forEach(cell => {
-            if (idxs.indexOf(+cell.dataset.idx) !== -1) cell.classList.add('wrong');
-        });
-        setTimeout(() => {
-            cells.forEach(cell => cell.classList.remove('wrong'));
-        }, 200);
     };
 
     var timeSync = data => {

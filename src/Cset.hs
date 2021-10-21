@@ -13,9 +13,9 @@ import GHC.Generics
 import Types
 import Util
 
-newtype Card = Card (Int, Int, Int) deriving (Eq, Generic)
+newtype Card = Card (Int, Int, Int) deriving (Eq, Generic, Show)
 instance Semigroup Card where
-    Card (a,b,c) <> Card (a',b',c') = Card (a+a' `mod` 5, b+b' `mod` 5, c+c' `mod` 5)
+    Card (a,b,c) <> Card (a',b',c') = Card ((a+a') `mod` 5, (b+b') `mod` 5, (c+c') `mod` 5)
 instance Monoid Card where
     mempty = Card (0,0,0)
 makeJSON ''Card
@@ -34,7 +34,7 @@ data Msg = Claim { idxs :: [Int] }
          deriving Generic
 makeJSON ''Msg
 
-data OutMsg = Highlight { o_set :: [Int], o_good :: Bool }
+data OutMsg = Highlight { o_idxs :: [Int], o_good :: Bool }
             | Cards { o_cards :: [Card] }
             deriving Generic
 makeJSON ''OutMsg
@@ -43,8 +43,7 @@ instance Game CsetGame Msg where
 
     new = do
         shuf <- shuffle fullDeck
-        -- let (cards, deck) = splitAt 12 shuf
-        let (cards, deck) = splitAt 12 fullDeck
+        let (cards, deck) = splitAt 12 shuf
         return CsetGame { _deck = deck
                         , _cards = cards
                         }
