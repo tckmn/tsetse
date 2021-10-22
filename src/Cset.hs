@@ -58,7 +58,7 @@ instance Game CsetGame Msg where
         cs <- use cards
         send $ Cards cs
 
-    userlist g cid = toJSON $ UserInfo (g^.scores.at cid.non 0)
+    userinfo g cid = toJSON $ UserInfo (g^.scores.at cid.non 0)
 
     recv Claim{..} = do
         -- make sure the request is well-formed

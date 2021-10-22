@@ -106,14 +106,7 @@ negotiate state conn = do
         logC conn "connected"
 
         modifyMVar_ state $ \s -> do
-            -- catch up
             runCatchup c s
-            -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
-            -- when (cid `elem` players) $ sendWS conn $ encodePlayer True
-            -- when (not $ null wall)    $ sendWS conn $ encodeWall startTime duration wall
-            -- when (not $ null groups)  $ sendWS conn $ encodeGuess True groups
-            -- when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
-            -- add client to list (and tell admins)
             runUserlist c $ s & clients %~ (c:)
 
         -- main loop

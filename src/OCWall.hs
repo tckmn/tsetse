@@ -37,8 +37,13 @@ instance Game OCWallGame Msg where
                             }
 
     catchup = return ()
+            -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
+            -- when (cid `elem` players) $ sendWS conn $ encodePlayer True
+            -- when (not $ null wall)    $ sendWS conn $ encodeWall startTime duration wall
+            -- when (not $ null groups)  $ sendWS conn $ encodeGuess True groups
+            -- when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
 
-    userlist g cid = toJSON $ UserInfo 10
+    userinfo g cid = toJSON $ UserInfo 10
 
     recv SetWall{..} = do
         return ()

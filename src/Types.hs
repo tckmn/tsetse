@@ -48,11 +48,27 @@ runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 class FromJSON msg => Game g msg | g -> msg where
     new :: IO g
     catchup :: GameIO g ()
-    userlist :: g -> ClientId -> Value
+    userinfo :: g -> ClientId -> Value
     recv :: msg -> GameIO g ()
 
     recvT :: Text -> Maybe (GameIO g ())
     recvT t = recv <$> decodeT t
+
+    -- TODO figure out how to use broadcast/lenses here
+    userlist :: GameIO g ()
+    userlist = do
+        list <- gets userinfo
+        ServerState{..} <- view _2
+        liftIO . broadcastWS _clients $ object
+            [ ("t", String "UserList")
+            , ("list", toJSON $ fix _users .$. list <$> _clients^..traversed.cid)
+            ]
+            where fix users cid (Object o) =
+                    Object .
+                    M.delete "t" .
+                    M.insert "uid" (Number $ fromIntegral cid) .
+                    M.insert "name" (String $ users^.folded.filtered ((==cid) . _uid).uname) $ o
+                  fix _ _ x = x
 
 -- main user type
 data User = User { _uid :: ClientId
@@ -80,6 +96,7 @@ data ServerState = ServerState { _clients :: [Client]
                                , _game :: GeneralGame
                                }
 makeLenses ''ServerState
+
 byUid :: ClientId -> Fold ServerState User
 byUid uid = users.folded.filtered ((==uid) . _uid)
 
@@ -93,18 +110,7 @@ runRecv c (s@ServerState{_game=GeneralGame g}) msg = do
     return $ s & game .~ GeneralGame game'
 
 runUserlist :: Client -> ServerState -> IO ServerState
-runUserlist c (s@ServerState{_game=GeneralGame g}) = do
-    broadcastWS (s^.clients) $ object
-        [ ("t", String "UserList")
-        , ("list", toJSON $ fix .$. userlist g <$> s^..clients.traversed.cid)
-        ]
-    return s
-        where fix cid (Object o) =
-                Object .
-                M.delete "t" .
-                M.insert "uid" (Number $ fromIntegral cid) .
-                M.insert "name" (String $ s^.byUid cid.uname) $ o
-              fix _ x = x
+runUserlist c (s@ServerState{_game=GeneralGame g}) = runGameIO userlist (c, s) g $> s
 
 -- jsonifying message types
 killPrefix :: String -> String -> String
