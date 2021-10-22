@@ -24,8 +24,18 @@ window.addEventListener('load', () => {
         var msg = JSON.parse(e.data); handlers[msg.t](msg);
     };
 
-    ws.onclose = () => { $('#discon').style.display = 'block'; };
+    ws.onclose = () => {
+        $('#name').style.display = 'none';
+        $('#discon').style.display = 'block';
+    };
 
+    var wallwrap = $('#wallwrap'), resize = () => {
+        var rect = wallwrap.getBoundingClientRect();
+        wall.style.maxWidth = rect.height + 'px';
+        wall.style.maxHeight = rect.width + 'px';
+    };
+    window.addEventListener('resize', resize);
+    resize();
 
     var svgel = (name, props) => {
         var el = document.createElementNS('http://www.w3.org/2000/svg', name);
@@ -38,9 +48,8 @@ window.addEventListener('load', () => {
         return el;
     };
 
-    var clrWall = () => {
-        while (wall.firstChild) wall.removeChild(wall.firstChild);
-        cells = [];
+    var clr = el => {
+        while (el.firstChild) el.removeChild(el.firstChild);
     };
 
     var addCell = (content, idx) => {
@@ -78,6 +87,7 @@ window.addEventListener('load', () => {
         },
 
         Identified: msg => {
+            $('#name').textContent = msg.name;
         },
 
         NotIdentified: msg => {
@@ -87,12 +97,13 @@ window.addEventListener('load', () => {
 
         Cards: msg => {
 
-            clrWall();
+            clr(wall);
+            cells = [];
 
             var five = [0,1,2,3,4],
                 colors = ['#f00', '#90f', '#00f', '#0d0', '#f09600'],
                 sep = 2.5,
-                pentW = 0.2, lineW = 0.2, outlineW = 0.08;
+                pentW = 0.2, lineW = 0.2, outlineW = 0.06;
 
             msg.cards.forEach((card, idx) => {
 
