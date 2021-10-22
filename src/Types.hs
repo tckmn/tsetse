@@ -18,7 +18,6 @@ module Types
 
 import Control.Monad
 import Data.Functor
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
@@ -104,7 +103,7 @@ runUserlist c (s@ServerState{_game=GeneralGame g}) = do
                 Object .
                 M.delete "t" .
                 M.insert "uid" (Number $ fromIntegral cid) .
-                M.insert "name" (String . fromMaybe "???" $ s^?byUid cid.uname) $ o
+                M.insert "name" (String $ s^.byUid cid.uname) $ o
               fix _ x = x
 
 -- jsonifying message types
