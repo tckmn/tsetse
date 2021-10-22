@@ -5,6 +5,7 @@ var $ = document.querySelector.bind(document),
 window.addEventListener('load', () => {
 
     var wall = $('#wall'), cells = [],
+        sidebar = $('#sidebar'),
         cltlist = $('#cltlist'), strikelist = $$('.strike'),
         offsets = [], offset = 0,
         latencies = [], latency = 0,
@@ -16,8 +17,7 @@ window.addEventListener('load', () => {
     ws.onopen = () => {
         var userinfo = localStorage.getItem('userinfo');
         if (userinfo) send('Identify', JSON.parse(userinfo));
-        // else send('Register', { uname: prompt('enter a username') });
-        else send('Register', { uname: 'tckmn' });
+        else send('Register', { uname: prompt('enter a username') });
     };
 
     ws.onmessage = e => {
@@ -36,6 +36,15 @@ window.addEventListener('load', () => {
     };
     window.addEventListener('resize', resize);
     resize();
+
+    var el = (name, props) => {
+        var el = document.createElement(name);
+        if (props) for (prop in props) {
+            if (prop === 'text') el.appendChild(document.createTextNode(props.text));
+            else el.setAttribute(prop, props[prop]);
+        }
+        return el;
+    };
 
     var svgel = (name, props) => {
         var el = document.createElementNS('http://www.w3.org/2000/svg', name);
@@ -84,6 +93,7 @@ window.addEventListener('load', () => {
                 cid: msg.cid,
                 secret: msg.secret
             }));
+            $('#name').textContent = msg.name;
         },
 
         Identified: msg => {
@@ -93,6 +103,23 @@ window.addEventListener('load', () => {
         NotIdentified: msg => {
             localStorage.clear();
             location.reload();
+        },
+
+        UserList: msg => {
+
+            clr(sidebar);
+
+            var tbl = el('table');
+
+            msg.list.forEach(u => {
+                var tr = el('tr');
+                tr.appendChild(el('td', { text: u.score }));
+                tr.appendChild(el('td', { text: u.name }));
+                tbl.appendChild(tr);
+            });
+
+            sidebar.appendChild(tbl);
+
         },
 
         Cards: msg => {

@@ -5,13 +5,16 @@
 
 module Cset where
 
-import Control.Concurrent (threadDelay)
 import Control.Applicative
+import Control.Concurrent (threadDelay)
 import Data.List (nub)
 import Data.Maybe (fromMaybe)
 import GHC.Generics
 import Types
 import Util
+import qualified Data.HashMap.Strict as M
+
+import Data.Aeson
 
 newtype Card = Card (Int, Int, Int) deriving (Eq, Generic, Show)
 instance Semigroup Card where
@@ -27,6 +30,7 @@ checkSet = mconcat .==. pure mempty
 
 data CsetGame = CsetGame { _deck :: [Card]
                          , _cards :: [Card]
+                         , _scores :: M.HashMap ClientId Int
                          }
 makeLenses ''CsetGame
 
@@ -36,6 +40,7 @@ makeJSON ''Msg
 
 data OutMsg = Highlight { o_idxs :: [Int], o_good :: Bool }
             | Cards { o_cards :: [Card] }
+            | UserInfo { o_score :: Int }
             deriving Generic
 makeJSON ''OutMsg
 
@@ -46,14 +51,14 @@ instance Game CsetGame Msg where
         let (cards, deck) = splitAt 12 shuf
         return CsetGame { _deck = deck
                         , _cards = cards
+                        , _scores = M.empty
                         }
 
     catchup = do
         cs <- use cards
         send $ Cards cs
 
-    userlist = do
-        return ()
+    userlist g cid = toJSON $ UserInfo (g^.scores.at cid.non 0)
 
     recv Claim{..} = do
         -- make sure the request is well-formed

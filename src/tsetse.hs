@@ -81,7 +81,7 @@ negotiate state conn = do
     greeting <- recvWS conn
     cid <- case (decodeT greeting, decodeT greeting) of
       (Just Identify{..}, _) -> do
-          u <- previewMVar state $ users.folded.filtered ((==i_cid) . _uid)
+          u <- previewMVar state $ byUid i_cid
           case u of
             Just u | u^.secret == i_secret -> do
                 sendWS conn $ Identified (u^.uname)
@@ -97,7 +97,7 @@ negotiate state conn = do
                                           , _secret = secret
                                           , _uname = i_uname
                                           }:)
-          sendWS conn $ Registered uid secret
+          sendWS conn $ Registered uid secret i_uname
           return $ Just uid
       _ -> return Nothing
 

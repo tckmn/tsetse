@@ -8,6 +8,8 @@ module OCWall where
 import GHC.Generics
 import Types
 
+import Data.Aeson
+
 data OCWallGame = OCWallGame { _wall :: [(Int,Text)]
                              , _groups :: [Int]
                              , _strikes :: Int
@@ -21,6 +23,10 @@ data Msg = SetWall { i_categories :: [Text] }
          deriving Generic
 makeJSON ''Msg
 
+data OutMsg = UserInfo { o_foo :: Int }
+            deriving Generic
+makeJSON ''OutMsg
+
 instance Game OCWallGame Msg where
 
     new = return OCWallGame { _wall = []
@@ -32,14 +38,10 @@ instance Game OCWallGame Msg where
 
     catchup = return ()
 
-    userlist = return ()
+    userlist g cid = toJSON $ UserInfo 10
 
     recv SetWall{..} = do
         return ()
 
     recv Guess{..} = do
-        s <- use strikes
-        strikes += 1
-        strikes %= succ
-        strikes .= 2
         return ()

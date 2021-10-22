@@ -3,6 +3,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Types
     ( module Control.Lens
@@ -16,7 +18,9 @@ module Types
 
 import Control.Monad
 import Data.Functor
+import Data.HashMap.Strict as HM
 import Data.Map (Map)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -47,8 +51,9 @@ runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 class FromJSON msg => Game g msg | g -> msg where
     new :: IO g
     catchup :: GameIO g ()
-    userlist :: GameIO g ()
+    userlist :: g -> ClientId -> Value
     recv :: msg -> GameIO g ()
+
     recvT :: Text -> Maybe (GameIO g ())
     recvT t = recv <$> decodeT t
 
@@ -78,6 +83,8 @@ data ServerState = ServerState { _clients :: [Client]
                                , _game :: GeneralGame
                                }
 makeLenses ''ServerState
+byUid :: ClientId -> Fold ServerState User
+byUid uid = users.folded.filtered ((==uid) . _uid)
 
 -- functions for accessing games without pain
 runCatchup :: Client -> ServerState -> IO ()
@@ -89,7 +96,18 @@ runRecv c (s@ServerState{_game=GeneralGame g}) msg = do
     return $ s & game .~ GeneralGame game'
 
 runUserlist :: Client -> ServerState -> IO ServerState
-runUserlist c (s@ServerState{_game=GeneralGame g}) = runGameIO userlist (c, s) g $> s
+runUserlist c (s@ServerState{_game=GeneralGame g}) = do
+    broadcastWS (s^.clients) $ object
+        [ ("t", String "UserList")
+        , ("list", toJSON $ fix .$. userlist g <$> s^..clients.traversed.cid)
+        ]
+    return s
+        where fix cid (Object o) =
+                Object .
+                HM.delete "t" .
+                HM.insert "uid" (Number $ fromIntegral cid) .
+                HM.insert "name" (String . fromMaybe "???" $ s^?byUid cid.uname) $ o
+              fix _ x = x
 
 -- jsonifying message types
 killPrefix :: String -> String -> String

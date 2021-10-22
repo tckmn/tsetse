@@ -12,7 +12,7 @@ data Msg = Register { i_uname :: Text }
          deriving Generic
 makeJSON ''Msg
 
-data OutMsg = Registered { o_cid :: ClientId, o_secret :: Text }
+data OutMsg = Registered { o_cid :: ClientId, o_secret :: Text, o_name :: Text }
             | Identified { o_name :: Text }
             | NotIdentified
             deriving Generic

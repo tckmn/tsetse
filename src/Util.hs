@@ -2,7 +2,7 @@ module Util
     ( shuffle
     , makeSecret
     , encodeT, decodeT
-    , (.==.)
+    , (.==.), (.$.)
     ) where
 
 import Control.Applicative
@@ -33,3 +33,5 @@ decodeT = decode . LB.fromStrict . T.encodeUtf8
 
 (.==.) :: (Eq a, Applicative f) => f a -> f a -> f Bool
 (.==.) = liftA2 (==)
+(.$.) :: Applicative f => f (a -> b) -> f a -> f b
+(.$.) = liftA2 ($)
