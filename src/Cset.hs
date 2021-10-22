@@ -76,6 +76,11 @@ instance Game CsetGame Msg where
         broadcast $ Highlight idxs' True
         liftIO $ threadDelay 5000000
 
+        -- gain some score
+        who <- view $ _1.cid
+        scores.at who %= Just . maybe 1 succ
+        userlist
+
         -- oh my god what a beautiful line
         newCards <- deck %%= splitAt 5
         cs <- cards <%= (itraversed %@~ \i c -> fromMaybe c . lookup i $ zip idxs' newCards)
