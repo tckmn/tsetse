@@ -14,11 +14,9 @@ import Control.Exception (catch, finally, IOException)
 import Control.Monad
 import Data.Char (isUpper, isAscii, isSpace, isDigit)
 import Data.Functor
-import Data.Map (Map)
 import Data.Maybe (fromMaybe)
 import Data.Tuple (swap)
 import Data.Time.Clock.POSIX (getPOSIXTime)
-import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 

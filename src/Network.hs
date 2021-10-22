@@ -10,7 +10,6 @@ import Data.Time.LocalTime (getZonedTime)
 
 import Control.Monad
 import Data.Text (Text)
-import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 

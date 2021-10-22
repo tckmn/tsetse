@@ -18,11 +18,9 @@ module Types
 
 import Control.Monad
 import Data.Functor
-import Data.HashMap.Strict as HM
-import Data.Map (Map)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import qualified Data.Map as M
+import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
 
 import Control.Lens
@@ -104,9 +102,9 @@ runUserlist c (s@ServerState{_game=GeneralGame g}) = do
     return s
         where fix cid (Object o) =
                 Object .
-                HM.delete "t" .
-                HM.insert "uid" (Number $ fromIntegral cid) .
-                HM.insert "name" (String . fromMaybe "???" $ s^?byUid cid.uname) $ o
+                M.delete "t" .
+                M.insert "uid" (Number $ fromIntegral cid) .
+                M.insert "name" (String . fromMaybe "???" $ s^?byUid cid.uname) $ o
               fix _ x = x
 
 -- jsonifying message types
