@@ -1,6 +1,8 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Types
     ( module Control.Lens
@@ -13,6 +15,7 @@ module Types
     ) where
 
 import Control.Monad
+import Data.Functor
 import Data.Map (Map)
 import Data.Text (Text)
 import qualified Data.Map as M
@@ -44,6 +47,7 @@ runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 class FromJSON msg => Game g msg | g -> msg where
     new :: IO g
     catchup :: GameIO g ()
+    userlist :: GameIO g ()
     recv :: msg -> GameIO g ()
     recvT :: Text -> Maybe (GameIO g ())
     recvT t = recv <$> decodeT t
@@ -63,17 +67,29 @@ uname :: Lens' User Text
 uname = lens _uname (\x y -> x { _uname = y })
 
 -- main server type
-data ServerState = forall g msg. Game g msg =>
-    ServerState { _clients :: [Client]
-                , _users :: [User]
-                , _players :: [ClientId]
-                , _admins :: [ClientId]
-                , _nextConn :: Int
-                , _nextClient :: ClientId
-                , _password :: Text
-                , _game :: g
-                }
+data GeneralGame = forall g msg. Game g msg => GeneralGame g
+data ServerState = ServerState { _clients :: [Client]
+                               , _users :: [User]
+                               , _players :: [ClientId]
+                               , _admins :: [ClientId]
+                               , _nextConn :: Int
+                               , _nextClient :: ClientId
+                               , _password :: Text
+                               , _game :: GeneralGame
+                               }
 makeLenses ''ServerState
+
+-- functions for accessing games without pain
+runCatchup :: Client -> ServerState -> IO ()
+runCatchup c (s@ServerState{_game=GeneralGame g}) = runGameIO catchup (c, s) g $> ()
+
+runRecv :: Client -> ServerState -> Text -> IO ServerState
+runRecv c (s@ServerState{_game=GeneralGame g}) msg = do
+    (_, game') <- runGameIO (sequence_ $ recvT msg) (c, s) g
+    return $ s & game .~ GeneralGame game'
+
+runUserlist :: Client -> ServerState -> IO ServerState
+runUserlist c (s@ServerState{_game=GeneralGame g}) = runGameIO userlist (c, s) g $> s
 
 -- jsonifying message types
 killPrefix :: String -> String -> String

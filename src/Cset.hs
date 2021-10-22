@@ -52,6 +52,9 @@ instance Game CsetGame Msg where
         cs <- use cards
         send $ Cards cs
 
+    userlist = do
+        return ()
+
     recv Claim{..} = do
         -- make sure the request is well-formed
         cs <- use cards

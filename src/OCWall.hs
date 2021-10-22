@@ -32,6 +32,8 @@ instance Game OCWallGame Msg where
 
     catchup = return ()
 
+    userlist = return ()
+
     recv SetWall{..} = do
         return ()
 
