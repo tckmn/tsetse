@@ -48,7 +48,7 @@ instance Game CsetGame Msg where
 
     new = do
         shuf <- shuffle fullDeck
-        let (cards, deck) = splitAt 12 shuf
+        let (cards, deck) = splitAt 12 fullDeck
         return CsetGame { _deck = deck
                         , _cards = cards
                         , _scores = M.empty
@@ -57,6 +57,8 @@ instance Game CsetGame Msg where
     catchup = do
         cs <- use cards
         send $ Cards cs
+
+    players g = g^.scores&M.keys
 
     userinfo g cid = toJSON $ UserInfo (g^.scores.at cid.non 0)
 

@@ -4,12 +4,13 @@ var $ = document.querySelector.bind(document),
 
 window.addEventListener('load', () => {
 
-    var wall = $('#wall'), cells = [],
-        sidebar = $('#sidebar'),
-        cltlist = $('#cltlist'), strikelist = $$('.strike'),
+    var e = {},
+        cells = [],
         offsets = [], offset = 0,
         latencies = [], latency = 0,
         startTime = 0, duration = 0, timerIntr;
+
+    'wall wallwrap name discon sbmain rownum rowsub rowadd square'.split(' ').forEach(id => e[id] = document.getElementById(id));
 
     ws = new WebSocket('ws://' + location.hostname + ':9255/');
     var send = (t, obj) => ws.send(JSON.stringify({...obj, t: t}));
@@ -20,21 +21,44 @@ window.addEventListener('load', () => {
         else send('Register', { uname: prompt('enter a username') });
     };
 
-    ws.onmessage = e => {
-        var msg = JSON.parse(e.data); handlers[msg.t](msg);
+    ws.onmessage = ev => {
+        var msg = JSON.parse(ev.data); handlers[msg.t](msg);
     };
 
     ws.onclose = () => {
-        $('#name').style.display = 'none';
-        $('#discon').style.display = 'block';
+        e.name.style.display = 'none';
+        e.discon.style.display = 'block';
     };
 
-    var wallwrap = $('#wallwrap'), resize = () => {
-        var rect = wallwrap.getBoundingClientRect();
-        wall.style.maxWidth = rect.height + 'px';
-        wall.style.maxHeight = rect.width + 'px';
+    var settings = localStorage.getItem('settings');
+    settings = settings ? JSON.parse(settings) : {
+        rownum: 4, square: true
     };
+    e.square.checked = settings.square;
+    var saveSettings = () => {
+        localStorage.setItem('settings', JSON.stringify(settings));
+    }, renum = () => {
+        e.rownum.textContent = settings.rownum;
+        e.wall.style.gridTemplateColumns = `repeat(${settings.rownum},1fr)`;
+    }, resize = () => {
+        var rect = e.wallwrap.getBoundingClientRect();
+        e.wall.style.maxWidth = settings.square ? rect.height + 'px' : '';
+        e.wall.style.maxHeight = settings.square ? rect.width + 'px' : '';
+    };
+    e.rowsub.addEventListener('click', () => {
+        settings.rownum = Math.max(1, settings.rownum-1);
+        renum(); saveSettings();
+    });
+    e.rowadd.addEventListener('click', () => {
+        settings.rownum = Math.min(12, settings.rownum+1);
+        renum(); saveSettings();
+    });
+    e.square.addEventListener('change', () => {
+        settings.square = e.square.checked;
+        resize(); saveSettings();
+    });
     window.addEventListener('resize', resize);
+    renum();
     resize();
 
     var el = (name, props) => {
@@ -66,11 +90,11 @@ window.addEventListener('load', () => {
         cell.dataset.idx = idx;
         cell.classList.add('cell');
         cell.appendChild(content);
-        wall.appendChild(cell);
+        e.wall.appendChild(cell);
         cells.push(cell);
 
-        fn = e => {
-            e.preventDefault();
+        fn = ev => {
+            ev.preventDefault();
             if (true) {
                 cell.classList.toggle('selected');
                 var guesses = Array.from($$('.selected'));
@@ -93,11 +117,11 @@ window.addEventListener('load', () => {
                 cid: msg.cid,
                 secret: msg.secret
             }));
-            $('#name').textContent = msg.name;
+            e.name.textContent = msg.name;
         },
 
         Identified: msg => {
-            $('#name').textContent = msg.name;
+            e.name.textContent = msg.name;
         },
 
         NotIdentified: msg => {
@@ -107,24 +131,28 @@ window.addEventListener('load', () => {
 
         UserList: msg => {
 
-            clr(sidebar);
+            clr(e.sbmain);
 
-            var tbl = el('table');
+            var tbl = el('table', { 'class': 'userlist' });
 
-            msg.list.forEach(u => {
-                var tr = el('tr');
-                tr.appendChild(el('td', { text: u.score }));
-                tr.appendChild(el('td', { text: u.name }));
-                tbl.appendChild(tr);
-            });
+            msg.list
+                .sort((a,b) => (b.score - (b.conn?0:999)) - (a.score - (a.conn?0:999)))
+                .forEach(u => {
+                    var tr = el('tr');
+                    if (u.conn) tr.classList.add('conn');
+                    if (u.play) tr.classList.add('play');
+                    tr.appendChild(el('td', { text: u.score }));
+                    tr.appendChild(el('td', { text: u.name }));
+                    tbl.appendChild(tr);
+                });
 
-            sidebar.appendChild(tbl);
+            e.sbmain.appendChild(tbl);
 
         },
 
         Cards: msg => {
 
-            clr(wall);
+            clr(e.wall);
             cells = [];
 
             var five = [0,1,2,3,4],

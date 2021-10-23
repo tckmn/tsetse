@@ -43,6 +43,8 @@ instance Game OCWallGame Msg where
             -- when (not $ null groups)  $ sendWS conn $ encodeGuess True groups
             -- when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
 
+    players g = []
+
     userinfo g cid = toJSON $ UserInfo 10
 
     recv SetWall{..} = do

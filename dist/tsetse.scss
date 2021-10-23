@@ -73,7 +73,6 @@ div#botbar {
 main {
     font-family: sans-serif;
     flex-grow: 1;
-    flex-direction: row;
     display: flex;
 
     > div#wallwrap {
@@ -126,6 +125,19 @@ main {
         padding: 0.5rem;
         margin: 0.5rem;
         border-left: 1px solid #888;
+        display: flex;
+        flex-direction: column;
+
+        > div#sbmain {
+            flex: 1;
+            table.userlist tr:not(.conn) { color: #666; }
+        }
+
+        > div#sbconf {
+            display: flex;
+            flex-direction: column;
+            button.pm, span { margin: 0; padding: 0 2px; font: 11pt monospace; }
+        }
     }
 }
 
@@ -169,4 +181,9 @@ button, textarea, input {
     border-radius: 3px;
     color: #d8d8d8;
     padding: 3px 10px;
+    vertical-align: middle;
 }
+
+button { cursor: pointer; }
+button:hover { background-color: #383838; border: 1px solid #585858; }
+button:active { background-color: #585858; border: 1px solid #888; }

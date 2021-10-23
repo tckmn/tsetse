@@ -135,7 +135,6 @@ main = do
     g <- new :: IO CsetGame
     state <- newMVar $ ServerState { _clients = []
                                    , _users = []
-                                   , _players = []
                                    , _admins = []
                                    , _nextConn = 0
                                    , _nextClient = 0

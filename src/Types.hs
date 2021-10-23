@@ -18,6 +18,7 @@ module Types
 
 import Control.Monad
 import Data.Functor
+import Data.List (nub)
 import Data.Text (Text)
 import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
@@ -48,6 +49,7 @@ runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 class FromJSON msg => Game g msg | g -> msg where
     new :: IO g
     catchup :: GameIO g ()
+    players :: g -> [ClientId]
     userinfo :: g -> ClientId -> Value
     recv :: msg -> GameIO g ()
 
@@ -57,18 +59,22 @@ class FromJSON msg => Game g msg | g -> msg where
     -- TODO figure out how to use broadcast/lenses here
     userlist :: GameIO g ()
     userlist = do
-        list <- gets userinfo
+        info <- gets userinfo
         ServerState{..} <- view _2
+        let cids = _clients^..traversed.cid
+        pids <- gets players
         liftIO . broadcastWS _clients $ object
             [ ("t", String "UserList")
-            , ("list", toJSON $ fix _users .$. list <$> _clients^..traversed.cid)
+            , ("list", toJSON $ fix _users cids pids .$. info <$> nub (cids ++ pids))
             ]
-            where fix users cid (Object o) =
-                    Object .
-                    M.delete "t" .
-                    M.insert "uid" (Number $ fromIntegral cid) .
-                    M.insert "name" (String $ users^.folded.filtered ((==cid) . _uid).uname) $ o
-                  fix _ _ x = x
+            where fix users cids pids uid (Object o) = Object
+                    . M.delete "t"
+                    . M.insert "uid" (Number $ fromIntegral uid)
+                    . M.insert "name" (String $ users^.folded.filtered ((==uid) . _uid).uname)
+                    . M.insert "conn" (Bool $ uid `elem` cids)
+                    . M.insert "play" (Bool $ uid `elem` pids)
+                    $ o
+                  fix _ _ _ _ x = x
 
 -- main user type
 data User = User { _uid :: ClientId
@@ -88,7 +94,6 @@ uname = lens _uname (\x y -> x { _uname = y })
 data GeneralGame = forall g msg. Game g msg => GeneralGame g
 data ServerState = ServerState { _clients :: [Client]
                                , _users :: [User]
-                               , _players :: [ClientId]
                                , _admins :: [ClientId]
                                , _nextConn :: Int
                                , _nextClient :: ClientId
