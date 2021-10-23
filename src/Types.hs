@@ -42,8 +42,6 @@ import Language.Haskell.TH
 type GameIO g = ReaderT (Client, ServerState) (MaybeT (StateT g IO))
 runGameIO :: GameIO g a -> (Client, ServerState) -> g -> IO (Maybe a, g)
 runGameIO = ((runStateT . runMaybeT) .) . runReaderT
--- runGameIO' :: GameIO g a -> Client -> ServerState -> IO (Maybe a, g)
--- runGameIO' g c s@ServerState{_game} = runGameIO g (c, s) _game
 
 -- main game type
 class FromJSON msg => Game g msg | g -> msg where

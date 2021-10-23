@@ -109,7 +109,7 @@ main {
                 &:hover    { background-color: #ddd; }
                 &.selected { background-color: #ccc; }
 
-                &.right    { background-color: #a1b56c; }
+                &.right    { background-color: mix(#a1b56c, #fff, 75%); }
                 &.wrong    { background-color: #ab4642; }
 
                 > svg { position: absolute; width: 100%; height: 100%; }
