@@ -104,42 +104,44 @@ negotiate state conn = do
     forM_ cid $ \cid -> play state conn cid (-1)
 
 play :: MVar ServerState -> Connection -> ClientId -> GameId -> IO ()
-play state conn cid gid' = do
-
-    let connect c = do
-        logC conn "connected"
-
-        modifyMVar_ state $ \s -> do
-            runCatchup c s
-            runUserlist c $ s & clients %~ (c:)
-
-        -- main loop
-        let loop = do
-            msg <- recvWS conn
-            case decodeT msg of
-              Just JoinGame{..} -> return i_gid
-              Just (CreateGame "c53t") -> do
-                  g <- new :: IO CsetGame
-                  ngid <- state .&++ nextGame
-                  overMVar state $ games.at ngid .~ Just (GeneralGame g)
-                  withMVar state $ \s -> mapM_ (flip runGameList s) (s^..byGid (-1))
-                  return ngid
-              Just (CreateGame unk) -> do
-                  sendWS conn . Toast $ "unknown game type " <> unk
-                  loop
-              Nothing -> do
-                  modifyMVar_ state $ \s -> runRecv c s msg
-                  loop
-
-        loop
-
-    let disconnect c = do
-        logC conn "disconnected"
-        modifyMVar_ state $ \s ->
-            runUserlist c $ s & clients %~ filter ((/= conn) . _conn)
-
-    newgid <- liftM2 finally connect disconnect $ Client conn cid gid'
+play state conn cid gid = do
+    let c = Client conn cid gid
+    newgid <- (connect state c) `finally` (disconnect state c)
     play state conn cid newgid
+
+connect :: MVar ServerState -> Client -> IO GameId
+connect state c = do
+    logC c "connected"
+
+    modifyMVar_ state $ \s -> do
+        runCatchup c s
+        runUserlist c $ s & clients %~ (c:)
+
+    -- main loop
+    let loop = do
+        msg <- recvWS c
+        case decodeT msg of
+          Just JoinGame{..} -> return i_gid
+          Just (CreateGame "c53t") -> do
+              g <- new :: IO CsetGame
+              gid <- state .&++ nextGame
+              overMVar state $ games.at gid .~ Just (GeneralGame g)
+              withMVar state $ \s -> mapM_ (flip runGameList s) (s^..byGid (-1))
+              return gid
+          Just (CreateGame unk) -> do
+              sendWS c . Toast $ "unknown game type " <> unk
+              loop
+          Nothing -> do
+              modifyMVar_ state $ \s -> runRecv c s msg
+              loop
+
+    loop
+
+disconnect :: MVar ServerState -> Client -> IO ()
+disconnect state c = do
+    logC c "disconnected"
+    modifyMVar_ state $ \s ->
+        runUserlist c $ s & clients %~ filter ((c^.conn /=) . _conn)
 
 setpass :: IOException -> IO Text
 setpass _ = do

@@ -31,23 +31,34 @@ data Client = Client { _conn :: Connection
                      }
 makeLenses ''Client
 
+-- convenience: can use a client where a connection is desired
+class HasConn a where
+    getconn :: a -> Connection
+instance HasConn Connection where
+    getconn = id
+instance HasConn Client where
+    getconn = view conn
+
 -- logging
 log :: Text -> IO ()
 log s = getZonedTime >>= T.putStrLn . (<>s) . T.pack . formatTime defaultTimeLocale "[%F %T] "
 
-logC :: Connection -> Text -> IO ()
-logC (Connection _ connid) s = log $ pad connid <> ": " <> s
-    where pad = T.pack . reverse . take 5 . (++repeat '0') . reverse . show
+logC :: HasConn a => a -> Text -> IO ()
+logC c s = log $ pad connid <> ": " <> s
+    where Connection _ connid = getconn c
+          pad = T.pack . reverse . take 5 . (++repeat '0') . reverse . show
 
 -- sending and receiving websocket messages
-sendWS :: ToJSON a => Connection -> a -> IO ()
-sendWS c@(Connection conn connid) msg = do
+sendWS :: (HasConn a, ToJSON b) => a -> b -> IO ()
+sendWS hc msg = do
+    let c@(Connection conn _) = getconn hc
     let t = encodeT msg
     logC c $ "SEND " <> t
     WS.sendTextData conn t
 
-recvWS :: Connection -> IO Text
-recvWS c@(Connection conn connid) = do
+recvWS :: HasConn a => a -> IO Text
+recvWS hc = do
+    let c@(Connection conn _) = getconn hc
     t <- WS.receiveData conn
     logC c $ "RECV " <> t
     return t
