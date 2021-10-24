@@ -132,7 +132,7 @@ connect state c = do
               sendWS c . Toast $ "unknown game type " <> unk
               loop
           Nothing -> do
-              modifyMVar_ state $ \s -> runRecv c s msg
+              runRecv c state msg
               loop
 
     loop

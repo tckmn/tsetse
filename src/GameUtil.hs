@@ -1,7 +1,11 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module GameUtil where
 
+import Control.Concurrent
 import Data.Aeson
 import Data.Functor
+import Data.Maybe (fromMaybe)
 import GM
 import Types
 import qualified Data.HashMap.Strict as M
@@ -17,12 +21,22 @@ runCatchup c s = case s^.cgame c of
                    Just (GeneralGame g) -> runGameIO catchup (c, s) g $> ()
                    Nothing -> runGameList c s
 
-runRecv :: Client -> ServerState -> Text -> IO ServerState
-runRecv c s msg = case s^.cgame c of
-                    Just (GeneralGame g) -> do
-                        (_, g') <- runGameIO (sequence_ $ recvT msg) (c, s) g
-                        return $ s & cgame c .~ Just (GeneralGame g')
-                    Nothing -> return s
+runRecv :: Client -> MVar ServerState -> Text -> IO ()
+runRecv c state msg = do
+    mg <- withMVar state $ return . view (cgame c)
+    case mg of
+      Just (GeneralGame g) ->
+          let go g gio = do
+              (post, g') <- modifyMVar state $ \s -> do
+                  (post, g') <- runGameIO gio (c, s) g
+                  return (s & cgame c .~ Just (GeneralGame g'), (post, g'))
+              case post of
+                Just Delayed{..} -> void . forkIO $ do
+                    threadDelay delay
+                    go g' act
+                _ -> return ()
+           in go g (fromMaybe (return Done) $ recvT msg)
+      Nothing -> return ()
 
 runUserlist :: Client -> ServerState -> IO ServerState
 runUserlist c s = case s^.cgame c of

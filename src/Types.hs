@@ -43,6 +43,9 @@ type GameIO g = ReaderT (Client, ServerState) (MaybeT (StateT g IO))
 runGameIO :: GameIO g a -> (Client, ServerState) -> g -> IO (Maybe a, g)
 runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 
+data PostAction g = Done
+                  | Delayed { delay :: Int, act :: GameIO g (PostAction g) }
+
 -- main game type
 class FromJSON msg => Game g msg | g -> msg where
     new :: IO g
@@ -50,9 +53,9 @@ class FromJSON msg => Game g msg | g -> msg where
     players :: g -> [ClientId]
     userinfo :: g -> ClientId -> Value
     desc :: g -> Text
-    recv :: msg -> GameIO g ()
+    recv :: msg -> GameIO g (PostAction g)
 
-    recvT :: Text -> Maybe (GameIO g ())
+    recvT :: Text -> Maybe (GameIO g (PostAction g))
     recvT t = recv <$> decodeT t
 
     -- TODO figure out how to use broadcast/lenses here

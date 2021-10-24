@@ -51,7 +51,7 @@ instance Game OCWallGame Msg where
     desc g = "connecting wall"
 
     recv SetWall{..} = do
-        return ()
+        return Done
 
     recv Guess{..} = do
-        return ()
+        return Done

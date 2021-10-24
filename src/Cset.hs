@@ -7,9 +7,8 @@
 module Cset where
 
 import Control.Applicative
-import Control.Concurrent (threadDelay)
 import Data.List (nub)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, catMaybes)
 import GHC.Generics
 import qualified Data.HashMap.Strict as M
 
@@ -51,7 +50,7 @@ instance Game CsetGame Msg where
 
     new = do
         shuf <- shuffle fullDeck
-        let (cards, deck) = splitAt 12 fullDeck
+        let (cards, deck) = splitAt 12 (take 15 fullDeck)
         return CsetGame { _deck = deck
                         , _cards = cards
                         , _scores = M.empty
@@ -81,14 +80,16 @@ instance Game CsetGame Msg where
 
         -- they're a set! tell everyone
         broadcast $ Highlight idxs' True
-        liftIO $ threadDelay 5000000
 
         -- gain some score
         who <- view $ _1.cid
         scores.at who %= Just . maybe 1 succ
         userlist
 
-        -- oh my god what a beautiful line
-        newCards <- deck %%= splitAt 5
-        cs <- cards <%= (itraversed %@~ \i c -> fromMaybe c . lookup i $ zip idxs' newCards)
-        broadcast $ Cards cs
+        return $ Delayed 5000000 $ do
+            -- oh my god what a beautiful line
+            newCards <- deck %%= splitAt 5
+            let replaces = zip idxs' $ (Just <$> newCards) ++ repeat Nothing
+            cs <- cards <%= catMaybes . (itraversed %@~ \i c -> fromMaybe (Just c) $ lookup i replaces)
+            broadcast $ Cards cs
+            return Done
