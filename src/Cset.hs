@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Cset where
 
@@ -10,9 +11,11 @@ import Control.Concurrent (threadDelay)
 import Data.List (nub)
 import Data.Maybe (fromMaybe)
 import GHC.Generics
+import qualified Data.HashMap.Strict as M
+
+import GameUtil
 import Types
 import Util
-import qualified Data.HashMap.Strict as M
 
 import Data.Aeson
 
@@ -61,6 +64,8 @@ instance Game CsetGame Msg where
     players g = g^.scores&M.keys
 
     userinfo g cid = toJSON $ UserInfo (g^.scores.at cid.non 0)
+
+    desc g = "c53t"
 
     recv Claim{..} = do
         -- make sure the request is well-formed

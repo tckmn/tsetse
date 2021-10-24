@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module OCWall where
 
@@ -46,6 +47,8 @@ instance Game OCWallGame Msg where
     players g = []
 
     userinfo g cid = toJSON $ UserInfo 10
+
+    desc g = "connecting wall"
 
     recv SetWall{..} = do
         return ()

@@ -18,15 +18,18 @@ import Data.Tuple (swap)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
+import qualified Data.HashMap.Strict as M
 
 import Data.Aeson hiding ((.=))
 import qualified Network.WebSockets as WS
 
-import Util
-import Types
 import GM
-import OCWall
+import GameUtil
+import Types
+import Util
+
 import Cset
+import OCWall
 
 
 idLength = 5
@@ -76,8 +79,8 @@ negotiate state conn = do
     logC conn "negotiate attempt"
 
     greeting <- recvWS conn
-    cid <- case (decodeT greeting, decodeT greeting) of
-      (Just Identify{..}, _) -> do
+    cid <- case decodeT greeting of
+      Just Identify{..} -> do
           u <- previewMVar state $ byUid i_cid
           case u of
             Just u | u^.secret == i_secret -> do
@@ -87,7 +90,7 @@ negotiate state conn = do
                 sendWS conn $ NotIdentified
                 negotiate state conn
                 return Nothing
-      (_, Just Register{..}) -> do
+      Just Register{..} -> do
           uid <- state .&++ nextClient
           secret <- makeSecret
           overMVar state $ users %~ (User { _uid = uid
@@ -96,11 +99,14 @@ negotiate state conn = do
                                           }:)
           sendWS conn $ Registered uid secret i_uname
           return $ Just uid
-      _ -> return Nothing
+      Nothing -> return Nothing
 
+    forM_ cid $ \cid -> play state conn cid (-1)
 
-    -- timeSync conn $ T.cons 'g' stamp
-    -- end of negotiation, client is good
+play :: MVar ServerState -> Connection -> ClientId -> GameId -> IO ()
+play state conn cid gid = do
+
+    withMVar state $ \s -> putStrLn . show $ M.keys (s^.games)
 
     let connect c = do
         logC conn "connected"
@@ -110,16 +116,31 @@ negotiate state conn = do
             runUserlist c $ s & clients %~ (c:)
 
         -- main loop
-        forever $ do
+        let loop = do
             msg <- recvWS conn
-            modifyMVar_ state $ \s -> runRecv c s msg
+            case decodeT msg of
+              Just JoinGame{..} -> return i_gid
+              Just (CreateGame "c53t") -> do
+                  g <- new :: IO CsetGame
+                  gid <- state .&++ nextGame
+                  overMVar state $ games.at gid .~ Just (GeneralGame g)
+                  return gid
+              Just (CreateGame unk) -> do
+                  sendWS conn . Toast $ "unknown game type " <> unk
+                  loop
+              Nothing -> do
+                  modifyMVar_ state $ \s -> runRecv c s msg
+                  loop
+
+        loop
 
     let disconnect c = do
         logC conn "disconnected"
         modifyMVar_ state $ \s ->
             runUserlist c $ s & clients %~ filter ((/= conn) . _conn)
 
-    forM_ cid $ liftM2 finally connect disconnect . flip Client conn
+    newgid <- liftM2 finally connect disconnect $ Client conn cid gid
+    play state conn cid newgid
 
 setpass :: IOException -> IO Text
 setpass _ = do
@@ -132,14 +153,14 @@ main :: IO ()
 main = do
     let chomp = T.reverse . T.dropWhile (=='\n') . T.reverse
     pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
-    g <- new :: IO CsetGame
     state <- newMVar $ ServerState { _clients = []
                                    , _users = []
                                    , _admins = []
                                    , _nextConn = 0
                                    , _nextClient = 0
+                                   , _nextGame = 0
                                    , _password = pwd
-                                   , _game = GeneralGame g
+                                   , _games = M.empty
                                    }
     log "starting server"
     WS.runServer "0.0.0.0" 9255 $ app state

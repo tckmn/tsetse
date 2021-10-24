@@ -65,6 +65,7 @@ window.addEventListener('load', () => {
         var el = document.createElement(name);
         if (props) for (prop in props) {
             if (prop === 'text') el.appendChild(document.createTextNode(props.text));
+            else if (prop.slice(0,2) === 'on') el.addEventListener(prop.slice(2), props[prop]);
             else el.setAttribute(prop, props[prop]);
         }
         return el;
@@ -147,6 +148,41 @@ window.addEventListener('load', () => {
                 });
 
             e.sbmain.appendChild(tbl);
+
+        },
+
+        GameList: msg => {
+
+            clr(e.wall);
+            cells = [];
+
+            msg.list.forEach(g => {
+                e.wall.appendChild(el('a', {
+                    text: g[1], href: '#',
+                    onclick: ev => {
+                        ev.preventDefault();
+                        send('JoinGame', { gid: g[0] });
+                    }
+                }));
+            });
+
+            var sel = el('select');
+            'c53t'.split(' ').forEach(g => {
+                sel.appendChild(el('option', {
+                    text: g, value: g
+                }));
+            });
+
+            var newsec = el('div');
+            newsec.appendChild(sel);
+            newsec.appendChild(el('button', {
+                text: 'create game',
+                onclick: ev => {
+                    send('CreateGame', { gtype: sel.value });
+                }
+            }));
+
+            e.wall.appendChild(newsec);
 
         },
 

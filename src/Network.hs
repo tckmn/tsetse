@@ -20,13 +20,16 @@ import qualified Network.WebSockets as WS
 
 -- clients
 type ClientId = Int
+type GameId = Int
 data Connection = Connection WS.Connection Int
 instance Eq Connection where
     (Connection _ n1) == (Connection _ n2) = n1 == n2
 
-data Client = Client { _cid :: ClientId, _conn :: Connection }
+data Client = Client { _conn :: Connection
+                     , _cid :: ClientId
+                     , _gid :: GameId
+                     }
 makeLenses ''Client
-withCid cid = filter ((==cid) . _cid)
 
 -- logging
 log :: Text -> IO ()

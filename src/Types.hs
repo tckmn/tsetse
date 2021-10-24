@@ -49,6 +49,7 @@ class FromJSON msg => Game g msg | g -> msg where
     catchup :: GameIO g ()
     players :: g -> [ClientId]
     userinfo :: g -> ClientId -> Value
+    desc :: g -> Text
     recv :: msg -> GameIO g ()
 
     recvT :: Text -> Maybe (GameIO g ())
@@ -95,25 +96,17 @@ data ServerState = ServerState { _clients :: [Client]
                                , _admins :: [ClientId]
                                , _nextConn :: Int
                                , _nextClient :: ClientId
+                               , _nextGame :: GameId
                                , _password :: Text
-                               , _game :: GeneralGame
+                               , _games :: M.HashMap Int GeneralGame
                                }
 makeLenses ''ServerState
 
 byUid :: ClientId -> Fold ServerState User
 byUid uid = users.folded.filtered ((==uid) . _uid)
 
--- functions for accessing games without pain
-runCatchup :: Client -> ServerState -> IO ()
-runCatchup c (s@ServerState{_game=GeneralGame g}) = runGameIO catchup (c, s) g $> ()
-
-runRecv :: Client -> ServerState -> Text -> IO ServerState
-runRecv c (s@ServerState{_game=GeneralGame g}) msg = do
-    (_, game') <- runGameIO (sequence_ $ recvT msg) (c, s) g
-    return $ s & game .~ GeneralGame game'
-
-runUserlist :: Client -> ServerState -> IO ServerState
-runUserlist c (s@ServerState{_game=GeneralGame g}) = runGameIO userlist (c, s) g $> s
+cgame :: Client -> Lens' ServerState (Maybe GeneralGame)
+cgame c = games.at (c^.gid)
 
 -- jsonifying message types
 killPrefix :: String -> String -> String
@@ -133,14 +126,3 @@ makeJSON t = [d|
         toJSON = genericToJSON jsonOpts
         toEncoding = genericToEncoding jsonOpts
     |]
-
--- common game monad tasks
-
-liftWS :: ToJSON a => (t -> a -> IO ()) -> Getting t (Client, ServerState) t -> a -> GameIO g ()
-liftWS fn lens msg = view lens >>= \x -> liftIO $ fn x msg
-
-send :: ToJSON a => a -> GameIO g ()
-send = liftWS sendWS (_1.conn)
-
-broadcast :: ToJSON a => a -> GameIO g ()
-broadcast = liftWS broadcastWS (_2.clients)
