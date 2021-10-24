@@ -8,7 +8,7 @@ module Cset where
 
 import Control.Applicative
 import Data.List (nub)
-import Data.Maybe (fromMaybe, catMaybes)
+import Data.Maybe
 import GHC.Generics
 import qualified Data.HashMap.Strict as M
 
@@ -32,12 +32,13 @@ checkSet = mconcat .==. pure mempty
 
 data CsetGame = CsetGame { _deck :: [Card]
                          , _cards :: [Card]
+                         , _taken :: [Card]
                          , _scores :: M.HashMap ClientId Int
                          }
 makeLenses ''CsetGame
 
 data Msg = Claim { idxs :: [Int] }
-         | PostClaim { pwd :: Text, idxs :: [Int] }
+         | PostClaim { pwd :: Text, i_cards :: [Card] }
          deriving Generic
 makeJSON ''Msg
 
@@ -54,6 +55,7 @@ instance Game CsetGame Msg where
         let (cards, deck) = splitAt 12 (take 15 fullDeck)
         return CsetGame { _deck = deck
                         , _cards = cards
+                        , _taken = []
                         , _scores = M.empty
                         }
 
@@ -70,9 +72,10 @@ instance Game CsetGame Msg where
     recv Claim{..} = do
         -- make sure the request is well-formed
         cs <- use cards
+        ts <- use taken
         let idxs' = nub idxs
-            set = [c | idx <- idxs', let Just c = cs^?ix idx]
-        guard $ length set == 5
+            set = [c | idx <- idxs', let Just c = cs^?ix idx, c `notElem` ts]
+        guard $ length idxs' == 5 && length set == 5
 
         -- flash em red if they're not a set
         unless (checkSet set) $ do
@@ -80,6 +83,7 @@ instance Game CsetGame Msg where
             empty
 
         -- they're a set! tell everyone
+        taken <>= set
         broadcast $ Highlight idxs' True
 
         -- gain some score
@@ -89,14 +93,14 @@ instance Game CsetGame Msg where
 
         -- wait 5 seconds and clear the cards
         pwd <- view $ _2.password
-        return $ Delayed 5000000 (encodeT $ PostClaim pwd idxs')
+        return $ Delayed 5000000 (encodeT $ PostClaim pwd set)
 
     recv PostClaim{..} = do
         checkpwd pwd
 
         -- oh my god what a beautiful line
         newCards <- deck %%= splitAt 5
-        let replaces = zip idxs $ (Just <$> newCards) ++ repeat Nothing
-        cs <- cards <%= catMaybes . (itraversed %@~ \i c -> fromMaybe (Just c) $ lookup i replaces)
+        let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
+        cs <- cards <%= mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
         broadcast $ Cards cs
         return Done
