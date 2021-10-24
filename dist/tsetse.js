@@ -10,7 +10,7 @@ window.addEventListener('load', () => {
         latencies = [], latency = 0,
         startTime = 0, duration = 0, timerIntr;
 
-    'wall wallwrap name discon sbmain rownum rowsub rowadd square'.split(' ').forEach(id => e[id] = document.getElementById(id));
+    'wall wallwrap name discon sbmain rownum rowsub rowadd square lobby'.split(' ').forEach(id => e[id] = document.getElementById(id));
 
     ws = new WebSocket('ws://' + location.hostname + ':9255/');
     var send = (t, obj) => ws.send(JSON.stringify({...obj, t: t}));
@@ -60,6 +60,11 @@ window.addEventListener('load', () => {
     window.addEventListener('resize', resize);
     renum();
     resize();
+
+    e.lobby.addEventListener('click', ev => {
+        ev.preventDefault();
+        send('JoinGame', { gid: -1 });
+    });
 
     var el = (name, props) => {
         var el = document.createElement(name);
