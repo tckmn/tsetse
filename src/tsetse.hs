@@ -104,9 +104,7 @@ negotiate state conn = do
     forM_ cid $ \cid -> play state conn cid (-1)
 
 play :: MVar ServerState -> Connection -> ClientId -> GameId -> IO ()
-play state conn cid gid = do
-
-    withMVar state $ \s -> putStrLn . show $ M.keys (s^.games)
+play state conn cid gid' = do
 
     let connect c = do
         logC conn "connected"
@@ -122,9 +120,10 @@ play state conn cid gid = do
               Just JoinGame{..} -> return i_gid
               Just (CreateGame "c53t") -> do
                   g <- new :: IO CsetGame
-                  gid <- state .&++ nextGame
-                  overMVar state $ games.at gid .~ Just (GeneralGame g)
-                  return gid
+                  ngid <- state .&++ nextGame
+                  overMVar state $ games.at ngid .~ Just (GeneralGame g)
+                  withMVar state $ \s -> mapM_ (flip runGameList s) (s^..byGid (-1))
+                  return ngid
               Just (CreateGame unk) -> do
                   sendWS conn . Toast $ "unknown game type " <> unk
                   loop
@@ -139,7 +138,7 @@ play state conn cid gid = do
         modifyMVar_ state $ \s ->
             runUserlist c $ s & clients %~ filter ((/= conn) . _conn)
 
-    newgid <- liftM2 finally connect disconnect $ Client conn cid gid
+    newgid <- liftM2 finally connect disconnect $ Client conn cid gid'
     play state conn cid newgid
 
 setpass :: IOException -> IO Text

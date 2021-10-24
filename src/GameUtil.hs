@@ -8,12 +8,14 @@ import qualified Data.HashMap.Strict as M
 
 -- functions for accessing games without pain
 
+runGameList :: Client -> ServerState -> IO ()
+runGameList c s = sendWS (c^.conn) . GameList $ (_2 %~ runDesc) <$> M.toList (s^.games)
+    where runDesc (GeneralGame g) = desc g
+
 runCatchup :: Client -> ServerState -> IO ()
 runCatchup c s = case s^.cgame c of
                    Just (GeneralGame g) -> runGameIO catchup (c, s) g $> ()
-                   Nothing -> sendWS (c^.conn) . GameList $
-                       (_2 %~ runDesc) <$> M.toList (s^.games)
-    where runDesc (GeneralGame g) = desc g
+                   Nothing -> runGameList c s
 
 runRecv :: Client -> ServerState -> Text -> IO ServerState
 runRecv c s msg = case s^.cgame c of
@@ -37,5 +39,5 @@ send msg = do
 broadcast :: ToJSON a => a -> GameIO g ()
 broadcast msg = do
     g <- view $ _1.gid
-    c <- view $ _2.clients
-    liftIO $ broadcastWS (c^..folded.filteredBy (gid.only g)) msg
+    s <- view $ _2
+    liftIO $ broadcastWS (s^..byGid g) msg

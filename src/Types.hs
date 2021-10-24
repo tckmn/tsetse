@@ -107,6 +107,9 @@ makeLenses ''ServerState
 byUid :: ClientId -> Fold ServerState User
 byUid u = users.folded.filteredBy (uid.only u)
 
+byGid :: GameId -> Fold ServerState Client
+byGid n = clients.folded.filteredBy (gid.only n)
+
 cgame :: Client -> Lens' ServerState (Maybe GeneralGame)
 cgame c = games.at (c^.gid)
 
