@@ -52,7 +52,7 @@ instance Game CsetGame Msg where
 
     new = do
         shuf <- shuffle fullDeck
-        let (cards, deck) = splitAt 12 (take 15 fullDeck)
+        let (cards, deck) = splitAt 12 shuf --(take 15 fullDeck)
         return CsetGame { _deck = deck
                         , _cards = cards
                         , _taken = []
