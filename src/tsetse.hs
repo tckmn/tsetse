@@ -9,7 +9,7 @@
 import Prelude hiding (log)
 
 import Control.Applicative
-import Control.Concurrent (MVar, newMVar, withMVar, modifyMVar, modifyMVar_)
+import Control.Concurrent
 import Control.Exception (catch, finally, IOException)
 import Control.Monad
 import Data.Char (isUpper, isAscii, isSpace, isDigit)
@@ -132,7 +132,14 @@ connect state c = do
               sendWS c . Toast $ "unknown game type " <> unk
               loop
           Nothing -> do
-              runRecv c state msg
+              let gamemsg msg = do
+                  post <- modifyMVar state $ \s -> runRecv c s msg
+                  case post of
+                    Done -> return ()
+                    Delayed{..} -> void . forkIO $ do
+                        threadDelay delay
+                        gamemsg msg
+              gamemsg msg
               loop
 
     loop

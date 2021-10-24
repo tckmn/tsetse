@@ -2,7 +2,7 @@
 
 module GameUtil where
 
-import Control.Concurrent
+import Control.Applicative
 import Data.Aeson
 import Data.Functor
 import Data.Maybe (fromMaybe)
@@ -21,22 +21,14 @@ runCatchup c s = case s^.cgame c of
                    Just (GeneralGame g) -> runGameIO catchup (c, s) g $> ()
                    Nothing -> runGameList c s
 
-runRecv :: Client -> MVar ServerState -> Text -> IO ()
-runRecv c state msg = do
-    mg <- withMVar state $ return . view (cgame c)
-    case mg of
-      Just (GeneralGame g) ->
-          let go g gio = do
-              (post, g') <- modifyMVar state $ \s -> do
-                  (post, g') <- runGameIO gio (c, s) g
-                  return (s & cgame c .~ Just (GeneralGame g'), (post, g'))
-              case post of
-                Just Delayed{..} -> void . forkIO $ do
-                    threadDelay delay
-                    go g' act
-                _ -> return ()
-           in go g (fromMaybe (return Done) $ recvT msg)
-      Nothing -> return ()
+runRecv :: Client -> ServerState -> Text -> IO (ServerState, PostAction)
+runRecv c s msg = do
+    case s^.cgame c of
+      Just (GeneralGame g) -> do
+          let gio = fromMaybe empty $ recvT msg
+          (post, g') <- runGameIO gio (c, s) g
+          return $ (s & cgame c .~ Just (GeneralGame g'), fromMaybe Done post)
+      Nothing -> return (s, Done)
 
 runUserlist :: Client -> ServerState -> IO ServerState
 runUserlist c s = case s^.cgame c of
@@ -55,3 +47,8 @@ broadcast msg = do
     g <- view $ _1.gid
     s <- view $ _2
     liftIO $ broadcastWS (s^..byGid g) msg
+
+checkpwd :: Text -> GameIO g ()
+checkpwd check = do
+    pwd <- view $ _2.password
+    guard $ check == pwd

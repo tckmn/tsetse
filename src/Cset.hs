@@ -37,6 +37,7 @@ data CsetGame = CsetGame { _deck :: [Card]
 makeLenses ''CsetGame
 
 data Msg = Claim { idxs :: [Int] }
+         | PostClaim { pwd :: Text, idxs :: [Int] }
          deriving Generic
 makeJSON ''Msg
 
@@ -86,10 +87,16 @@ instance Game CsetGame Msg where
         scores.at who %= Just . maybe 1 succ
         userlist
 
-        return $ Delayed 5000000 $ do
-            -- oh my god what a beautiful line
-            newCards <- deck %%= splitAt 5
-            let replaces = zip idxs' $ (Just <$> newCards) ++ repeat Nothing
-            cs <- cards <%= catMaybes . (itraversed %@~ \i c -> fromMaybe (Just c) $ lookup i replaces)
-            broadcast $ Cards cs
-            return Done
+        -- wait 5 seconds and clear the cards
+        pwd <- view $ _2.password
+        return $ Delayed 5000000 (encodeT $ PostClaim pwd idxs')
+
+    recv PostClaim{..} = do
+        checkpwd pwd
+
+        -- oh my god what a beautiful line
+        newCards <- deck %%= splitAt 5
+        let replaces = zip idxs $ (Just <$> newCards) ++ repeat Nothing
+        cs <- cards <%= catMaybes . (itraversed %@~ \i c -> fromMaybe (Just c) $ lookup i replaces)
+        broadcast $ Cards cs
+        return Done
