@@ -29,11 +29,13 @@ runUserlist c s = case s^.cgame c of
 
 -- common game monad tasks
 
-liftWS :: ToJSON a => (t -> a -> IO ()) -> Getting t (Client, ServerState) t -> a -> GameIO g ()
-liftWS fn lens msg = view lens >>= \x -> liftIO $ fn x msg
-
 send :: ToJSON a => a -> GameIO g ()
-send = liftWS sendWS (_1.conn)
+send msg = do
+    conn <- view $ _1.conn
+    liftIO $ sendWS conn msg
 
 broadcast :: ToJSON a => a -> GameIO g ()
-broadcast = liftWS broadcastWS (_2.clients)
+broadcast msg = do
+    g <- view $ _1.gid
+    c <- view $ _2.clients
+    liftIO $ broadcastWS (c^..folded.filteredBy (gid.only g)) msg

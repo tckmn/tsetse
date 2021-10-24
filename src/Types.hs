@@ -59,10 +59,12 @@ class FromJSON msg => Game g msg | g -> msg where
     userlist :: GameIO g ()
     userlist = do
         info <- gets userinfo
+        ugid <- view $ _1.gid
         ServerState{..} <- view _2
-        let cids = _clients^..traversed.cid
+        let clients = _clients^..folded.filteredBy (gid.only ugid)
+        let cids = clients^..folded.cid
         pids <- gets players
-        liftIO . broadcastWS _clients $ object
+        liftIO . broadcastWS clients $ object
             [ ("t", String "UserList")
             , ("list", toJSON $ fix _users cids pids .$. info <$> nub (cids ++ pids))
             ]
