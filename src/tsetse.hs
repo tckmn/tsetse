@@ -114,6 +114,7 @@ connect state c = do
     logC c "connected"
 
     modifyMVar_ state $ \s -> do
+        runGameType c s
         runCatchup c s
         runUserlist c $ s & clients %~ (c:)
 

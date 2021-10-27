@@ -6,11 +6,12 @@ window.addEventListener('load', () => {
 
     var e = {},
         cells = [],
-        offsets = [], offset = 0,
-        latencies = [], latency = 0,
-        startTime = 0, duration = 0, timerIntr;
+        game;
+        // offsets = [], offset = 0,
+        // latencies = [], latency = 0,
+        // startTime = 0, duration = 0, timerIntr;
 
-    'wall wallwrap name discon sbmain rownum rowsub rowadd square lobby'.split(' ').forEach(id => e[id] = document.getElementById(id));
+    'wall wallwrap name discon sbmain sbconf lobby'.split(' ').forEach(id => e[id] = document.getElementById(id));
 
     ws = new WebSocket('ws://' + location.hostname + ':9255/');
     var send = (t, obj) => ws.send(JSON.stringify({...obj, t: t}));
@@ -32,63 +33,66 @@ window.addEventListener('load', () => {
 
     var resize = () => {
         var rect = e.wallwrap.getBoundingClientRect();
-        e.wall.style.maxWidth = settings.square.value ? rect.height + 'px' : '';
-        e.wall.style.maxHeight = settings.square.value ? rect.width + 'px' : '';
+        e.wall.style.maxWidth = setting('square', game) ? rect.height + 'px' : '';
+        e.wall.style.maxHeight = setting('square', game) ? rect.width + 'px' : '';
     };
     window.addEventListener('resize', resize);
 
-    var settings = {
-
+    var specSettings = {
         offset: {
+            default: false
         },
-
         filled: {
+            default: false
         },
-
         rownum: {
             default: 4, min: 1, max: 12,
-            dec: e.rowsub, inc: e.rowadd,
-            update: n => {
-                e.rownum.textContent = n;
-                e.wall.style.gridTemplateColumns = `repeat(${n},1fr)`;
-            }
+            update: n => e.wall.style.gridTemplateColumns = `repeat(${n},1fr)`
         },
-
         square: {
             default: true,
-            box: e.square,
-            update: b => {
-                e.square.checked = b;
-                resize();
-            }
+            update: resize
         }
-
     };
 
-    var saveSettings = () => {
-        var obj = {};
-        for (key in settings) obj[key] = settings[key].value;
-        localStorage.setItem('settings', JSON.stringify(obj));
+    var gameSettings = {
+        '': [],
+        'c53t': 'offset filled rownum square'.split(' ')
     };
 
-    var ls = localStorage.getItem('settings');
-    ls = ls ? JSON.parse(ls) : {};
-    for (key in settings) { (function(key) {
-        var obj = settings[key];
-        obj.update(obj.value = ls[key] === undefined ? obj.default : ls[key]);
-        if (obj.inc) obj.inc.addEventListener('click', () => {
-            obj.update(obj.value = Math.min(obj.max, obj.value+1));
-            saveSettings();
+    var settings = localStorage.getItem('settings');
+    settings = settings ? JSON.parse(settings) : {};
+
+    var setting = (s, game) => settings[game] && settings[game][s] !== undefined ?
+            settings[game][s] : specSettings[s].default;
+
+    var initSettings = game => {
+        Array.from(e.sbconf.children).forEach(c => c.style.display = 'none');
+        if (!settings[game]) settings[game] = {};
+        gameSettings[game].forEach(key => {
+            var obj = specSettings[key];
+
+            var cont  = document.getElementById('conf'+key),
+                box   = cont.getElementsByClassName('box')[0],
+                minus = cont.getElementsByClassName('minus')[0],
+                plus  = cont.getElementsByClassName('plus')[0],
+                disp  = cont.getElementsByClassName('disp')[0],
+                updfn = (v, nowrite) => {
+                    settings[game][key] = v;
+                    if (obj.update) obj.update(v);
+                    if (box) box.checked = v;
+                    if (disp) disp.textContent = v;
+                    if (!nowrite) localStorage.setItem('settings', JSON.stringify(settings));
+                };
+
+            cont.style.display = 'block';
+            updfn(setting(key, game), true);
+
+            if (minus) minus.addEventListener('click', () => updfn(Math.max(obj.min, settings[game][key]-1)));
+            if (plus) plus.addEventListener('click', () => updfn(Math.min(obj.max, settings[game][key]+1)));
+            if (box) box.addEventListener('change', () => updfn(box.checked));
         });
-        if (obj.dec) obj.dec.addEventListener('click', () => {
-            obj.update(obj.value = Math.max(obj.min, obj.value-1));
-            saveSettings();
-        });
-        if (obj.box) obj.box.addEventListener('change', () => {
-            obj.update(obj.value = obj.box.checked);
-            saveSettings();
-        });
-    })(key); }
+    };
 
     e.lobby.addEventListener('click', ev => {
         ev.preventDefault();
@@ -218,6 +222,12 @@ window.addEventListener('load', () => {
 
             e.wall.appendChild(newsec);
 
+        },
+
+        GameType: msg => {
+            clr(e.wall);
+            clr(e.sbmain);
+            initSettings(game = msg.gtype);
         },
 
         Cards: msg => {

@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module GameUtil where
 
@@ -13,8 +14,13 @@ import qualified Data.HashMap.Strict as M
 -- functions for accessing games without pain
 
 runGameList :: Client -> ServerState -> IO ()
-runGameList c s = sendWS (c^.conn) . GameList $ (_2 %~ runDesc) <$> M.toList (s^.games)
+runGameList c s = sendWS c . GameList $ (_2 %~ runDesc) <$> M.toList (s^.games)
     where runDesc (GeneralGame g) = desc g
+
+runGameType :: Client -> ServerState -> IO ()
+runGameType c s = sendWS c . GameType $ case (s^.cgame c) of
+                                          Just (GeneralGame g) -> desc g
+                                          Nothing -> ""
 
 runCatchup :: Client -> ServerState -> IO ()
 runCatchup c s = case s^.cgame c of

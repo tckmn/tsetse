@@ -136,7 +136,8 @@ main {
         > div#sbconf {
             display: flex;
             flex-direction: column;
-            button.pm, span { margin: 0; padding: 0 2px; font: 11pt monospace; }
+            button.pm, span.disp { margin: 0; padding: 0 2px; font: 11pt monospace; }
+            > * { display: none; }
         }
     }
 }

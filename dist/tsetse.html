@@ -24,33 +24,33 @@
             </div>
 
             <main>
+
                 <div id='wallwrap'>
                     <div id='wall'></div>
                 </div>
+
                 <div id='sidebar'>
                     <div id='sbmain'></div>
                     <div id='sbconf'>
-                        <label>
-                            <input type='checkbox' id='offset'>
-                            offset
+                        <label id='confoffset'>
+                            <input type='checkbox' class='box'> offset
                         </label>
-                        <label>
-                            <input type='checkbox' id='filled'>
-                            filled
+                        <label id='conffilled'>
+                            <input type='checkbox' class='box'> filled
                         </label>
-                        <div>
-                            <button class='pm' id='rowsub'>−</button>
-                            <span id='rownum'></span>
-                            <button class='pm' id='rowadd'>+</button>
+                        <div id='confrownum'>
+                            <button class='pm minus'>−</button>
+                            <span class='disp'></span>
+                            <button class='pm plus'>+</button>
                             per row
                         </div>
-                        <label>
-                            <input type='checkbox' id='square'>
-                            square board
+                        <label id='confsquare'>
+                            <input type='checkbox' class='box'> square board
                         </label>
-                        <a href='#' id='lobby'>back to lobby</a>
                     </div>
+                    <a href='#' id='lobby'>back to lobby</a>
                 </div>
+
             </main>
 
             <div class='bar' id='botbar'>
