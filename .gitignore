@@ -1,4 +1,5 @@
-tsetse.css
-tsetse.css.map
+dist/tsetse.css
+dist/tsetse.css.map
+dist/tsetse.js
 .sass-cache
 pwd

@@ -1,6 +1,4 @@
-var $ = document.querySelector.bind(document),
-    $$ = document.querySelectorAll.bind(document),
-    ws;
+var ws;
 
 window.addEventListener('load', () => {
 
@@ -136,7 +134,7 @@ window.addEventListener('load', () => {
             ev.preventDefault();
             if (true) {
                 cell.classList.toggle('selected');
-                var guesses = Array.from($$('.selected'));
+                var guesses = Array.from(document.getElementsByClassName('selected'));
                 if (guesses.length === 5) {
                     guesses.forEach(g => g.classList.remove('selected'));
                     send('Claim', {
