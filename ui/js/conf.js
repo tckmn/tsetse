@@ -2,10 +2,12 @@ m.conf = (function() {
 
     var spec = {
         offset: {
-            default: false
+            default: false,
+            update: () => m.net.rerun('Cards')
         },
         filled: {
-            default: false
+            default: false,
+            update: () => m.net.rerun('Cards')
         },
         rownum: {
             default: 4, min: 1, max: 12,

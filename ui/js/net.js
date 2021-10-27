@@ -1,9 +1,22 @@
 m.net = (function() {
 
+    var prevmsg = {};
+
+    var recv = msg => {
+        prevmsg[msg.t] = msg;
+        if (m.gm[msg.t]) m.gm[msg.t](msg);
+        else if (m[m.game] && m[m.game][msg.t]) m[m.game][msg.t](msg);
+        else console.log('bad msg type '+msg.t); // TODO
+    };
+
     return {
 
         send: function(t, obj) {
             this.ws.send(JSON.stringify({...obj, t: t}));
+        },
+
+        rerun: function(t) {
+            if (prevmsg[t]) recv(prevmsg[t]);
         },
 
         _onload: function() {
@@ -16,11 +29,8 @@ m.net = (function() {
             };
 
             this.ws.onmessage = e => {
-                var msg = JSON.parse(e.data);
-                if (m.gm[msg.t]) m.gm[msg.t](msg);
-                else if (m[m.game] && m[m.game][msg.t]) m[m.game][msg.t](msg);
-                else console.log('bad msg type '+msg.t); // TODO
-            };
+                recv(JSON.parse(e.data));
+            }
 
             this.ws.onclose = () => {
                 m.e.name.style.display = 'none';

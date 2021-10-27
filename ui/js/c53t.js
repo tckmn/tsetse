@@ -9,7 +9,7 @@ m.c53t = (function() {
 
             var five = [0,1,2,3,4],
                 colors = ['#f00', '#90f', '#00f', '#0d0', '#f09600'],
-                xsep = 1, ysep = 2.5,
+                xsep = m.conf.get('offset') ? 1 : 0, ysep = 2.5,
                 pentW = 0.2, lineW = 0.2, outlineW = 0.06;
 
             msg.cards.forEach((card, idx) => {
@@ -25,12 +25,13 @@ m.c53t = (function() {
                         cy = i*ysep,
                         x = j => cx + Math.sin(Math.PI*2/5*j),
                         y = j => cy - Math.cos(Math.PI*2/5*j),
-                        stroke = ['#aaa','#666','#000'][i];
+                        stroke = ['#aaa','#666','#000'][i],
+                        fill = m.conf.get('filled') ? ['#ddd', '#999', '#333'][i] : 'transparent';
 
                     // the pentagon
                     svg.appendChild(m.dom.svgel('path', {
                         d: five.map(j => `${j?'L':'M'} ${x(j)} ${y(j)}`).join(' ') + 'Z',
-                        stroke: stroke, strokeWidth: pentW, fill: ['#ddd', '#999', '#333'][i]
+                        stroke: stroke, strokeWidth: pentW, fill: fill
                     }));
 
                     // outline of line from center to point
