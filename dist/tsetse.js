@@ -30,36 +30,65 @@ window.addEventListener('load', () => {
         e.discon.style.display = 'block';
     };
 
-    var settings = localStorage.getItem('settings');
-    settings = settings ? JSON.parse(settings) : {
-        rownum: 4, square: true
-    };
-    e.square.checked = settings.square;
-    var saveSettings = () => {
-        localStorage.setItem('settings', JSON.stringify(settings));
-    }, renum = () => {
-        e.rownum.textContent = settings.rownum;
-        e.wall.style.gridTemplateColumns = `repeat(${settings.rownum},1fr)`;
-    }, resize = () => {
+    var resize = () => {
         var rect = e.wallwrap.getBoundingClientRect();
-        e.wall.style.maxWidth = settings.square ? rect.height + 'px' : '';
-        e.wall.style.maxHeight = settings.square ? rect.width + 'px' : '';
+        e.wall.style.maxWidth = settings.square.value ? rect.height + 'px' : '';
+        e.wall.style.maxHeight = settings.square.value ? rect.width + 'px' : '';
     };
-    e.rowsub.addEventListener('click', () => {
-        settings.rownum = Math.max(1, settings.rownum-1);
-        renum(); saveSettings();
-    });
-    e.rowadd.addEventListener('click', () => {
-        settings.rownum = Math.min(12, settings.rownum+1);
-        renum(); saveSettings();
-    });
-    e.square.addEventListener('change', () => {
-        settings.square = e.square.checked;
-        resize(); saveSettings();
-    });
     window.addEventListener('resize', resize);
-    renum();
-    resize();
+
+    var settings = {
+
+        offset: {
+        },
+
+        filled: {
+        },
+
+        rownum: {
+            default: 4, min: 1, max: 12,
+            dec: e.rowsub, inc: e.rowadd,
+            update: n => {
+                e.rownum.textContent = n;
+                e.wall.style.gridTemplateColumns = `repeat(${n},1fr)`;
+            }
+        },
+
+        square: {
+            default: true,
+            box: e.square,
+            update: b => {
+                e.square.checked = b;
+                resize();
+            }
+        }
+
+    };
+
+    var saveSettings = () => {
+        var obj = {};
+        for (key in settings) obj[key] = settings[key].value;
+        localStorage.setItem('settings', JSON.stringify(obj));
+    };
+
+    var ls = localStorage.getItem('settings');
+    ls = ls ? JSON.parse(ls) : {};
+    for (key in settings) { (function(key) {
+        var obj = settings[key];
+        obj.update(obj.value = ls[key] === undefined ? obj.default : ls[key]);
+        if (obj.inc) obj.inc.addEventListener('click', () => {
+            obj.update(obj.value = Math.min(obj.max, obj.value+1));
+            saveSettings();
+        });
+        if (obj.dec) obj.dec.addEventListener('click', () => {
+            obj.update(obj.value = Math.max(obj.min, obj.value-1));
+            saveSettings();
+        });
+        if (obj.box) obj.box.addEventListener('change', () => {
+            obj.update(obj.value = obj.box.checked);
+            saveSettings();
+        });
+    })(key); }
 
     e.lobby.addEventListener('click', ev => {
         ev.preventDefault();
@@ -198,31 +227,33 @@ window.addEventListener('load', () => {
 
             var five = [0,1,2,3,4],
                 colors = ['#f00', '#90f', '#00f', '#0d0', '#f09600'],
-                sep = 2.5,
+                xsep = 1, ysep = 2.5,
                 pentW = 0.2, lineW = 0.2, outlineW = 0.06;
 
             msg.cards.forEach((card, idx) => {
 
                 var svg = svgel('svg', {
-                    _viewBox: `-1.5 -${sep/2+0.2} 3 ${sep*3+0.2}`
+                    _viewBox: `-${xsep+1.5} -${ysep/2+0.2} ${xsep*2+3} ${ysep*3+0.2}`
                 });
 
                 // svg.appendChild(svgel('rect', {x:-1.5,y:-sep/2,width:3,height:sep*3,fill:'red'}));
 
                 card.forEach((p, i) => {
-                    var x = j => Math.sin(Math.PI*2/5*j),
-                        y = j => -Math.cos(Math.PI*2/5*j)+sep*i,
+                    var cx = i*xsep-xsep,
+                        cy = i*ysep,
+                        x = j => cx + Math.sin(Math.PI*2/5*j),
+                        y = j => cy - Math.cos(Math.PI*2/5*j),
                         stroke = ['#aaa','#666','#000'][i];
 
                     // the pentagon
                     svg.appendChild(svgel('path', {
                         d: five.map(j => `${j?'L':'M'} ${x(j)} ${y(j)}`).join(' ') + 'Z',
-                        stroke: stroke, strokeWidth: pentW, fill: 'transparent'
+                        stroke: stroke, strokeWidth: pentW, fill: ['#ddd', '#999', '#333'][i]
                     }));
 
                     // outline of line from center to point
                     svg.appendChild(svgel('path', {
-                        d: `M 0 ${sep*i} L ${x(p)} ${y(p)}`,
+                        d: `M ${cx} ${cy} L ${x(p)} ${y(p)}`,
                         stroke: stroke, strokeWidth: lineW + 2*outlineW
                     }));
 
@@ -236,13 +267,13 @@ window.addEventListener('load', () => {
 
                     // circle at center
                     svg.appendChild(svgel('circle', {
-                        cx: 0, cy: sep*i, r: 0.2,
+                        cx: cx, cy: cy, r: 0.2,
                         stroke: stroke, strokeWidth: outlineW, fill: colors[p]
                     }));
 
                     // line from center to point
                     svg.appendChild(svgel('path', {
-                        d: `M 0 ${sep*i} L ${x(p)} ${y(p)}`,
+                        d: `M ${cx} ${cy} L ${x(p)} ${y(p)}`,
                         stroke: colors[p], strokeWidth: lineW
                     }));
                 });
