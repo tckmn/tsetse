@@ -49,7 +49,7 @@ m.gm = (function() {
             m.dom.clr(m.e.gamelist);
 
             var sel = m.dom.el('select');
-            'C53T'.split(' ').forEach(g => {
+            'C53T FOLD FO1D OCTA A5SET'.split(' ').forEach(g => {
                 sel.appendChild(m.dom.el('option', {
                     text: g, value: g
                 }));

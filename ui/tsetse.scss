@@ -101,6 +101,7 @@ main {
                 background-color: white;
                 transition: background-color 0.1s;
                 border-radius: 5px;
+                overflow: hidden;
 
                 // width: 220px;
                 // margin: 10px;
@@ -114,7 +115,13 @@ main {
                 &.right    { background-color: mix(#a1b56c, #fff, 75%); }
                 &.wrong    { background-color: #ab4642; }
 
-                > svg { position: absolute; width: 100%; height: 100%; }
+                > svg { position: absolute; }
+                > svg:not(.grow) { width: 100%; height: 100%; }
+                > svg.grow {
+                    min-width: 100%; min-height: 100%;
+                    left: 50%; top: 50%;
+                    transform: translate(-50%, -50%);
+                }
 
                 // &:hover    { background-color: #282828; }
                 // &.selected { background-color: #383838; }

@@ -27,6 +27,7 @@ import Types
 import Util
 
 import Cset
+import Foid
 import OCWall
 
 
@@ -123,6 +124,7 @@ connect state c = do
         case decodeT msg of
           Just JoinGame{..} -> return i_gid
           Just (CreateGame "C53T") -> (new :: IO CsetGame) >>= newgame state c
+          Just (CreateGame "FO1D") -> (new :: IO FoidGame) >>= newgame state c
           Just (CreateGame unk) -> do
               sendWS c . Toast $ "unknown game type " <> unk
               loop

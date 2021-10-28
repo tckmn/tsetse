@@ -3,8 +3,7 @@ m.C53T = (function() {
     return {
 
         render: function(card) {
-            var five = [0,1,2,3,4],
-                colors = ['#f00', '#90f', '#00f', '#0d0', '#f09600'],
+            var colors = ['#f00', '#90f', '#00f', '#0d0', '#f09600'],
                 xsep = m.conf.get('offset') ? 1 : 0, ysep = 2.5,
                 pentW = 0.2, lineW = 0.2, outlineW = 0.06;
 
@@ -24,7 +23,7 @@ m.C53T = (function() {
 
                 // the pentagon
                 svg.appendChild(m.dom.svgel('path', {
-                    d: five.map(j => `${j?'L':'M'} ${x(j)} ${y(j)}`).join(' ') + 'Z',
+                    d: m.util.range(5, j => `${j?'L':'M'} ${x(j)} ${y(j)}`).join(' ') + 'Z',
                     stroke: stroke, strokeWidth: pentW, fill: fill
                 }));
 
@@ -35,7 +34,7 @@ m.C53T = (function() {
                 }));
 
                 // circles at points
-                five.forEach(j => {
+                m.util.range(5, j => {
                     svg.appendChild(m.dom.svgel('circle', {
                         cx: x(j), cy: y(j), r: 0.2,
                         stroke: stroke, strokeWidth: outlineW, fill: colors[j]
