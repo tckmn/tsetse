@@ -85,6 +85,18 @@ m.gm = (function() {
             // bit of an ugly hack to put this here
             m.e.wall.style.display = m.game ? 'grid' : 'none';
             m.e.gamelist.style.display = m.game ? 'none' : 'block';
+        },
+
+        Highlight: function(msg) {
+
+            var kls = msg.good ? 'right' : 'wrong';
+            m.dom.cells.forEach(cell => {
+                if (msg.idxs.indexOf(+cell.dataset.idx) !== -1) cell.classList.add(kls);
+            });
+            if (!msg.good) setTimeout(() => {
+                m.dom.cells.forEach(cell => cell.classList.remove(kls));
+            }, 200);
+
         }
 
     };

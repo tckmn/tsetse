@@ -4,8 +4,7 @@ m.C53T = (function() {
 
         Cards: function(msg) {
 
-            m.dom.clr(m.e.wall);
-            m.dom.cells = [];
+            m.dom.clearCells();
 
             var five = [0,1,2,3,4],
                 colors = ['#f00', '#90f', '#00f', '#0d0', '#f09600'],
@@ -61,21 +60,9 @@ m.C53T = (function() {
                     }));
                 });
 
-                m.dom.addCell(svg, idx);
+                m.dom.addCell(svg, idx, 5);
 
             });
-
-        },
-
-        Highlight: msg => {
-
-            var kls = msg.good ? 'right' : 'wrong';
-            m.dom.cells.forEach(cell => {
-                if (msg.idxs.indexOf(+cell.dataset.idx) !== -1) cell.classList.add(kls);
-            });
-            if (!msg.good) setTimeout(() => {
-                m.dom.cells.forEach(cell => cell.classList.remove(kls));
-            }, 200);
 
         }
 

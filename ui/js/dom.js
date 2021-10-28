@@ -32,7 +32,8 @@ m.dom = (function() {
         },
 
         cells: [],
-        addCell: function(content, idx) {
+
+        addCell: function(content, idx, autosubmit) {
             var cell = document.createElement('div');
             cell.dataset.idx = idx;
             cell.classList.add('cell');
@@ -42,20 +43,26 @@ m.dom = (function() {
 
             var fn = e => {
                 e.preventDefault();
-                if (true) {
-                    cell.classList.toggle('selected');
-                    var guesses = Array.from(document.getElementsByClassName('selected'));
-                    // TODO not hardcode
-                    if (guesses.length === 5) {
-                        guesses.forEach(g => g.classList.remove('selected'));
-                        m.net.send('Claim', {
-                            idxs: guesses.map(g => +g.dataset.idx)
-                        });
-                    }
-                }
+                cell.classList.toggle('selected');
+                this.submitCells(autosubmit);
             };
             cell.addEventListener('mousedown', fn);
             cell.addEventListener('touchstart', fn);
+        },
+
+        submitCells: function(reqnum) {
+            var guesses = Array.from(document.getElementsByClassName('selected'));
+            if (guesses.length >= (reqnum || 0)) {
+                guesses.forEach(g => g.classList.remove('selected'));
+                m.net.send('Claim', {
+                    idxs: guesses.map(g => +g.dataset.idx)
+                });
+            }
+        },
+
+        clearCells: function() {
+            this.clr(m.e.wall);
+            this.cells = [];
         },
 
         _onload: function() {
