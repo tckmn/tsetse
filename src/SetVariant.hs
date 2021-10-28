@@ -12,6 +12,7 @@ import Data.List (nub)
 import Data.Maybe
 import GHC.Generics
 import qualified Data.HashMap.Strict as M
+import qualified Data.Text as T
 
 import GameUtil
 import GM
@@ -72,7 +73,7 @@ instance SetVariant card => Game (SetVariantGame card) (Msg card) where
 
     userinfo g cid = toJSON (UserInfo (g^.scores.at cid.non 0) :: OutMsg card)
 
-    desc g = (name (undefined :: card), "whee")
+    desc g = (name (undefined :: card), (T.pack . show $ length (_deck g) + length (_cards g)) <> " cards left")
 
     recv Claim{..} = do
         -- make sure the request is well-formed
@@ -111,4 +112,5 @@ instance SetVariant card => Game (SetVariantGame card) (Msg card) where
         let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
         cs <- cards <%= mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
         broadcast $ Cards cs
+        updesc
         return Done
