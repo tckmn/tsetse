@@ -91,14 +91,22 @@ negotiate state conn = do
                 negotiate state conn
                 return Nothing
       Just Register{..} -> do
-          uid <- state .&++ nextClient
-          secret <- makeSecret
-          overMVar state $ users %~ (User { _uid = uid
-                                          , _secret = secret
-                                          , _uname = i_uname
-                                          }:)
-          sendWS conn $ Registered uid secret i_uname
-          return $ Just uid
+          sameName <- withMVar state $
+              return . (^..users.traversed.filteredBy (uname.only i_uname))
+          if T.null (T.filter (not . isSpace) i_uname) || not (null sameName)
+            then do
+                sendWS conn $ NotRegistered
+                negotiate state conn
+                return Nothing
+            else do
+                uid <- state .&++ nextClient
+                secret <- makeSecret
+                overMVar state $ users %~ (User { _uid = uid
+                                                , _secret = secret
+                                                , _uname = i_uname
+                                                }:)
+                sendWS conn $ Registered uid secret i_uname
+                return $ Just uid
       Nothing -> return Nothing
 
     forM_ cid $ \cid -> play state conn cid (-1)

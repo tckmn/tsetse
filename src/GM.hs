@@ -15,6 +15,7 @@ data GMMsg = Register { i_uname :: Text }
 makeJSON ''GMMsg
 
 data GMOutMsg = Registered { o_cid :: ClientId, o_secret :: Text, o_name :: Text }
+              | NotRegistered
               | Identified { o_name :: Text }
               | NotIdentified
               | GameList { o_list :: [(GameId, (Text, Text, Text, UTCTime))] }

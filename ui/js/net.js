@@ -19,13 +19,17 @@ m.net = (function() {
             if (prevmsg[t]) recv(prevmsg[t]);
         },
 
+        register: function() {
+            this.send('Register', { uname: prompt('enter a username') });
+        },
+
         _onload: function() {
             this.ws = new WebSocket('ws://' + location.hostname + ':9255/');
 
             this.ws.onopen = () => {
                 var userinfo = localStorage.getItem('userinfo');
                 if (userinfo) this.send('Identify', JSON.parse(userinfo));
-                else this.send('Register', { uname: prompt('enter a username') });
+                else this.register();
             };
 
             this.ws.onmessage = e => {

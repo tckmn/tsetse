@@ -10,13 +10,17 @@ m.gm = (function() {
             m.e.name.textContent = msg.name;
         },
 
+        NotRegistered: function(msg) {
+            m.net.register();
+        },
+
         Identified: function(msg) {
             m.e.name.textContent = msg.name;
         },
 
         NotIdentified: function(msg) {
             localStorage.removeItem('userinfo');
-            location.reload();
+            m.net.register();
         },
 
         UserList: function(msg) {
