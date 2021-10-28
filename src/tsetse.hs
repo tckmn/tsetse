@@ -97,6 +97,17 @@ play state conn cid gid = do
     newgid <- (connect state c) `finally` (disconnect state c)
     play state conn cid newgid
 
+newgame :: Game g msg => MVar ServerState -> Client -> g -> IO GameId
+newgame state c g = do
+    gid <- state .&++ nextGame
+    now <- getCurrentTime
+    overMVar state $ games.at gid .~ Just GeneralGame { _game = g
+                                                      , _creator = c^.cid
+                                                      , _creation = now
+                                                      }
+    withMVar state runGameList
+    return gid
+
 connect :: MVar ServerState -> Client -> IO GameId
 connect state c = do
     logC c "connected"
@@ -111,16 +122,7 @@ connect state c = do
         msg <- recvWS c
         case decodeT msg of
           Just JoinGame{..} -> return i_gid
-          Just (CreateGame "C53T") -> do
-              g <- new :: IO CsetGame
-              gid <- state .&++ nextGame
-              now <- getCurrentTime
-              overMVar state $ games.at gid .~ Just GeneralGame { _game = g
-                                                                , _creator = c^.cid
-                                                                , _creation = now
-                                                                }
-              withMVar state runGameList
-              return gid
+          Just (CreateGame "C53T") -> (new :: IO CsetGame) >>= newgame state c
           Just (CreateGame unk) -> do
               sendWS c . Toast $ "unknown game type " <> unk
               loop
