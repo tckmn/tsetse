@@ -11,9 +11,7 @@ import Prelude hiding (log)
 import Control.Applicative
 import Control.Concurrent
 import Control.Exception (catch, finally, IOException)
-import Control.Monad
-import Data.Char (isUpper, isAscii, isSpace, isDigit)
-import Data.Functor
+import Data.Char (isSpace)
 import Data.Tuple (swap)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import qualified Data.Text as T
@@ -32,28 +30,10 @@ import Cset
 import OCWall
 
 
-idLength = 5
-secretLength = 10
-pwdfile = "pwd"
-
-
 -- random utility functions (first generic, then codebase-specific)
-
-between :: Ord a => a -> a -> a -> Bool
-between a b x = a <= x && x <= b
-
-chunksOf :: Int -> [a] -> [[a]]
-chunksOf _ [] = []
-chunksOf n xs = take n xs:chunksOf n (drop n xs)
 
 timeMillis :: Integral a => IO a
 timeMillis = round . (1000*) <$> getPOSIXTime
-
--- reqa :: ServerState -> ClientId -> IO ServerState -> IO ServerState
--- reqa s@ServerState{admins} cid blk = if cid `elem` admins then blk else return s
-
--- reqp :: ServerState -> ClientId -> IO ServerState -> IO ServerState
--- reqp s@ServerState{players} cid blk = if cid `elem` players then blk else return s
 
 timeSync :: Connection -> Text -> IO ()
 timeSync conn echo = timeMillis >>=
@@ -168,7 +148,7 @@ setpass :: IOException -> IO Text
 setpass _ = do
     putStr "please set an admin password: "
     pwd <- T.getLine
-    T.writeFile pwdfile pwd
+    T.writeFile "pwd" pwd
     return pwd
 
 main :: IO ()
