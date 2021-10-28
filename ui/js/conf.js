@@ -38,28 +38,32 @@ m.conf = (function() {
             Array.from(m.e.sbconf.children).forEach(c => c.style.display = 'none');
             if (!settings[m.game]) settings[m.game] = {};
             gameconf[m.game].forEach(key => {
-                var obj = spec[key];
+                spec[key].updfn(this.get(key), true);
+                document.getElementById('conf'+key).style.display = 'block';
+            });
+        },
 
-                var cont  = document.getElementById('conf'+key),
+        _onload: function() {
+            for (key in spec) { (key => {
+                var obj = spec[key],
+                    cont  = document.getElementById('conf'+key),
                     box   = cont.getElementsByClassName('box')[0],
                     minus = cont.getElementsByClassName('minus')[0],
                     plus  = cont.getElementsByClassName('plus')[0],
-                    disp  = cont.getElementsByClassName('disp')[0],
-                    updfn = (v, nowrite) => {
-                        settings[m.game][key] = v;
-                        if (obj.update) obj.update(v);
-                        if (box) box.checked = v;
-                        if (disp) disp.textContent = v;
-                        if (!nowrite) localStorage.setItem('settings', JSON.stringify(settings));
-                    };
+                    disp  = cont.getElementsByClassName('disp')[0];
 
-                cont.style.display = 'block';
-                updfn(this.get(key), true);
+                obj.updfn = (v, nowrite) => {
+                    settings[m.game][key] = v;
+                    if (obj.update) obj.update(v);
+                    if (box) box.checked = v;
+                    if (disp) disp.textContent = v;
+                    if (!nowrite) localStorage.setItem('settings', JSON.stringify(settings));
+                };
 
-                if (minus) minus.addEventListener('click', () => updfn(Math.max(obj.min, settings[m.game][key]-1)));
-                if (plus) plus.addEventListener('click', () => updfn(Math.min(obj.max, settings[m.game][key]+1)));
-                if (box) box.addEventListener('change', () => updfn(box.checked));
-            });
+                if (minus) minus.addEventListener('click', () => obj.updfn(Math.max(obj.min, settings[m.game][key]-1)));
+                if (plus) plus.addEventListener('click', () => obj.updfn(Math.min(obj.max, settings[m.game][key]+1)));
+                if (box) box.addEventListener('change', () => obj.updfn(box.checked));
+            })(key); }
         }
 
     };
