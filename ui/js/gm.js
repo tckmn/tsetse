@@ -15,7 +15,7 @@ m.gm = (function() {
         },
 
         NotIdentified: function(msg) {
-            localStorage.clear();
+            localStorage.removeItem('userinfo');
             location.reload();
         },
 
