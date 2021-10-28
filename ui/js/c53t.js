@@ -57,6 +57,10 @@ m.C53T = (function() {
             return svg;
         },
 
+        img: function(rand) {
+            return this.render([rand()*5|0, rand()*5|0, rand()*5|0]);
+        },
+
         Cards: function(msg) {
             m.dom.clearCells();
             msg.cards.forEach((card, idx) => {

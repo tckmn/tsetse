@@ -73,6 +73,9 @@ m.gm = (function() {
                         m.net.send('JoinGame', { gid: g[0] });
                     }
                 });
+                var gameimg = m.dom.el('div', { class: 'gameimg' });
+                gameimg.appendChild(m[g[1][0]].img(m.util.srand(JSON.stringify(g))));
+                gamerect.appendChild(gameimg);
                 gamerect.appendChild(m.dom.el('span', { text: g[1][0], class: 'gamename' }));
                 gamerect.appendChild(m.dom.el('span', { text: g[1][1], class: 'gamedesc' }));
                 gamerect.appendChild(m.dom.el('span', { text: `by ${g[1][2]} at ${new Date(g[1][3]).toLocaleString()}`, class: 'gamesrc' }));

@@ -31,6 +31,14 @@ m.FO1D = (function() {
             return svg;
         },
 
+        img: function(rand) {
+            var n = rand()*10|0, a = rand()<0.5, r = rand();
+            return this.render([[n,a],
+                r < 0.25 ? [n+1,a] :
+                r < 0.50 ? [n+3,a] :
+                r < 0.75 ? [n+3,!a] : [n+5,!a]]);
+        },
+
         Cards: function(msg) {
             m.dom.clearCells();
             msg.cards.forEach((card, idx) => {
