@@ -52,7 +52,7 @@ m.dom = (function() {
 
         submitCells: function(reqnum) {
             var guesses = Array.from(document.getElementsByClassName('selected'));
-            if (guesses.length >= (reqnum || 0)) {
+            if (guesses.length >= (reqnum || 1)) {
                 guesses.forEach(g => g.classList.remove('selected'));
                 m.net.send('Claim', {
                     idxs: guesses.map(g => +g.dataset.idx)
@@ -66,7 +66,11 @@ m.dom = (function() {
         },
 
         _onload: function() {
+            // i guess random listeners will go here
             window.addEventListener('resize', this.resize);
+            window.addEventListener('keydown', e => {
+                if (e.key == 'Enter') this.submitCells();
+            });
         }
     };
 
