@@ -17,7 +17,7 @@
                 <div id='helpwrap'>
 
                     <p>
-                    <a href='/'>« back to games</a>
+                    <a href='/'>&laquo; back to games</a>
                     </p>
 
                     <h1>tsetse</h1>
@@ -57,11 +57,11 @@
                     <p id='C53Tex'></p>
 
                     <p>
-                    A set consists of exactly 5 cards
+                    A set consists of <strong>exactly 5 cards</strong>
                     such that for each pentagon
                     (light, medium, and dark),
                     the 5 pentagons overlaid on top of each other
-                    form a pattern with a line of reflectional symmetry.
+                    form a pattern <strong>with a line of reflectional symmetry</strong>.
                     In the above example,
                     the light pentagon is symmetric across the red line,
                     the medium pentagon is symmetric across the orange line,
@@ -97,6 +97,70 @@
                     <p class='helpsub'>cards: 70 (deal 12)</p>
                     <p class='helpsub'>pronounced "foyd-set"</p>
 
+                    <p>
+                    Here is an example of a set in FO1D:
+                    </p>
+
+                    <p id='FO1Dex'></p>
+
+                    <p>
+                    A set is a collection of cards with non-overlapping creases,
+                    which form a <strong>flat-foldable crease pattern</strong> when overlaid.
+                    Red lines represent mountain creases,
+                    and blue lines represent valley creases.
+                    </p>
+
+                    <p>
+                    To figure this out in practice,
+                    it is enough to know the following fact:
+                    if a single-vertex crease pattern is flat-foldable,
+                    you can always fold it by making a series of <strong>crimps</strong>
+                    (and you can never ruin it by making a "wrong" crimp).
+                    </p>
+
+                    <p>
+                    To make a crimp,
+                    find a mountain crease and a valley crease
+                    where the distance between the two creases
+                    is at least as large as the distance to any other creases.
+                    </p>
+
+                    image
+
+                    <p>
+                    Then fold both creases.
+                    This effectively deletes the paper between the two creases,
+                    as well as the same amount of paper on one side.
+                    </p>
+
+                    image
+
+                    <p>
+                    If your cards are a set,
+                    you will be able to repeatedly do this
+                    until there are just 2 creases left,
+                    at which point they will form a single line
+                    and can be folded straight through.
+                    </p>
+
+                    image
+
+                    <p>
+                    For a proof of this fact, see
+                    <a href='https://courses.csail.mit.edu/6.849/fall20/lectures/L02.html'>lecture 2 of Geometric Folding Algorithms</a>,
+                    a class taught by Erik Demaine at MIT that inspired this variant.
+                    </p>
+
+                    <p>
+                    Here are some other useful lemmas for finding sets in this variant:
+                    </p>
+
+                    <ul>
+                        <li>A set must contain either 3 or 5 cards.</li>
+                        <li>A set must satisfy the Kawasaki condition: the sum of alternating angles is 180&deg;.</li>
+                        <li>The number of mountain creases and the number of valley creases in a set must differ by exactly 2.</li>
+                    </ul>
+
                     <h2 id='OCTA' class='helpsup'>OCTA</h2>
                     <p class='helpsub'>difficulty: easy</p>
                     <p class='helpsub'>cards: 48 (deal 9)</p>
@@ -107,7 +171,7 @@
                     <p class='helpsub'>cards: 60 (deal 10)</p>
                     <p class='helpsub'>pronounced "asset"</p>
 
-                    <h2>Credits</h2>
+                    <h2>Credits / About</h2>
 
                     <p>
                     Many ET people contributed to creating these variants;
@@ -118,6 +182,19 @@
                     Josh Brunner,
                     Joshua Ani, and
                     Yan Sheng Ang.
+                    </p>
+
+                    <p>
+                    <a href='https://github.com/tckmn/tsetse'>The code that runs this website</a>
+                    is open source,
+                    licensed under GPLv3.
+                    The backend is Haskell,
+                    and the frontend is plain JavaScript.
+                    </p>
+
+                    <p>
+                    If you have any questions/comments/etc,
+                    you can <a href='https://tck.mn/contact'>contact me</a>.
                     </p>
 
                     <p>&nbsp;</p> <!-- ??? -->

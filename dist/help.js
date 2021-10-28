@@ -13,4 +13,9 @@ window.addEventListener('load', () => {
     card(ex, m.C53T.render([0,2,1]));
     card(ex, m.C53T.render([4,1,4]));
 
+    var ex = document.getElementById('FO1Dex');
+    card(ex, m.FO1D.render([[1, false], [8, true]]));
+    card(ex, m.FO1D.render([[2, true], [9, false]]));
+    card(ex, m.FO1D.render([[4, true], [7, true]]));
+
 });
