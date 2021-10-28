@@ -162,6 +162,24 @@ main {
             > * { display: none; }
         }
     }
+
+    > div#helpwrap {
+        max-width: 800px;
+        margin: 2rem;
+        h2 { margin-top: 3rem; }
+        .helpsup { margin-bottom: 0; }
+        .helpsub { margin: 0; color: #888; font-size: 10pt; }
+        .helpcard {
+            position: relative;
+            background-color: white;
+            border-radius: 5px;
+            width: 100px;
+            height: 150px;
+            display: inline-block;
+            margin: 10px;
+            > svg { position: absolute; width: 100%; height: 100%; }
+        }
+    }
 }
 
 div#modals > div {
