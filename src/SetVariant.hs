@@ -112,5 +112,4 @@ instance SetVariant card => Game (SetVariantGame card) (Msg card) where
         let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
         cs <- cards <%= mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
         broadcast $ Cards cs
-        updesc
-        return Done
+        return NewDesc

@@ -46,6 +46,7 @@ runGameIO :: GameIO g a -> (Client, ServerState) -> g -> IO (Maybe a, g)
 runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 
 data PostAction = Done
+                | NewDesc
                 | Delayed { delay :: Int, msg :: Text }
 
 -- main game type

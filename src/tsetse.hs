@@ -131,7 +131,7 @@ connect state c = do
                                                                 , _creator = c^.cid
                                                                 , _creation = now
                                                                 }
-              withMVar state $ \s -> mapM_ (flip runGameList s) (s^..byGid (-1))
+              withMVar state runGameList
               return gid
           Just (CreateGame unk) -> do
               sendWS c . Toast $ "unknown game type " <> unk
@@ -141,6 +141,7 @@ connect state c = do
                   post <- modifyMVar state $ \s -> runRecv c s msg
                   case post of
                     Done -> return ()
+                    NewDesc -> withMVar state runGameList
                     Delayed{..} -> void . forkIO $ do
                         threadDelay delay
                         gamemsg msg

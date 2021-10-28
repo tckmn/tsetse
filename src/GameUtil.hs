@@ -13,18 +13,16 @@ import GM
 import Types
 import qualified Data.HashMap.Strict as M
 
--- shared logic (between the below two sections)
-
-renderList :: ServerState -> GMOutMsg
-renderList s = GameList . reverse . sortOn (^._2._4) $
-        (_2 %~ renderDesc) <$> M.toList (s^.games)
-    where renderDesc GeneralGame{..} = let (a, b) = desc _game
-                                        in (a, b, s^.byUid _creator.uname, _creation)
-
 -- functions for accessing games without pain
 
-runGameList :: Client -> ServerState -> IO ()
-runGameList c s = sendWS c $ renderList s
+renderGameList :: ServerState -> GMOutMsg
+renderGameList s = GameList . reverse . sortOn (^._2._4) $
+        (_2 %~ runDesc) <$> M.toList (s^.games)
+    where runDesc GeneralGame{..} = let (a, b) = desc _game
+                                     in (a, b, s^.byUid _creator.uname, _creation)
+
+runGameList :: ServerState -> IO ()
+runGameList s = broadcastWS (s^..byGid (-1)) (renderGameList s)
 
 runGameType :: Client -> ServerState -> IO ()
 runGameType c s = sendWS c . GameType $ case (s^.cgame c) of
@@ -34,7 +32,7 @@ runGameType c s = sendWS c . GameType $ case (s^.cgame c) of
 runCatchup :: Client -> ServerState -> IO ()
 runCatchup c s = case s^.cgame c of
                    Just GeneralGame{..} -> runGameIO catchup (c, s) _game $> ()
-                   Nothing -> runGameList c s
+                   Nothing -> sendWS c (renderGameList s)
 
 runRecv :: Client -> ServerState -> Text -> IO (ServerState, PostAction)
 runRecv c s msg = do
@@ -64,11 +62,6 @@ broadcast msg = do
     g <- view $ _1.gid
     s <- view $ _2
     liftIO $ broadcastWS (s^..byGid g) msg
-
-updesc :: GameIO g ()
-updesc = do
-    s <- view _2
-    liftIO $ broadcastWS (s^..byGid (-1)) (renderList s)
 
 checkpwd :: Text -> GameIO g ()
 checkpwd check = do
