@@ -3,6 +3,7 @@ html,body {
     color: #d8d8d8;
     padding: 0;
     margin: 0;
+    font-family: sans-serif;
 }
 
 div#wrap {
@@ -13,7 +14,6 @@ div#wrap {
 
 div.bar {
     display: flex;
-    font: 11pt monospace;
     padding: 5px;
     box-sizing: border-box;
     background-color: #181818;
@@ -21,11 +21,14 @@ div.bar {
 }
 
 div#topbar {
-    > div#score {
+    > div#left {
         flex: 1;
+
+        #lobby { display: none; }
     }
 
     > div#timer {
+        font: 11pt monospace;
         width: 600px;
         max-width: 50%;
         text-align: center;
@@ -33,7 +36,7 @@ div#topbar {
         background: #000;
     }
 
-    > div#strikes {
+    > div#right {
         flex: 1;
         display: flex;
         justify-content: flex-end;
@@ -50,6 +53,8 @@ div#topbar {
 }
 
 div#botbar {
+    font: 11pt monospace;
+
     > div#key.player {
         color: #0f0;
     }
@@ -71,7 +76,6 @@ div#botbar {
 }
 
 main {
-    font-family: sans-serif;
     flex: 1;
     display: flex;
     overflow: hidden;
@@ -157,6 +161,8 @@ main {
         display: flex;
         flex-direction: column;
 
+        > a#helplink { text-align: right; }
+
         > div#sbmain {
             flex: 1;
             table.userlist tr:not(.conn) { color: #666; }
@@ -239,3 +245,9 @@ button:active { background-color: #585858; border: 1px solid #888; }
 a { color: #7cafc2; }
 strong { color: #f7ca88; }
 li { margin: 1rem; }
+
+.hasgame {
+    main > div#wallwrap > div#wall { display: grid; }
+    #gamelist { display: none; }
+    div#topbar > div#left #lobby { display: block; }
+}

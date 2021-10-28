@@ -87,8 +87,10 @@ m.gm = (function() {
             m.dom.cells = [];
             m.conf.init(m.game = msg.gtype);
             // bit of an ugly hack to put this here
-            m.e.wall.style.display = m.game ? 'grid' : 'none';
-            m.e.gamelist.style.display = m.game ? 'none' : 'block';
+            m.e.wrap.classList.toggle('hasgame', !!m.game);
+            m.e.helplink.setAttribute('target', m.game ? '_blank' : '_self');
+            m.e.helplink.setAttribute('href', '/help.html' + (m.game ? '#'+m.game : ''));
+            m.e.helplink.textContent = m.game ? 'rules' : 'help / about';
         },
 
         Highlight: function(msg) {
