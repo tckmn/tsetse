@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module GameUtil where
@@ -6,6 +7,7 @@ module GameUtil where
 import Control.Applicative
 import Data.Aeson
 import Data.Functor
+import Data.List (sortOn)
 import Data.Maybe (fromMaybe)
 import GM
 import Types
@@ -14,31 +16,35 @@ import qualified Data.HashMap.Strict as M
 -- functions for accessing games without pain
 
 runGameList :: Client -> ServerState -> IO ()
-runGameList c s = sendWS c . GameList $ (_2 %~ runDesc) <$> M.toList (s^.games)
-    where runDesc (GeneralGame g) = desc g
+runGameList c s = sendWS c . GameList . reverse . sortOn (^._2._4) $
+        (_2 %~ runDesc) <$> M.toList (s^.games)
+    where runDesc GeneralGame{..} = let (a, b) = desc _game
+                                     in (a, b, s^.byUid _creator.uname, _creation)
 
 runGameType :: Client -> ServerState -> IO ()
 runGameType c s = sendWS c . GameType $ case (s^.cgame c) of
-                                          Just (GeneralGame g) -> desc g
+                                          Just GeneralGame{..} -> desc _game ^. _1
                                           Nothing -> ""
 
 runCatchup :: Client -> ServerState -> IO ()
 runCatchup c s = case s^.cgame c of
-                   Just (GeneralGame g) -> runGameIO catchup (c, s) g $> ()
+                   Just GeneralGame{..} -> runGameIO catchup (c, s) _game $> ()
                    Nothing -> runGameList c s
 
 runRecv :: Client -> ServerState -> Text -> IO (ServerState, PostAction)
 runRecv c s msg = do
     case s^.cgame c of
-      Just (GeneralGame g) -> do
+      Just g@GeneralGame{..} -> do
           let gio = fromMaybe empty $ recvT msg
-          (post, g') <- runGameIO gio (c, s) g
-          return $ (s & cgame c .~ Just (GeneralGame g'), fromMaybe Done post)
+          (post, g') <- runGameIO gio (c, s) _game
+          return $ (s & cgame c .~ Just GeneralGame { _creator
+                                                    , _creation
+                                                    , _game = g' }, fromMaybe Done post)
       Nothing -> return (s, Done)
 
 runUserlist :: Client -> ServerState -> IO ServerState
 runUserlist c s = case s^.cgame c of
-                    Just (GeneralGame g) -> runGameIO userlist (c, s) g $> s
+                    Just GeneralGame{..} -> runGameIO userlist (c, s) _game $> s
                     Nothing -> return s
 
 -- common game monad tasks

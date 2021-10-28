@@ -126,7 +126,11 @@ connect state c = do
           Just (CreateGame "c53t") -> do
               g <- new :: IO CsetGame
               gid <- state .&++ nextGame
-              overMVar state $ games.at gid .~ Just (GeneralGame g)
+              now <- getCurrentTime
+              overMVar state $ games.at gid .~ Just GeneralGame { _game = g
+                                                                , _creator = c^.cid
+                                                                , _creation = now
+                                                                }
               withMVar state $ \s -> mapM_ (flip runGameList s) (s^..byGid (-1))
               return gid
           Just (CreateGame unk) -> do

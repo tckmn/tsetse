@@ -11,6 +11,7 @@ module Types
     , module Control.Monad.Reader
     , module Control.Monad.State
     , module System.Random
+    , module Data.Time.Clock
     , module Network
     , Text
     , module Types
@@ -25,6 +26,7 @@ import qualified Data.Text as T
 
 import Control.Lens
 import Data.Aeson
+import Data.Time.Clock
 import System.Random
 import qualified Network.WebSockets as WS
 
@@ -52,7 +54,7 @@ class FromJSON msg => Game g msg | g -> msg where
     catchup :: GameIO g ()
     players :: g -> [ClientId]
     userinfo :: g -> ClientId -> Value
-    desc :: g -> Text
+    desc :: g -> (Text, Text)
     recv :: msg -> GameIO g PostAction
 
     recvT :: Text -> Maybe (GameIO g PostAction)
@@ -74,28 +76,27 @@ class FromJSON msg => Game g msg | g -> msg where
             where fix users cids pids uid (Object o) = Object
                     . M.delete "t"
                     . M.insert "uid" (Number $ fromIntegral uid)
-                    . M.insert "name" (String $ users^.folded.filtered ((==uid) . _uid).uname)
+                    . M.insert "name" (String $ users^.folded.filtered ((==uid) . _uid).uname')
                     . M.insert "conn" (Bool $ uid `elem` cids)
                     . M.insert "play" (Bool $ uid `elem` pids)
                     $ o
                   fix _ _ _ _ x = x
+                  uname' = lens _uname (\x y -> x { _uname = y }) -- ridiculously ugly hack
 
 -- main user type
 data User = User { _uid :: ClientId
                  , _secret :: Text
                  , _uname :: Text
                  }
--- TODO why doesn't this work???
--- makeLenses ''User
-uid :: Lens' User ClientId
-uid = lens _uid (\x y -> x { _uid = y })
-secret :: Lens' User Text
-secret = lens _secret (\x y -> x { _secret = y })
-uname :: Lens' User Text
-uname = lens _uname (\x y -> x { _uname = y })
 
 -- main server type
-data GeneralGame = forall g msg. Game g msg => GeneralGame g
+
+data GeneralGame = forall g msg. Game g msg =>
+    GeneralGame { _game :: g
+                , _creator :: ClientId
+                , _creation :: UTCTime
+                }
+
 data ServerState = ServerState { _clients :: [Client]
                                , _users :: [User]
                                , _admins :: [ClientId]
@@ -105,7 +106,12 @@ data ServerState = ServerState { _clients :: [Client]
                                , _password :: Text
                                , _games :: M.HashMap Int GeneralGame
                                }
+
+-- lens
+
 makeLenses ''ServerState
+makeLenses ''User
+makeLenses ''GeneralGame
 
 byUid :: ClientId -> Fold ServerState User
 byUid u = users.folded.filteredBy (uid.only u)
@@ -117,6 +123,7 @@ cgame :: Client -> Lens' ServerState (Maybe GeneralGame)
 cgame c = games.at (c^.gid)
 
 -- jsonifying message types
+
 killPrefix :: String -> String -> String
 killPrefix o "" = o
 killPrefix o ('_':s) = s

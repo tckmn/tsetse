@@ -42,18 +42,7 @@ m.gm = (function() {
 
         GameList: function(msg) {
 
-            m.dom.clr(m.e.wall);
-            m.dom.cells = [];
-
-            msg.list.forEach(g => {
-                m.e.wall.appendChild(m.dom.el('a', {
-                    text: g[1], href: '#',
-                    onclick: e => {
-                        e.preventDefault();
-                        m.net.send('JoinGame', { gid: g[0] });
-                    }
-                }));
-            });
+            m.dom.clr(m.e.gamelist);
 
             var sel = m.dom.el('select');
             'c53t'.split(' ').forEach(g => {
@@ -71,7 +60,20 @@ m.gm = (function() {
                 }
             }));
 
-            m.e.wall.appendChild(newsec);
+            m.e.gamelist.appendChild(newsec);
+
+            msg.list.forEach(g => {
+                var gamerect = m.dom.el('div', {
+                    class: 'gamerect',
+                    onclick: () => {
+                        m.net.send('JoinGame', { gid: g[0] });
+                    }
+                });
+                gamerect.appendChild(m.dom.el('span', { text: g[1][0], class: 'gamename' }));
+                gamerect.appendChild(m.dom.el('span', { text: g[1][1], class: 'gamedesc' }));
+                gamerect.appendChild(m.dom.el('span', { text: `by ${g[1][2]} at ${new Date(g[1][3]).toLocaleString()}`, class: 'gamesrc' }));
+                m.e.gamelist.appendChild(gamerect);
+            });
 
         },
 
@@ -80,6 +82,9 @@ m.gm = (function() {
             m.dom.clr(m.e.sbmain);
             m.dom.cells = [];
             m.conf.init(m.game = msg.gtype);
+            // bit of an ugly hack to put this here
+            m.e.wall.style.display = m.game ? 'grid' : 'none';
+            m.e.gamelist.style.display = m.game ? 'none' : 'block';
         }
 
     };

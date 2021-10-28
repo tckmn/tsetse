@@ -72,19 +72,21 @@ div#botbar {
 
 main {
     font-family: sans-serif;
-    flex-grow: 1;
+    flex: 1;
     display: flex;
+    overflow: hidden;
 
     > div#wallwrap {
-        flex-grow: 1;
+        flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow-y: auto;
 
         > div#wall {
             width: 100%;
             height: 100%;
-            display: grid;
+            display: none;
             grid-template-columns: repeat(4, 1fr);
             grid-gap: 10px 10px;
 
@@ -116,6 +118,26 @@ main {
 
                 // &:hover    { background-color: #282828; }
                 // &.selected { background-color: #383838; }
+            }
+        }
+
+        > div#gamelist {
+            width: 100%;
+            height: 100%;
+
+            > div.gamerect {
+                display: flex;
+                background-color: #181818;
+                border-radius: 10px;
+                align-items: center;
+                margin: 5px 0;
+                padding: 5px;
+                cursor: pointer;
+                > * { margin: 5px; }
+                .gamename { font-size: 16pt; font-weight: bold; }
+                .gamedesc { flex: 1; }
+                .gamesrc { color: #888; font-size: 9pt; }
+                &:hover { background-color: #282828; }
             }
         }
     }

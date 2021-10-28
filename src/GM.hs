@@ -17,7 +17,7 @@ makeJSON ''Msg
 data OutMsg = Registered { o_cid :: ClientId, o_secret :: Text, o_name :: Text }
             | Identified { o_name :: Text }
             | NotIdentified
-            | GameList { o_list :: [(GameId, Text)] }
+            | GameList { o_list :: [(GameId, (Text, Text, Text, UTCTime))] }
             | GameType { o_gtype :: Text }
             | Toast { o_msg :: Text }
             deriving Generic

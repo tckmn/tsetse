@@ -67,7 +67,7 @@ instance Game CsetGame Msg where
 
     userinfo g cid = toJSON $ UserInfo (g^.scores.at cid.non 0)
 
-    desc g = "c53t"
+    desc g = ("c53t", "whee")
 
     recv Claim{..} = do
         -- make sure the request is well-formed

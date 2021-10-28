@@ -48,7 +48,7 @@ instance Game OCWallGame Msg where
 
     userinfo g cid = toJSON $ UserInfo 10
 
-    desc g = "connecting wall"
+    desc g = ("connecting wall", "whee")
 
     recv SetWall{..} = do
         return Done
