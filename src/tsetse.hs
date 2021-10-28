@@ -123,7 +123,7 @@ connect state c = do
         msg <- recvWS c
         case decodeT msg of
           Just JoinGame{..} -> return i_gid
-          Just (CreateGame "c53t") -> do
+          Just (CreateGame "C53T") -> do
               g <- new :: IO CsetGame
               gid <- state .&++ nextGame
               now <- getCurrentTime

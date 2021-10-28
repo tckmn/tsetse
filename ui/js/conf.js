@@ -21,7 +21,7 @@ m.conf = (function() {
 
     var gameconf = {
         '': [],
-        'c53t': 'offset filled rownum square'.split(' ')
+        'C53T': 'offset filled rownum square'.split(' ')
     };
 
     var settings = localStorage.getItem('settings');

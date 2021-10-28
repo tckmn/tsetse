@@ -45,7 +45,7 @@ m.gm = (function() {
             m.dom.clr(m.e.gamelist);
 
             var sel = m.dom.el('select');
-            'c53t'.split(' ').forEach(g => {
+            'C53T'.split(' ').forEach(g => {
                 sel.appendChild(m.dom.el('option', {
                     text: g, value: g
                 }));

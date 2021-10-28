@@ -1,4 +1,4 @@
-m.c53t = (function() {
+m.C53T = (function() {
 
     return {
 
