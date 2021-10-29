@@ -26,6 +26,9 @@ div#topbar {
     }
 
     > div#timer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
         font: 11pt monospace;
         width: 600px;
         max-width: 50%;
