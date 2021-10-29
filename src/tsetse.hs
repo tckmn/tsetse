@@ -169,4 +169,4 @@ main = do
                                    , _games = M.empty
                                    }
     log "starting server"
-    WS.runServer "0.0.0.0" 9255 $ app state
+    WS.runServer "0.0.0.0" 5354 $ app state

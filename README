@@ -1,1 +1,29 @@
 tsetse - a collection of various set variants playable online
+
+nix config for hosting with SSL + reverse proxy:
+
+    security.acme.acceptTerms = true;
+    security.acme.email = "[your email]";
+    services.nginx = {
+      enable = true;
+      recommendedProxySettings = true;
+      recommendedTlsSettings = true;
+      virtualHosts = {
+        "[your url]" = {
+          forceSSL = true;
+          enableACME = true;
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:5353";
+          };
+          locations."/ws/" = {
+            proxyPass = "http://127.0.0.1:5354";
+            extraConfig = ''
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_read_timeout 86400;
+            '';
+          };
+        };
+      };
+    };

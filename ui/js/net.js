@@ -24,7 +24,7 @@ m.net = (function() {
         },
 
         _onload: function() {
-            this.ws = new WebSocket('ws://' + location.hostname + ':9255/');
+            this.ws = new WebSocket('wss://' + location.hostname + '/ws/');
 
             this.ws.onopen = () => {
                 var userinfo = localStorage.getItem('userinfo');
