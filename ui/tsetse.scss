@@ -21,10 +21,8 @@ div.bar {
 }
 
 div#topbar {
-    > div#left {
+    > div#topleft {
         flex: 1;
-
-        #lobby { display: none; }
     }
 
     > div#timer {
@@ -36,11 +34,10 @@ div#topbar {
         background: #000;
     }
 
-    > div#right {
+    > div#topright {
         flex: 1;
         display: flex;
         justify-content: flex-end;
-
         > div.strike {
             width: 11pt;
             height: 11pt;
@@ -55,23 +52,20 @@ div#topbar {
 div#botbar {
     font: 11pt monospace;
 
-    > div#key.player {
-        color: #0f0;
-    }
-
-    > div#discon {
-        display: none;
-        color: #f00;
-        margin-left: 20px;
-    }
-
-    > div#admin {
-        display: none;
-        > span {
-            margin: 0 20px;
-            cursor: pointer;
-            text-decoration: underline;
+    > div#botleft {
+        flex: 1;
+        > div#discon {
+            display: none;
+            color: #f00;
+            margin-left: 20px;
         }
+    }
+
+    > div#botright {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+        #claim > img { width: 1rem; vertical-align: middle; }
     }
 }
 
@@ -90,7 +84,7 @@ main {
         > div#wall {
             width: 100%;
             height: 100%;
-            display: none;
+            display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-gap: 10px 10px;
 
@@ -138,6 +132,7 @@ main {
 
             > div.gamerect {
                 display: flex;
+                flex-wrap: wrap;
                 background-color: #181818;
                 border-radius: 10px;
                 align-items: center;
@@ -255,11 +250,8 @@ a { color: #7cafc2; }
 strong { color: #f7ca88; }
 li { margin: 1rem; }
 
-.hasgame {
-    main > div#wallwrap > div#wall { display: grid; }
-    #gamelist { display: none; }
-    div#topbar > div#left #lobby { display: block; }
-}
+#wrap:not(.hasgame) .onlygame { display: none !important; }
+#wrap.hasgame .onlylobby { display: none !important; }
 
 button#sbtoggle .sbhid { display: none; }
 button#sbtoggle .sbvis { display: inline; }

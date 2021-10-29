@@ -12,11 +12,11 @@
         <div id='wrap'>
 
             <div class='bar' id='topbar'>
-                <div id='left'>
-                    <a href='#' id='lobby'>lobby</a>
+                <div id='topleft'>
+                    <a href='#' id='lobby' class='onlygame'>lobby</a>
                 </div>
                 <div id='timer'>0:00</div>
-                <div id='right'>
+                <div id='topright'>
                     <button id='sbtoggle'>
                         <span class='sbvis'>&raquo;</span>
                         <span class='sbhid'>&laquo;</span>
@@ -30,8 +30,8 @@
             <main>
 
                 <div id='wallwrap'>
-                    <div id='wall'></div>
-                    <div id='gamelist'></div>
+                    <div id='wall' class='onlygame'></div>
+                    <div id='gamelist' class='onlylobby'></div>
                 </div>
 
                 <div id='sidebar'>
@@ -59,14 +59,12 @@
             </main>
 
             <div class='bar' id='botbar'>
-                <div id='key'></div>
-                <div id='name'>connecting...</div>
-                <div id='discon'>disconnected</div>
-                <div style='flex-grow:1'></div>
-                <div id='admin'>
-                    <span id='set'>set wall</span>
-                    <span id='clr'>clear wall</span>
-                    <span id='clt'>clients</span>
+                <div id='botleft'>
+                    <div id='name'>connecting...</div>
+                    <div id='discon'>disconnected</div>
+                </div>
+                <div id='botright'>
+                    <button id='claim' class='onlygame'><img src='/img/check.svg'></button>
                 </div>
             </div>
 
