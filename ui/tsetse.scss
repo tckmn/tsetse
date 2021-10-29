@@ -163,6 +163,7 @@ main {
 
     > div#sidebar {
         width: 8rem;
+        max-width: 20%;
         padding: 0.5rem;
         margin: 0.5rem;
         border-left: 1px solid #888;
@@ -258,4 +259,12 @@ li { margin: 1rem; }
     main > div#wallwrap > div#wall { display: grid; }
     #gamelist { display: none; }
     div#topbar > div#left #lobby { display: block; }
+}
+
+button#sbtoggle .sbhid { display: none; }
+button#sbtoggle .sbvis { display: inline; }
+.hidebar {
+    main > div#sidebar { display: none; }
+    button#sbtoggle .sbvis { display: none; }
+    button#sbtoggle .sbhid { display: inline; }
 }

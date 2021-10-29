@@ -93,7 +93,7 @@ m.gm = (function() {
             m.e.wrap.classList.toggle('hasgame', !!m.game);
             m.e.helplink.setAttribute('target', m.game ? '_blank' : '_self');
             m.e.helplink.setAttribute('href', '/help.html' + (m.game ? '#'+m.game : ''));
-            m.e.helplink.textContent = m.game ? 'rules' : 'help / about';
+            m.e.helplink.textContent = m.game ? 'rules' : 'help/about';
         },
 
         Highlight: function(msg) {
