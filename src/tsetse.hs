@@ -161,7 +161,6 @@ main = do
     pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
     state <- newMVar $ ServerState { _clients = []
                                    , _users = []
-                                   , _admins = []
                                    , _nextConn = 0
                                    , _nextClient = 0
                                    , _nextGame = 0

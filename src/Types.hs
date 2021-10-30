@@ -100,7 +100,6 @@ data GeneralGame = forall g msg. Game g msg =>
 
 data ServerState = ServerState { _clients :: [Client]
                                , _users :: [User]
-                               , _admins :: [ClientId]
                                , _nextConn :: Int
                                , _nextClient :: ClientId
                                , _nextGame :: GameId
