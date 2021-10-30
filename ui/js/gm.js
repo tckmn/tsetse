@@ -97,7 +97,6 @@ m.gm = (function() {
         },
 
         Highlight: function(msg) {
-
             var kls = msg.good ? 'right' : 'wrong';
             m.dom.cells.forEach(cell => {
                 if (msg.idxs.indexOf(+cell.dataset.idx) !== -1) cell.classList.add(kls);
@@ -105,7 +104,20 @@ m.gm = (function() {
             if (!msg.good) setTimeout(() => {
                 m.dom.cells.forEach(cell => cell.classList.remove(kls));
             }, 200);
+        },
 
+        Toast: function(msg) {
+            // can't use onclick here because they're mutually recursive, lol
+            var toast = m.dom.el('div', {
+                class: 'toast',
+                text: msg.msg
+            }), close = () => {
+                if (toast) document.body.removeChild(toast);
+                toast = undefined;
+            };
+            toast.addEventListener('click', close);
+            document.body.appendChild(toast);
+            setTimeout(close, Math.max(5000, msg.msg.length*200));
         }
 
     };
