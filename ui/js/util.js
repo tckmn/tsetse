@@ -6,6 +6,17 @@ m.util = (function() {
             return Array(n).fill().map((_,i) => f(i));
         },
 
+        shuffle: function(a, rand) {
+            if (!rand) rand = Math.random;
+            for (var i = a.length-1; i; --i) {
+                var j = rand()*(i+1) | 0,
+                    t = a[i];
+                a[i] = a[j];
+                a[j] = t;
+            }
+            return a;
+        },
+
         // str->seed: http://www.cse.yorku.ca/~oz/hash.html
         // rand: https://stackoverflow.com/a/47593316/1223693
         srand: function(s) {

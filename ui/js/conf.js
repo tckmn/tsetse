@@ -19,12 +19,6 @@ m.conf = (function() {
         }
     };
 
-    var gameconf = {
-        '': [],
-        'C53T': 'offset filled rownum square'.split(' '),
-        'FO1D': 'rownum square'.split(' ')
-    };
-
     var settings = localStorage.getItem('settings');
     settings = settings ? JSON.parse(settings) : {};
 
@@ -38,7 +32,7 @@ m.conf = (function() {
         init: function() {
             Array.from(m.e.sbconf.children).forEach(c => c.style.display = 'none');
             if (!settings[m.game]) settings[m.game] = {};
-            gameconf[m.game].forEach(key => {
+            if (m[m.game]) (m[m.game].conf || []).forEach(key => {
                 spec[key].updfn(this.get(key), true);
                 document.getElementById('conf'+key).style.display = 'block';
             });

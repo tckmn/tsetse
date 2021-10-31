@@ -39,6 +39,8 @@ m.FO1D = (function() {
                 r < 0.75 ? [n+3,!a] : [n+5,!a]]);
         },
 
+        conf: 'rownum square'.split(' '),
+
         Cards: function(msg) {
             m.dom.clearCells();
             msg.cards.forEach((card, idx) => {
