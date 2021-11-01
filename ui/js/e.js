@@ -3,7 +3,7 @@ m.e = (function() {
     return {
 
         _onload: function() {
-            'wrap wallwrap wall gamelist name discon sbmain sbconf sbtoggle lobby helplink claim'.split(' ').forEach(id => this[id] = document.getElementById(id));
+            'wrap wallwrap wall gamelist name discon sbmain sbconf sbtoggle lobby helplink claim pluscard'.split(' ').forEach(id => this[id] = document.getElementById(id));
 
             this.lobby.addEventListener('click', e => {
                 e.preventDefault();
@@ -16,6 +16,10 @@ m.e = (function() {
 
             this.claim.addEventListener('click', () => {
                 m.dom.submitCells();
+            });
+
+            this.pluscard.addEventListener('click', () => {
+                m.net.send('PlusCard', {});
             });
         }
 

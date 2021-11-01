@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 35 35"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(-77.63916,-99.950737)">
+    <rect
+       style="fill:#888888;stroke:none"
+       width="19.385469"
+       height="31.089901"
+       x="85.446426"
+       y="101.90578"
+       rx="3.0306537"
+       ry="3.0306537" />
+    <g transform="translate(-5.5580789,4.5006065)" style="fill:#34db75;stroke:none">
+      <rect
+         width="2.9420018"
+         height="11.889488"
+         x="99.226227"
+         y="107.00539" />
+      <rect
+         width="2.9420018"
+         height="11.889488"
+         x="111.47913"
+         y="-106.64198"
+         transform="rotate(90)" />
+    </g>
+  </g>
+</svg>

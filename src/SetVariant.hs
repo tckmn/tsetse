@@ -37,6 +37,7 @@ makeLenses ''SetVariantGame
 
 data Msg card = Claim { idxs :: [Int] }
               | PostClaim { pwd :: Text, i_cards :: [card] }
+              | PlusCard
 
 instance SetVariant card => FromJSON (Msg card) where
     parseJSON (Object v) = do
@@ -44,6 +45,7 @@ instance SetVariant card => FromJSON (Msg card) where
         case t of
           String "Claim" -> Claim <$> v .: "idxs"
           String "PostClaim" -> PostClaim <$> v .: "pwd" <*> v .: "cards"
+          String "PlusCard" -> pure PlusCard
           _ -> empty
     parseJSON _ = empty
 
@@ -108,8 +110,16 @@ instance SetVariant card => Game (SetVariantGame card) (Msg card) where
         checkpwd pwd
 
         -- oh my god what a beautiful line
-        newCards <- deck %%= splitAt (length i_cards)
+        nboard <- uses cards length
+        newCards <- deck %%= splitAt (max 0 $ (boardSize (undefined :: card)) - (nboard - length i_cards))
         let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
         cs <- cards <%= mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
         broadcast $ Cards cs
         return NewDesc
+
+    recv PlusCard = do
+        liftIO $ putStrLn "hi"
+        newCard <- deck %%= splitAt 1
+        cs <- cards <<>= newCard
+        broadcast $ Cards cs
+        return Done
