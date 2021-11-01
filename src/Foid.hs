@@ -14,7 +14,7 @@ newtype Card = Card [(Int, Bool)] deriving (Eq, Generic, Show)
 makeJSON ''Card
 
 notouch :: [(Int, Bool)] -> Bool
-notouch ((n1,a1):(n2,a2):cs) = n1 /= n2 && notouch cs
+notouch ((n1,a1):c@(n2,a2):cs) = n1 /= n2 && notouch (c:cs)
 notouch _ = True
 
 foldable :: Int -> [(Int, Bool)] -> Bool

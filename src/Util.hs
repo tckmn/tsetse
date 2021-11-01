@@ -3,11 +3,14 @@ module Util
     , makeSecret
     , encodeT, decodeT
     , (.==.), (.&&.), (.$.)
+    , (!!!)
+    , Diffable, diffable, diff, linear
     ) where
 
 import Control.Applicative
 import Control.Monad
 import Data.Aeson
+import Data.List (permutations)
 import Data.Text (Text)
 import System.Random
 import qualified Data.ByteString.Lazy as LB
@@ -37,3 +40,18 @@ decodeT = decode . LB.fromStrict . T.encodeUtf8
 (.&&.) = liftA2 (&&)
 (.$.) :: Applicative f => f (a -> b) -> f a -> f b
 (.$.) = liftA2 ($)
+
+(!!!) :: [a] -> Int -> Maybe a
+[] !!! _ = Nothing
+(x:xs) !!! 0 = Just x
+(x:xs) !!! i = xs !!! pred i
+
+diffable :: Eq b => (a -> a -> b) -> a -> a -> a -> a -> Bool
+diffable f a b c d = f a b == f c d
+class Diffable a where
+    diff :: a -> a -> a -> a -> Bool
+
+linear :: Diffable a => [a] -> Bool
+linear = any linear' . permutations
+    where linear' [a,b,c] = diff a b b c
+          linear' _ = False
