@@ -8,6 +8,7 @@ import Data.List (findIndex, permutations)
 import GHC.Generics
 import SetVariant
 import Types
+import Util
 
 data Card = Card [Int] Bool deriving (Eq, Generic, Show)
 instance Diffable Card where
