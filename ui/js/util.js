@@ -2,8 +2,10 @@ m.util = (function() {
 
     return {
 
+        phi: 1.61803398875,
+
         range: function(n, f) {
-            return Array(n).fill().map((_,i) => f(i));
+            return Array(n).fill().map((_,i) => (f || (x=>x))(i));
         },
 
         shuffle: function(a, rand) {
