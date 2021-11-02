@@ -23,29 +23,16 @@ m.A5SET = (function() {
                     24: '#d732ff'
                 })[Math.pow((p[1]-p[0]+5)%5 + 4*((p[2]-p[0]+5)%5), 2) % 25];
 
-            var svg = m.dom.svgel('svg', {
-                _viewBox: '-2 -2 4 4'
-            });
+            var draw = m.draw.create('-2 -2 4 4');
 
             dfaces.forEach(([pent, perm]) => {
-                svg.appendChild(m.dom.poly(pent, {
-                    fill: dcolor(m.util.range(5, i => perm[card[i]]))
-                }));
+                draw.poly(pent, {
+                    fill: dcolor(m.util.range(5, i => perm[card[i]])), fancy: 1
+                });
             });
-            dfaces.forEach(([pent, _]) => {
-                svg.appendChild(m.dom.poly(pent, {
-                    fill: 'none', stroke: '#fff', strokeWidth: 0.16,
-                    strokeLinejoin: 'round', strokeLinecap: 'round'
-                }));
-            });
-            dfaces.forEach(([pent, _]) => {
-                svg.appendChild(m.dom.poly(pent, {
-                    fill: 'none', stroke: '#000', strokeWidth: 0.1,
-                    strokeLinejoin: 'round', strokeLinecap: 'round'
-                }));
-            });
+            draw.fancy(0.16, 0.1);
 
-            return svg;
+            return draw.svg;
         },
 
         img: function(rand) {

@@ -27,13 +27,6 @@ m.dom = (function() {
             return this.el(name, props, true);
         },
 
-        poly: function(pts, props) {
-            return this.svgel('path', {
-                d: 'M ' + pts.map(a => a.join(' ')).join(' L ') + ' Z',
-                ...props
-            });
-        },
-
         clr: function(el) {
             while (el.firstChild) el.removeChild(el.firstChild);
         },
