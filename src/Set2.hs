@@ -19,6 +19,7 @@ makeJSON ''Card
 instance SetVariant Card where
     name _ = "S3T2"
     boardSize _ = 12
+    setSizes _ = [3]
     fullDeck = join [[Card (a,b,c,x,y,z), Card (x,y,z,a,b,c)]
       | [a,b,c] <- permutations [0,1,2], [x,y,z] <- permutations [3,4,5]]
     checkSet set = any checkSet' $ permutations set

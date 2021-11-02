@@ -19,6 +19,7 @@ makeJSON ''Card
 instance SetVariant Card where
     name _ = "C53T"
     boardSize _ = 12
+    setSizes _ = [5]
     fullDeck = [Card (i,j,k) | let r = [0..4], i <- r, j <- r, k <- r]
     checkSet = (length .==. pure 5) .&&. (mconcat .==. pure mempty)
 

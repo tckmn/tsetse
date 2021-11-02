@@ -17,6 +17,7 @@ makeJSON ''Card
 instance SetVariant Card where
     name _ = "A5SET"
     boardSize _ = 10
+    setSizes _ = [3]
     fullDeck = Card <$> (filter evenP $ permutations [0..4])
         where evenP a = even $ length [0 | i <- [0..4], j <- [i..4], a !! i > a !! j]
     checkSet set = any checkSet' $ permutations set

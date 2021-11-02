@@ -15,6 +15,7 @@ makeJSON ''Card
 instance SetVariant Card where
     name _ = "FOLD"
     boardSize _ = 12
+    setSizes _ = [3,5]
     fullDeck = [Card (i,a) (j,b) | i <- [1..5], j <- [1..5],
                                    a <- [True,False], b <- [True,False],
                                    not $ i == 3 && j == 3 && a == b]

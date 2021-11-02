@@ -8,7 +8,7 @@
 module SetVariant where
 
 import Control.Applicative
-import Data.List (nub)
+import Data.List (nub, subsequences)
 import Data.Maybe
 import GHC.Generics
 import qualified Data.HashMap.Strict as M
@@ -24,6 +24,7 @@ import Data.Aeson
 class (Eq card, ToJSON card, FromJSON card) => SetVariant card where
     name :: card -> Text
     boardSize :: card -> Int
+    setSizes :: card -> [Int]
     fullDeck :: [card]
     checkSet :: [card] -> Bool
 
@@ -109,17 +110,27 @@ instance SetVariant card => Game (SetVariantGame card) (Msg card) where
     recv PostClaim{..} = do
         checkpwd pwd
 
-        -- oh my god what a beautiful line
         nboard <- uses cards length
-        newCards <- deck %%= splitAt (max 0 $ (boardSize (undefined :: card)) - (nboard - length i_cards))
+        let dealCount = max 0 $ (boardSize (undefined :: card)) - (nboard - length i_cards)
+
+        -- oh my god what a beautiful line
+        newCards <- deck %%= splitAt dealCount
         let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
         cs <- cards <%= mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
         broadcast $ Cards cs
         return NewDesc
 
     recv PlusCard = do
-        liftIO $ putStrLn "hi"
-        newCard <- deck %%= splitAt 1
-        cs <- cards <<>= newCard
-        broadcast $ Cards cs
+        subs <- uses cards subsequences
+        let sets = [s | s <- subs, length s `elem` setSizes (undefined :: card), checkSet s]
+
+        if null sets
+           then do
+               newCard <- deck %%= splitAt 1
+               cs <- cards <<>= newCard
+               broadcast $ Cards cs
+           else do
+               liftIO . putStrLn . T.unpack . encodeT $ sets
+               send $ Toast "there are sets on the board!"
+
         return Done
