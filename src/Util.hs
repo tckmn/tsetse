@@ -5,12 +5,13 @@ module Util
     , (.==.), (.&&.), (.$.)
     , (!!!)
     , Diffable, diffable, diff, linear
+    , folds
     ) where
 
 import Control.Applicative
 import Control.Monad
 import Data.Aeson
-import Data.List (permutations)
+import Data.List (sortOn, permutations)
 import Data.Text (Text)
 import System.Random
 import qualified Data.ByteString.Lazy as LB
@@ -55,3 +56,27 @@ linear :: Diffable a => [a] -> Bool
 linear = any linear' . permutations
     where linear' [a,b,c] = diff a b b c
           linear' _ = False
+
+notouch :: [(Int, Bool)] -> Bool
+notouch ((n1,a1):c@(n2,a2):cs) = n1 /= n2 && notouch (c:cs)
+notouch _ = True
+
+foldable' :: Int -> [(Int, Bool)] -> Bool
+foldable' paper [(n1,a1),(n2,a2)] = n2 - n1 == paper `div` 2 && a1 == a2
+foldable' paper cs = or [ and [ ass i /= ass (i+1)
+                              , dist (i-1) >= dist i
+                              , dist (i+1) >= dist i
+                              , foldable' (paper - 2*dist i) (crimp i)
+                              ]
+                        | i <- [0..length cs - 1]
+                        ]
+    where num i = fst $ cs !! (i `mod` length cs)
+          ass i = snd $ cs !! (i `mod` length cs)
+          dist i = (num (i+1) - num i) `mod` paper
+          crimp i = [(n',a) | (n,a) <- cs,
+                              n /= num i && n /= num (i+1),
+                              let n' = if n > num (i+1) then n - 2*dist i else n
+                    ]
+
+folds :: Int -> [(Int, Bool)] -> Bool
+folds paper = (notouch .&&. foldable' paper) . sortOn fst

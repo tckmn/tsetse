@@ -32,6 +32,7 @@ import Set2
 import OCWall
 import Asset
 import Octa
+import Fold
 
 
 -- random utility functions (first generic, then codebase-specific)
@@ -131,6 +132,7 @@ connect state c = do
           Just (CreateGame "S3T2") -> (new :: IO Set2Game) >>= newgame state c
           Just (CreateGame "A5SET") -> (new :: IO AssetGame) >>= newgame state c
           Just (CreateGame "OCTA") -> (new :: IO OctaGame) >>= newgame state c
+          Just (CreateGame "FOLD") -> (new :: IO FoldGame) >>= newgame state c
           Just (CreateGame unk) -> do
               sendWS c . Toast $ "unknown game type " <> unk
               loop
