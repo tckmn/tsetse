@@ -3,8 +3,12 @@ m.draw = (function() {
     return {
 
         create: (viewBox, svgProps) => ({
+            group: function(props) {
+                this.activeGroup = m.dom.svgel('g', props);
+                this.svg.appendChild(this.activeGroup);
+            },
             el: function(name, props) {
-                this.svg.appendChild(m.dom.svgel(name, props));
+                (this.activeGroup || this.svg).appendChild(m.dom.svgel(name, props));
             },
             line: function(pts, props) {
                 this.el('path', {
@@ -36,6 +40,7 @@ m.draw = (function() {
                         fill: 'none', stroke: '#000', strokeWidth: inner
                     });
                 });
+                this.polys = [];
             },
             svg: m.dom.svgel('svg', { _viewBox: viewBox, ...svgProps })
         })
