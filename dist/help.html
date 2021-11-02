@@ -110,19 +110,14 @@
 
                     <p>
                     The underlying mathematical object
-                    is (C<sub>5</sub>)<sup>3</sup>,
-                    whence the name;
-                    here C<sub>5</sub> denotes the natural
+                    is the natural
                     <a href='https://en.wikipedia.org/wiki/Principal_homogeneous_space'>torsor</a>
-                    for the cyclic group of order 5.
+                    for (C<sub>5</sub>)<sup>3</sup>,
+                    whence the name;
+                    here C<sub>5</sub> denotes the cyclic group of order 5.
                     The rule can equivalently be stated as
                     "pick 5 cards that add to the identity".
                     </p>
-
-                    <h2 id='FOLD' class='helpsup'>FOLD</h2>
-                    <p class='helpsub'>difficulty: hard</p>
-                    <p class='helpsub'>cards: 98 (deal 12)</p>
-                    <p class='helpsub'>pronounced "fold-set"</p>
 
                     <h2 id='FO1D' class='helpsup'>FO1D</h2>
                     <p class='helpsub'>difficulty: medium</p>
@@ -152,9 +147,9 @@
 
                     <p>
                     To make a crimp,
-                    find a mountain crease and a valley crease
+                    find a mountain crease and a valley crease with no creases in between,
                     where the distance between the two creases
-                    is at least as large as the distance to any other creases.
+                    is at most as large as the distance to any other creases.
                     </p>
 
                     <p><img src='/img/foid1.png' class='foidhelp'></p>
@@ -193,20 +188,378 @@
                         <li>The number of mountain creases and the number of valley creases in a set must differ by exactly 2.</li>
                     </ul>
 
+                    <h2 id='FOLD' class='helpsup'>FOLD</h2>
+                    <p class='helpsub'>difficulty: hard</p>
+                    <p class='helpsub'>cards: 98 (deal 12)</p>
+                    <p class='helpsub'>pronounced "fold-set"</p>
+
+                    <p>
+                    Here is an example of a set in FOLD:
+                    </p>
+
+                    <p id='FOLDex'></p>
+
+                    <p>
+                    FOLD is very similar to <a href='#FO1D'>FO1D</a>;
+                    you should read those rules if you haven't already.
+                    The only difference is that FOLD cards have two vertices instead of one,
+                    and they are connected by an unassigned crease present on every card.
+                    A collection of a cards is a set
+                    if it is flat-foldable for either assignment of the center crease
+                    (but both vertices have to agree).
+                    </p>
+
+                    <p>
+                    The specific layout of creases in FOLD --
+                    that is, six equally spaced creases around each vertex --
+                    lends itself to a set of rules
+                    equivalent to flat-foldability,
+                    but making no reference to folding.
+                    You may find that you can find sets faster
+                    using this characterization instead of making mental crimps.
+                    In particular,
+                    all sets contain either 3 or 5 cards.
+                    For 3-card sets:
+                    </p>
+
+                    <ul>
+                        <li>
+                            A set must contain an
+                            <strong>even number of two-color cards</strong>
+                            (i.e. cards with both red and blue).
+                            This guarantees the existence
+                            of an assignment for the center crease
+                            that satisfies both vertices,
+                            and in fact there is a unique one:
+                            each vertex must have either 3 red and 1 blue
+                            or 3 blue and 1 red.
+                            So in the above example,
+                            the center crease should be red.
+                        </li>
+                        <li>
+                            The pattern of creases around each vertex
+                            must form a <strong>"chicken foot"</strong> --
+                            i.e. <strong>three equally spaced creases plus an extra crease</strong>.
+                            <p><img src='/img/chicken.svg' style='height:150px'></p>
+                            The chicken foot can appear in any rotation;
+                            in the above example,
+                            the top foot has its heel pointing northeast,
+                            and the bottom foot has its heel pointing south.
+                            (This requirement is equivalent to the Kawasaki condition.)
+                        </li>
+                        <li>
+                            As mentioned,
+                            each vertex must have 3 of one color and 1 of the other.
+                            <strong>The "heel" of the foot cannot be the odd one out.</strong>
+                            In the above example,
+                            both vertices have 3 red and 1 blue,
+                            so the heels have to be red.
+                        </li>
+                    </ul>
+
+                    <p>
+                    For 5-card sets,
+                    there is only one requirement:
+                    </p>
+
+                    <ul>
+                        <li>
+                            The number of mountain creases and the number of valley creases
+                            around each vertex
+                            must <strong>differ by exactly 2</strong>.
+                            Again,
+                            this means that there must be an even number of two-color cards,
+                            but that is no longer sufficient to guarantee
+                            that this requirement holds.
+                        </li>
+                    </ul>
+
+                    <p>
+                    You may note that all of the conditions above
+                    only talk about each vertex separately;
+                    indeed,
+                    the only way the two vertices interact
+                    is by requiring that they agree on the assignment of the center crease.
+                    </p>
+
                     <h2 id='OCTA' class='helpsup'>OCTA</h2>
                     <p class='helpsub'>difficulty: easy</p>
                     <p class='helpsub'>cards: 48 (deal 9)</p>
                     <p class='helpsub'>pronounced "octaset"</p>
+
+                    <p>
+                    Here is an example of a set in OCTA:
+                    </p>
+
+                    <p id='OCTAex'></p>
+
+                    <p>
+                    OCTA is all about how to get from one card to another.
+                    A set is three cards
+                    such that the way to go from the first card to the second card
+                    is the same as the way to go from the second card to the third card.
+                    </p>
+
+                    <p>
+                    There are
+                    <strong>four different ways</strong> to think about going from one card to another,
+                    and they are all equivalent (!).
+                    </p>
+
+                    <ul>
+                        <li>
+                            <p>
+                            The bottom half of each card
+                            depicts a cube where some faces are "hollow".
+                            Opposite faces of the cube are the same color
+                            but different hollowness,
+                            so you can always tell what all the faces are
+                            even though you can't see 3 of them.
+                            </p>
+                            <p>
+                            The transformation from one card to another
+                            is an <strong>isometry of the cube</strong>;
+                            i.e. a rotation, reflection, or combination of both.
+                            In the above example,
+                            the rotation is 90&deg; clockwise
+                            around the line that goes through the center of the green face:
+                            </p>
+                            <p><img src='/img/octa1.png' style='height:75px'></p>
+                            <p>
+                            Note that from the first card to the second card,
+                            the hollow red face rotates clockwise,
+                            and the hollow blue face (which was previously hidden)
+                            rotates into view.
+                            Similarly,
+                            from the second card to the third card,
+                            the hollow blue face rotates clockwise,
+                            and the solid red face rotates into view.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                            The top half of each card
+                            depicts an octahedron.
+                            Opposite faces are again the same color.
+                            Furthermore,
+                            each octahedron has a swirl on top
+                            representing the handedness of the octahedron:
+                            since opposite faces are indistinguishable,
+                            the swirl is necessary to tell you
+                            whether the octahedron is reflected or not.
+                            </p>
+                            <p>
+                            The transformation from one card to another
+                            is an <strong>isometry of the octahedron</strong>.
+                            In the above example,
+                            the rotation is 90&deg; clockwise
+                            around the line that goes from the top vertex
+                            to the bottom vertex.
+                            So from the first card to the second card,
+                            the purple and green rotate one space over,
+                            and the pink rotates behind the octahedron
+                            where the orange used to be,
+                            which is rotated into view.
+                            The rotation from the second card to the third card is the same.
+                            </p>
+                            <p>
+                            Note that the isometry of the octahedron
+                            is the same as the isometry of the cube --
+                            this is not a coincidence.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                            The bottom half of each card
+                            depicts an arrangement of three colors
+                            with some "holes" attached.
+                            The transformation from one card to another
+                            is a <strong>permutation of the positions,
+                            followed by toggling the holes in any number of positions</strong>.
+                            </p>
+                            <p>
+                            In the above example,
+                            to go from one card to the next,
+                            you swap the bottom two positions
+                            and toggle the hole in the bottom right position.
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                            The top half of each card
+                            depicts an arrangement of four colors
+                            plus a swirl,
+                            which is either black or white.
+                            The transformation from one card to another
+                            is a <strong>permutation of the positions,
+                            plus optionally flipping the swirl</strong>.
+                            </p>
+                            <p>
+                            In the above example,
+                            to go from one card to the next,
+                            you move top-left to bottom,
+                            bottom to top-right,
+                            top-right to center,
+                            and center to top-left;
+                            and you do not flip the swirl.
+                            </p>
+                        </li>
+                    </ul>
+
+                    <p>
+                    Again,
+                    all four characterizations are equivalent,
+                    so you can find all sets by ignoring the cube
+                    and only looking at the octahedron
+                    or vice versa.
+                    Mathematically,
+                    </p>
+
+                    <ul>
+                        <li>The first corresponds to the isometry group of the cube.</li>
+                        <li>The second corresponds to the isometry group of the octahedron.</li>
+                        <li>The third corresponds to the abstract group C<sub>2</sub>≀S<sub>3</sub>. (This is a <a href='https://en.wikipedia.org/wiki/Wreath_product'>wreath product</a>.)</li>
+                        <li>The fourth corresponds to the abstract group S<sub>4</sub>&times;C<sub>2</sub>.</li>
+                    </ul>
+
+                    <p>
+                    All four groups are isomorphic
+                    to the <a href='https://en.wikipedia.org/wiki/Octahedral_symmetry'>octahedral group</a>,
+                    whence the name.
+                    </p>
 
                     <h2 id='A5SET' class='helpsup'>A5SET</h2>
                     <p class='helpsub'>difficulty: medium</p>
                     <p class='helpsub'>cards: 60 (deal 10)</p>
                     <p class='helpsub'>pronounced "asset"</p>
 
+                    <p>
+                    Here is an example of a set in A5SET:
+                    </p>
+
+                    <p id='A5SETex1'></p>
+
+                    <p>
+                    A5SET is very similar to <a href='#OCTA'>OCTA</a>;
+                    you should read those rules if you haven't already.
+                    </p>
+
+                    <p>
+                    Now that you've read the rules to OCTA,
+                    you know what I'm about to say:
+                    a set is three cards where the operation from the first to the second
+                    is the same as the operation from the second to the third,
+                    and there are <strong>four equivalent ways</strong> to think of this:
+                    </p>
+
+                    <ul>
+                        <li>
+                            The top half of each card depicts a dodecahedron
+                            (12-sided polyhedron).
+                            The transformation from one card to another
+                            is a <strong>rotation of the dodecahedron</strong>.
+                        </li>
+                        <li>
+                            <p>
+                            The bottom half of each card depicts an icosahedron
+                            (20-sided polyhedron).
+                            The transformation from one card to another
+                            is a <strong>rotation of the icosahedron</strong>.
+                            </p>
+                            <p>
+                            Here is a sketch of the rotation represented in the example above;
+                            notice how the colors follow the arrows:
+                            </p>
+                            <p><img src='/img/asset1.png' style='height:200px'></p>
+                        </li>
+                        <li>
+                            The top half of each card depicts a subset
+                            of the arrangements of 6 colors.
+                            The transformation from one card to another
+                            is a <strong>permutation of the positions</strong>.
+                        </li>
+                        <li>
+                            <p>
+                            The bottom half of each card depicts a subset
+                            of the arrangements of 5 colors.
+                            The transformation from one card to another
+                            is a <strong>permutation of the positions</strong>.
+                            </p>
+                            <p>
+                            (You can ignore the tiny triangles on the outsides;
+                            they are fully determined by the triangles that are actually visible.)
+                            </p>
+                        </li>
+                    </ul>
+
+                    <p>
+                    And mathematically,
+                    </p>
+
+                    <ul>
+                        <li>The first corresponds to the symmetry group of the dodecahedron.</li>
+                        <li>The second corresponds to the symmetry group of the icosahedron.</li>
+                        <li>The third corresponds to a particular embedding of A<sub>5</sub> in A<sub>6</sub>.</li>
+                        <li>The fourth corresponds to the abstract group A<sub>5</sub>.</li>
+                    </ul>
+
+                    <p>
+                    All four groups are isomorphic to the
+                    <a href='https://en.wikipedia.org/wiki/Alternating_group'>alternating group</a> A<sub>5</sub>,
+                    whence the name.
+                    </p>
+
+                    <p>
+                    There is a very useful lemma
+                    for finding sets in A5SET;
+                    to demonstrate it,
+                    here is another example of a set in A5SET:
+                    </p>
+
+                    <p id='A5SETex2'></p>
+
+                    <p>
+                    You will notice that in the first example,
+                    the bottom right face of the dodecahedron is yellow in all of the cards;
+                    and in the second example,
+                    the bottom left and top right faces of the icosahedron are the same in all cards.
+                    In fact,
+                    there are only two classes of rotations that can form sets in A5SET:
+                    </p>
+
+                    <ul>
+                        <li>
+                            Rotations that <strong>fix exactly once dodecahedron face color</strong>,
+                            like the first example.
+                            (These correspond to order 5 group elements.)
+                        </li>
+                        <li>
+                            Rotations that <strong>fix exactly two icosahedron face colors</strong>,
+                            like the second example.
+                            (These correspond to order 3 group elements.)
+                        </li>
+                    </ul>
+
+                    <p>
+                    Furthermore,
+                    all rotations that fit the above conditions form sets;
+                    for example,
+                    if you find three cards
+                    where one of the dodecahedron faces is the same in all cards
+                    and all other dodecahedron faces are different in all cards,
+                    you can be sure it's a set.
+                    </p>
+
                     <h2 id='S3T2' class='helpsup'>S3T2</h2>
                     <p class='helpsub'>difficulty: ???</p>
                     <p class='helpsub'>cards: 72 (deal ???)</p>
-                    <p class='helpsub'>pronounced "set-two"</p>
+                    <p class='helpsub'>pronounced "set-two" or "set-squared"</p>
+
+                    <p>
+                    S3T2 is still in development;
+                    check back later!
+                    (It's S3 wreath C2 torsor.)
+                    </p>
 
                     <h2>Credits / About</h2>
 

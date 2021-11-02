@@ -27,7 +27,7 @@ m.OCTA = (function() {
             var draw = m.draw.create(`-${1+pad} -${2+1.5*pad} ${2+2*pad} ${4+3*pad}`);
 
             // cube
-            draw.group({ transform: `translate(0,-${1+pad/2})` });
+            draw.group({ transform: `rotate(180) translate(0,-${1+pad/2})` });
             var idx = card[0].indexOf(0);
             cfaces.forEach((c, i) => {
                 var quad = [[0,0], oout(i-0.5), oout(i), oout(i+0.5)],
@@ -46,7 +46,7 @@ m.OCTA = (function() {
             draw.fancy(0.08, 0.05);
 
             // octahedron
-            draw.group({ transform: `translate(0,${1+pad/2})` });
+            draw.group({ transform: `rotate(180) translate(0,${1+pad/2})` });
             m.util.range(3, i => {
                 draw.poly([oout(i), oout(i+0.5), oout(i+1)], {
                     fill: ocolor[card[0][i]], fancy: 1
