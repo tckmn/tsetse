@@ -64,6 +64,7 @@
                     <div id='discon'>disconnected</div>
                 </div>
                 <div id='botright'>
+                    <button id='showadmin' class='onlyadmin'>admin</button>
                     <button id='pluscard' class='onlygame'><img src='/img/pluscard.svg'></button>
                     <button id='claim' class='onlygame'><img src='/img/check.svg'></button>
                 </div>
@@ -73,27 +74,26 @@
 
         <div id='modals'>
 
-            <div id='setm'>
-                <textarea id='settxt'></textarea>
-                <div>
-                    <button class='confirm'>do it</button>
+            <div class='small' id='modal_namechange'>
+                <section>
+                    <label>
+                        new username:
+                        <input id='newname'>
+                    </label>
+                </section>
+                <footer>
+                    <button class='confirm' id='namechange'>do it</button>
                     <button class='dismiss'>cancel</button>
-                </div>
+                </footer>
             </div>
 
-            <div id='clrm'>
-                <div>sure about that?</div>
-                <div>
-                    <button class='confirm'>yes</button>
-                    <button class='dismiss'>no</button>
-                </div>
-            </div>
-
-            <div id='cltm'>
-                <div>
+            <div class='large' id='modal_admin'>
+                <section>
+                    <button id='savestate'>save state</button>
+                </section>
+                <footer>
                     <button class='dismiss'>close</button>
-                </div>
-                <div id='cltlist'></div>
+                </footer>
             </div>
 
         </div>
