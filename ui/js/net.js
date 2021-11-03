@@ -11,6 +11,35 @@ m.net = (function() {
 
     return {
 
+        ws: undefined,
+        backoff: 1,
+
+        connect: function() {
+            m.e.name.textContent = 'connecting...';
+            m.e.name.style.display = 'block';
+            m.e.discon.style.display = 'none';
+
+            this.ws = new WebSocket('wss://' + location.hostname + '/ws/');
+
+            this.ws.onopen = () => {
+                this.backoff = 1;
+                var userinfo = localStorage.getItem('userinfo');
+                if (userinfo) this.send('Identify', JSON.parse(userinfo));
+                else this.register();
+            };
+
+            this.ws.onmessage = e => {
+                recv(JSON.parse(e.data));
+            };
+
+            this.ws.onclose = () => {
+                m.e.name.style.display = 'none';
+                m.e.discon.style.display = 'block';
+                setTimeout(this.connect.bind(this), this.backoff*1000);
+                this.backoff = (1 + Math.exp(-this.backoff/100))*this.backoff;
+            };
+        },
+
         send: function(t, obj) {
             this.ws.send(JSON.stringify({...obj, t: t}));
         },
@@ -24,22 +53,7 @@ m.net = (function() {
         },
 
         _onload: function() {
-            this.ws = new WebSocket('wss://' + location.hostname + '/ws/');
-
-            this.ws.onopen = () => {
-                var userinfo = localStorage.getItem('userinfo');
-                if (userinfo) this.send('Identify', JSON.parse(userinfo));
-                else this.register();
-            };
-
-            this.ws.onmessage = e => {
-                recv(JSON.parse(e.data));
-            }
-
-            this.ws.onclose = () => {
-                m.e.name.style.display = 'none';
-                m.e.discon.style.display = 'block';
-            };
+            this.connect();
         }
 
     };
