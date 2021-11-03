@@ -1,7 +1,7 @@
 var gallery = [
     {
         img: 'cset1.jpg',
-        caption: 'The very first printed deck. This was an early prototype of C53T with different card styles; we also originally played in "easy mode" with the cards sorted by one of the hexagons.',
+        caption: 'The very first printed deck. This was an early prototype of C53T with different card styles; we also originally played in "easy mode" with the cards sorted by one of the pentagons.',
         date: '2021-09-18'
     },
     {
@@ -83,15 +83,14 @@ window.addEventListener('load', () => {
         gimg = document.getElementById('gimg'),
         gcur = 0,
         ggo = diff => {
+            gcur = (gcur + diff + gallery.length) % gallery.length;
             var url = '/img/gallery/'+gallery[gcur].img,
                 a = m.dom.el('a', { href: url, target: '_blank' });
-            gcur = (gcur + diff + gallery.length) % gallery.length;
             gcap.innerText = gallery[gcur].caption;
             gdate.innerText = gallery[gcur].date;
             m.dom.clr(gimg);
             a.appendChild(m.dom.el('img', {
-                src: '/img/gallery/'+gallery[gcur].img,
-                style: 'max-height: 400px'
+                src: url, style: 'max-height: 400px; max-width: 100%'
             }));
             gimg.appendChild(a);
         };
