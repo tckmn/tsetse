@@ -4,19 +4,17 @@ m.S3T2 = (function() {
 
         render: function(card) {
             var colors = ['#f00', '#ff0', '#09f', '#f80', '#0c0', '#90f'],
-                x = i => [0,-1,1][i],
-                y = (i,j) => [0,Math.sqrt(3),Math.sqrt(3)][i] + j*4,
+                x = i => Math.sin(2*Math.PI/3*i),
+                y = i => Math.cos(2*Math.PI/3*i),
                 fill = m.conf.get('filled') ? '#888' : 'transparent';
 
-            var svg = m.dom.svgel('svg', {
-                _viewBox: '-2 -1 4 8'
-            });
+            var draw = m.draw.create('-1 -3.4 2 6.4');
 
             m.util.range(2, i => {
-                svg.appendChild(m.dom.svgel('path', {
-                    d: `M ${x(0)} ${y(0,i)} L ${x(1)} ${y(1,i)} L ${x(2)} ${y(2,i)} Z`,
-                    stroke: '#444', strokeWidth: 0.2, fill: (card[0]<3)^i ? fill : 'transparent'
-                }));
+                // svg.appendChild(m.dom.svgel('path', {
+                //     d: `M ${x(0)} ${y(0,i)} L ${x(1)} ${y(1,i)} L ${x(2)} ${y(2,i)} Z`,
+                //     stroke: '#444', strokeWidth: 0.2, fill: (card[0]<3)^i ? fill : 'transparent'
+                // }));
             });
 
             card.forEach((p, i) => {
@@ -25,14 +23,28 @@ m.S3T2 = (function() {
                 //     fill: colors[p], stroke: '#000', strokeWidth: 0.05
                 // }));
 
-                svg.appendChild(m.dom.svgel('circle', {
-                    cx: x(i%3), cy: y(i%3, i/3|0),
-                    r: 0.5,
+                if (!(i%3)) {
+                    var parity = ((card[i+0]>card[i+1])+(card[i+0]>card[i+2])+(card[i+1]>card[i+2]))%2;
+                    draw.group({ transform: `rotate(180) translate(0, ${i-1.5})` });
+                    // if (p < 3) draw.el('circle', {
+                    //     r: 1.2, fill: '#aaa'
+                    // });
+                    draw.fidget(3, 1, parity,
+                        {
+                            stroke: p < 3 ? '#000' : '#aaa', strokeWidth: 0.1,
+                            offset: (parity ? -1 : 1) * 0.15,
+                            // strokeDasharray: parity ? '0.1 0.2' : 'none'
+                        });
+                }
+
+                draw.el('circle', {
+                    cx: x(i%3), cy: y(i%3),
+                    r: 0.4,
                     fill: colors[p], stroke: '#000', strokeWidth: 0.05
-                }));
+                });
             });
 
-            return svg;
+            return draw.svg;
         },
 
         img: function(rand) {

@@ -10,6 +10,7 @@ import Types
 import Util
 
 newtype Card = Card [(Int, Bool)] deriving (Eq, Generic, Show)
+instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where

@@ -11,6 +11,8 @@ data GMMsg = Register { i_uname :: Text }
            | Uname { i_uname :: Text }
            | JoinGame { i_gid :: GameId }
            | CreateGame { i_gtype :: Text }
+           -- admin
+           | SaveState { i_password :: Text }
            deriving Generic
 makeJSON ''GMMsg
 

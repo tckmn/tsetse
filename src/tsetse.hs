@@ -19,21 +19,15 @@ import qualified Data.Text.IO as T
 import qualified Data.HashMap.Strict as M
 
 import Data.Aeson hiding ((.=))
+import Data.Binary as B
 import qualified Network.WebSockets as WS
 
+import AllGames
+import Binary
 import GM
 import GameUtil
 import Types
 import Util
-
-import Cset
-import Foid
-import Set2
-import OCWall
-import Asset
-import Octa
-import Fold
-
 
 -- random utility functions (first generic, then codebase-specific)
 
@@ -136,7 +130,15 @@ connect state c = do
           Just (CreateGame unk) -> do
               sendWS c . Toast $ "unknown game type " <> unk
               loop
-          Nothing -> do
+          -- admin
+          Just (SaveState pwd) -> do
+              withMVar state $ \s ->
+                  if pwd == s^.password
+                     then liftIO . B.encodeFile "state" $ s
+                     else return ()
+              loop
+          -- Nothing and unimplemented
+          _ -> do
               let gamemsg msg = do
                   post <- modifyMVar state $ \s -> runRecv c s msg
                   case post of
@@ -163,17 +165,21 @@ setpass _ = do
     T.writeFile "pwd" pwd
     return pwd
 
-main :: IO ()
-main = do
+setstate :: IOException -> IO ServerState
+setstate _ = do
     let chomp = T.reverse . T.dropWhile (=='\n') . T.reverse
     pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
-    state <- newMVar $ ServerState { _clients = []
-                                   , _users = []
-                                   , _nextConn = 0
-                                   , _nextClient = 0
-                                   , _nextGame = 0
-                                   , _password = pwd
-                                   , _games = M.empty
-                                   }
+    return ServerState { _clients = []
+                       , _users = []
+                       , _nextConn = 0
+                       , _nextClient = 0
+                       , _nextGame = 0
+                       , _password = pwd
+                       , _games = M.empty
+                       }
+
+main :: IO ()
+main = do
+    state <- newMVar =<< B.decodeFile "state" `catch` setstate
     log "starting server"
     WS.runServer "0.0.0.0" 5354 $ app state

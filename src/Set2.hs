@@ -14,6 +14,7 @@ newtype Card = Card (Int, Int, Int, Int, Int, Int) deriving (Eq, Generic, Show)
 Card (a,b,c,d,e,f) @- Card (a',b',c',d',e',f') = [findIndex (==x) arr' | x <- arr]
     where arr = [a,b,c,d,e,f]
           arr' = [a',b',c',d',e',f']
+instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where

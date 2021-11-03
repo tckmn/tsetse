@@ -12,6 +12,7 @@ import Types
 newtype Card = Card [Int] deriving (Eq, Generic, Show)
 (@-) :: Card -> Card -> [Maybe Int]
 Card a @- Card b = [findIndex (==x) b | x <- a]
+instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where

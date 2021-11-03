@@ -42,6 +42,22 @@ m.draw = (function() {
                 });
                 this.polys = [];
             },
+            fidget: function(n, r, parity, props) {
+                var offset = 0;
+                if (props && props.offset) {
+                    offset = props.offset;
+                    delete props.offset;
+                }
+                m.util.range(n, i => {
+                    var p = [Math.sin(2*Math.PI/n*(i+offset))*r,
+                        Math.cos(2*Math.PI/n*(i+offset))*r];
+                    this.el('path', {
+                        d: `M 0 0 A ${r/2} ${r/2} 0 0 ${parity ? 0 : 1} ${p.join(' ')}`,
+                        fill: 'none', ...props,
+                        strokeLinejoin: 'round', strokeLinecap: 'round'
+                    });
+                });
+            },
             svg: m.dom.svgel('svg', { _viewBox: viewBox, ...svgProps })
         })
 

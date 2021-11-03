@@ -16,7 +16,8 @@ data OCWallGame = OCWallGame { _wall :: [(Int,Text)]
                              , _strikes :: Int
                              , _startTime :: Integer
                              , _duration :: Int
-                             }
+                             } deriving Generic
+instance Binary OCWallGame
 makeLenses ''OCWallGame
 
 data Msg = SetWall { i_categories :: [Text] }

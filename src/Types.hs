@@ -5,6 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Types
     ( module Control.Lens
@@ -13,7 +14,7 @@ module Types
     , module System.Random
     , module Data.Time.Clock
     , module Network
-    , Text
+    , Text, Binary
     , module Types
     ) where
 
@@ -26,6 +27,7 @@ import qualified Data.Text as T
 
 import Control.Lens
 import Data.Aeson
+import Data.Binary
 import Data.Time.Clock
 import System.Random
 import qualified Network.WebSockets as WS
@@ -38,6 +40,7 @@ import Control.Monad.State
 import Util
 import Network
 
+import GHC.Generics (Generic)
 import Language.Haskell.TH
 
 -- main game monad
@@ -50,7 +53,7 @@ data PostAction = Done
                 | Delayed { delay :: Int, msg :: Text }
 
 -- main game type
-class FromJSON msg => Game g msg | g -> msg where
+class (Binary g, FromJSON msg) => Game g msg | g -> msg where
     new :: IO g
     catchup :: GameIO g ()
     players :: g -> [ClientId]
@@ -88,7 +91,7 @@ class FromJSON msg => Game g msg | g -> msg where
 data User = User { _uid :: ClientId
                  , _secret :: Text
                  , _uname :: Text
-                 }
+                 } deriving Generic
 
 -- main server type
 

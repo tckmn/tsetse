@@ -8,6 +8,7 @@
 module SetVariant where
 
 import Control.Applicative
+import Data.Binary as B
 import Data.List (nub, subsequences)
 import Data.Maybe
 import GHC.Generics
@@ -34,6 +35,17 @@ data SetVariantGame card =
                    , _taken :: [card]
                    , _scores :: M.HashMap ClientId Int
                    }
+
+instance Binary card => Binary (SetVariantGame card) where
+    put SetVariantGame{..} = do B.put _deck
+                                B.put _cards
+                                B.put _taken
+                                B.put $ M.toList _scores
+    get = do SetVariantGame <$> B.get
+                            <*> B.get
+                            <*> B.get
+                            <*> (M.fromList <$> B.get)
+
 makeLenses ''SetVariantGame
 
 data Msg card = Claim { idxs :: [Int] }
@@ -57,7 +69,7 @@ instance SetVariant card => ToJSON (OutMsg card) where
     toJSON Cards{..} = object ["t" .= ("Cards" :: Text), "cards" .= o_cards]
     toJSON UserInfo{..} = object ["t" .= ("UserInfo" :: Text), "score" .= o_score]
 
-instance SetVariant card => Game (SetVariantGame card) (Msg card) where
+instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card) where
 
     new = do
         shuf <- shuffle fullDeck

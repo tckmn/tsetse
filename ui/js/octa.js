@@ -56,12 +56,8 @@ m.OCTA = (function() {
                 fill: ocolor[card[0][3]], fancy: 1
             });
             draw.fancy(0.08, 0.05);
-            m.util.range(3, i => {
-                draw.el('path', {
-                    d: `M 0 0 A ${spirat/2} ${spirat/2} 0 0 ${card[1] ? 0 : 1} ${oin(i).join(' ')}`,
-                    fill: 'none', stroke: card[1] ? '#000' : '#fff', strokeWidth: 0.05,
-                    strokeLinejoin: 'round', strokeLinecap: 'round'
-                });
+            draw.fidget(3, spirat, card[1], {
+                stroke: card[1] ? '#000' : '#fff', strokeWidth: 0.05
             });
 
             return draw.svg;
