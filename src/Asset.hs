@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Asset (AssetGame) where
+module Asset (AssetGame, AssetCard) where
 
 import Data.List (findIndex, permutations)
 import GHC.Generics
@@ -26,3 +26,4 @@ instance SetVariant Card where
               checkSet' _ = False
 
 type AssetGame = SetVariantGame Card
+type AssetCard = Card

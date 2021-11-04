@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Cset (CsetGame) where
+module Cset (CsetGame, CsetCard) where
 
 import GHC.Generics
 import SetVariant
@@ -25,3 +25,4 @@ instance SetVariant Card where
     checkSet = (length .==. pure 5) .&&. (mconcat .==. pure mempty)
 
 type CsetGame = SetVariantGame Card
+type CsetCard = Card

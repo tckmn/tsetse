@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Foid (FoidGame) where
+module Foid (FoidGame, FoidCard) where
 
 import GHC.Generics
 import SetVariant
@@ -23,3 +23,4 @@ instance SetVariant Card where
     checkSet set = folds 10 [c | Card pair <- set, c <- pair]
 
 type FoidGame = SetVariantGame Card
+type FoidCard = Card

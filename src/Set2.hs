@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Set2 (Set2Game) where
+module Set2 (Set2Game, Set2Card) where
 
 import Data.List (findIndex, permutations)
 import GHC.Generics
@@ -19,7 +19,7 @@ makeJSON ''Card
 
 instance SetVariant Card where
     name _ = "S3T2"
-    boardSize _ = 12
+    boardSize _ = 10
     setSizes _ = [3]
     fullDeck = join [[Card (a,b,c,x,y,z), Card (x,y,z,a,b,c)]
       | [a,b,c] <- permutations [0,1,2], [x,y,z] <- permutations [3,4,5]]
@@ -28,3 +28,4 @@ instance SetVariant Card where
               checkSet' _ = False
 
 type Set2Game = SetVariantGame Card
+type Set2Card = Card

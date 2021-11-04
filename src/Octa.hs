@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Octa (OctaGame) where
+module Octa (OctaGame, OctaCard) where
 
 import Data.List (findIndex, permutations)
 import GHC.Generics
@@ -25,3 +25,4 @@ instance SetVariant Card where
     checkSet = linear
 
 type OctaGame = SetVariantGame Card
+type OctaCard = Card
