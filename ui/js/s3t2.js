@@ -8,7 +8,7 @@ m.S3T2 = (function() {
                 y = i => Math.cos(2*Math.PI/3*i),
                 fill = m.conf.get('filled') ? '#888' : 'transparent';
 
-            var draw = m.draw.create('-1 -3.4 2 6.4');
+            var draw = m.draw.create('-2 -3.5 4 7');
 
             m.util.range(2, i => {
                 // svg.appendChild(m.dom.svgel('path', {
@@ -25,7 +25,7 @@ m.S3T2 = (function() {
 
                 if (!(i%3)) {
                     var parity = ((card[i+0]>card[i+1])+(card[i+0]>card[i+2])+(card[i+1]>card[i+2]))%2;
-                    draw.group({ transform: `rotate(180) translate(0, ${i-1.5})` });
+                    draw.group({ transform: `rotate(180) translate(0, ${(i-1.5)*.9}) rotate(${i?0:60})` });
                     // if (p < 3) draw.el('circle', {
                     //     r: 1.2, fill: '#aaa'
                     // });
@@ -53,7 +53,7 @@ m.S3T2 = (function() {
             return this.render(rand() < 0.5 ? a.concat(b) : b.concat(a));
         },
 
-        conf: 'filled rownum square'.split(' '),
+        conf: 'rownum square'.split(' '),
 
         ...m.setVariant.props(3)
 
