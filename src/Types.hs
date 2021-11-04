@@ -152,7 +152,8 @@ makeJSON t = [d|
 instance Binary UTCTime where
     put = B.put . floor' . (1e9 *) . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
         where floor' x = floor x :: Int
-    get = posixSecondsToUTCTime . secondsToNominalDiffTime . (/ 1e9) <$> B.get
+    get = posixSecondsToUTCTime . secondsToNominalDiffTime . (/ 1e9) . fromInt <$> B.get
+        where fromInt x = fromIntegral (x :: Int)
 
 instance (Hashable k, Eq k, Binary k, Binary v) => Binary (M.HashMap k v) where
     put = B.put . M.toList
