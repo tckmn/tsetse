@@ -13,7 +13,7 @@ instance Binary GeneralGame where
     put GeneralGame{..} = do put $ fst (desc _game)
                              put _game
                              put _creator
-                             put $ show _creation
+                             put _creation
     get = do
         gname <- get
         let partial = case gname of
@@ -24,18 +24,18 @@ instance Binary GeneralGame where
                         "OCTA" -> GeneralGame <$> (get :: Get OctaGame)
                         "S3T2" -> GeneralGame <$> (get :: Get Set2Game)
                         _ -> error "unknown game name in state file???"
-        partial <*> get <*> (read <$> get)
+        partial <*> get <*> get
 
 instance Binary ServerState where
     put ServerState{..} = do put _users
                              put _nextClient
                              put _nextGame
                              put _password
-                             put $ M.toList _games
+                             put _games
     get = ServerState <$> pure []
                       <*> get
                       <*> pure 0
                       <*> get
                       <*> get
                       <*> get
-                      <*> (M.fromList <$> get)
+                      <*> get

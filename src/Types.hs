@@ -27,8 +27,9 @@ import qualified Data.Text as T
 
 import Control.Lens
 import Data.Aeson
-import Data.Binary
+import Data.Binary as B
 import Data.Time.Clock
+import Data.Time.Clock.POSIX
 import System.Random
 import qualified Network.WebSockets as WS
 
@@ -40,6 +41,7 @@ import Control.Monad.State
 import Util
 import Network
 
+import Data.Hashable (Hashable)
 import GHC.Generics (Generic)
 import Language.Haskell.TH
 
@@ -144,3 +146,14 @@ makeJSON t = [d|
         toJSON = genericToJSON jsonOpts
         toEncoding = genericToEncoding jsonOpts
     |]
+
+-- oops
+
+instance Binary UTCTime where
+    put = B.put . floor' . (1e9 *) . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
+        where floor' x = floor x :: Int
+    get = posixSecondsToUTCTime . secondsToNominalDiffTime . (/ 1e9) <$> B.get
+
+instance (Hashable k, Eq k, Binary k, Binary v) => Binary (M.HashMap k v) where
+    put = B.put . M.toList
+    get = M.fromList <$> B.get

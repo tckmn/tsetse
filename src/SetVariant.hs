@@ -11,7 +11,7 @@ import Control.Applicative
 import Data.Binary as B
 import Data.List (nub, subsequences)
 import Data.Maybe
-import GHC.Generics
+import GHC.Generics (Generic)
 import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
 
@@ -32,19 +32,16 @@ class (Eq card, ToJSON card, FromJSON card) => SetVariant card where
 data SetVariantGame card =
     SetVariantGame { _deck :: [card]
                    , _cards :: [card]
-                   , _taken :: [card]
-                   , _scores :: M.HashMap ClientId Int
+                   , _taken :: [(ClientId, [card], UTCTime)]
                    }
 
 instance Binary card => Binary (SetVariantGame card) where
     put SetVariantGame{..} = do B.put _deck
                                 B.put _cards
                                 B.put _taken
-                                B.put $ M.toList _scores
     get = do SetVariantGame <$> B.get
                             <*> B.get
                             <*> B.get
-                            <*> (M.fromList <$> B.get)
 
 makeLenses ''SetVariantGame
 
@@ -77,23 +74,23 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
         return SetVariantGame { _deck = deck
                               , _cards = cards
                               , _taken = []
-                              , _scores = M.empty
                               }
 
     catchup = do
         cs <- use cards
         send $ Cards cs
 
-    players g = g^.scores&M.keys
+    players g = nub $ g^..taken.folded._1
 
-    userinfo g cid = toJSON (UserInfo (g^.scores.at cid.non 0) :: OutMsg card)
+    userinfo g cid = toJSON (UserInfo score :: OutMsg card)
+        where score = sumOf (taken.folded.filteredBy (_1.only cid)._2.to length) g
 
     desc g = (name (undefined :: card), (T.pack . show $ length (_deck g) + length (_cards g)) <> " cards left")
 
     recv Claim{..} = do
         -- make sure the request is well-formed
         cs <- use cards
-        ts <- use taken
+        ts <- use $ taken.folded._2
         let idxs' = nub idxs
             set = [c | idx <- idxs', let Just c = cs^?ix idx, c `notElem` ts]
         guard $ length idxs' == length set
@@ -104,12 +101,10 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
             empty
 
         -- they're a set! tell everyone
-        taken <>= set
-        broadcast $ Highlight idxs' True
-
-        -- gain some score
         who <- view $ _1.cid
-        scores.at who %= Just . (+length set) . fromMaybe 0
+        when <- liftIO getCurrentTime
+        taken <>= [(who, set, when)]
+        broadcast $ Highlight idxs' True
         userlist
 
         -- wait 5 seconds and clear the cards
