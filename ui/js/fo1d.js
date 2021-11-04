@@ -41,12 +41,7 @@ m.FO1D = (function() {
 
         conf: 'rownum square'.split(' '),
 
-        Cards: function(msg) {
-            m.dom.clearCells();
-            msg.cards.forEach((card, idx) => {
-                m.dom.addCell(this.render(card), idx, 5);
-            });
-        }
+        ...m.setVariant.props(5)
 
     };
 
