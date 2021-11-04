@@ -96,6 +96,7 @@ m.gm = (function() {
             m.e.helplink.textContent = m.game ? 'rules' : 'help/about';
         },
 
+        // TODO these maybe don't belong here
         Highlight: function(msg) {
             var kls = msg.good ? 'right' : 'wrong';
             m.dom.cells.forEach(cell => {
@@ -104,6 +105,23 @@ m.gm = (function() {
             if (!msg.good) setTimeout(() => {
                 m.dom.cells.forEach(cell => cell.classList.remove(kls));
             }, 200);
+        },
+
+        History: function(msg) {
+            m.dom.clr(m.e.histbody);
+            msg.history.forEach(([uid, cards, time]) => {
+                m.e.histbody.appendChild(m.dom.el('p', {
+                    text: `user ${uid} at ${time}`
+                }));
+                var cdiv = m.dom.el('div');
+                cards.forEach(card => {
+                    var c = m.dom.el('div', { class: 'helpcard' });
+                    c.appendChild(m[m.game].render(card));
+                    cdiv.appendChild(c);
+                });
+                m.e.histbody.appendChild(cdiv);
+            });
+            m.modal.show('hist');
         },
 
         Toast: function(msg) {

@@ -65,6 +65,7 @@
                 </div>
                 <div id='botright'>
                     <button id='showadmin' class='onlyadmin'>admin</button>
+                    <button id='showhist' class='onlygame'>history</button>
                     <button id='pluscard' class='onlygame'><img src='/img/pluscard.svg'></button>
                     <button id='claim' class='onlygame'><img src='/img/check.svg'></button>
                 </div>
@@ -90,6 +91,14 @@
             <div class='large' id='modal_admin'>
                 <section>
                     <button id='savestate'>save state</button>
+                </section>
+                <footer>
+                    <button class='dismiss'>close</button>
+                </footer>
+            </div>
+
+            <div class='large' id='modal_hist'>
+                <section id='histbody'>
                 </section>
                 <footer>
                     <button class='dismiss'>close</button>

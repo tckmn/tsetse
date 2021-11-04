@@ -48,6 +48,7 @@ makeLenses ''SetVariantGame
 data Msg card = Claim { idxs :: [Int] }
               | PostClaim { pwd :: Text, i_cards :: [card] }
               | PlusCard
+              | GetHistory
 
 instance SetVariant card => FromJSON (Msg card) where
     parseJSON (Object v) = do
@@ -56,15 +57,18 @@ instance SetVariant card => FromJSON (Msg card) where
           String "Claim" -> Claim <$> v .: "idxs"
           String "PostClaim" -> PostClaim <$> v .: "pwd" <*> v .: "cards"
           String "PlusCard" -> pure PlusCard
+          String "GetHistory" -> pure GetHistory
           _ -> empty
     parseJSON _ = empty
 
 data OutMsg card = Cards { o_cards :: [card] }
                  | UserInfo { o_score :: Int }
+                 | History { o_history :: [(ClientId, [card], UTCTime)] }
 
 instance SetVariant card => ToJSON (OutMsg card) where
     toJSON Cards{..} = object ["t" .= ("Cards" :: Text), "cards" .= o_cards]
     toJSON UserInfo{..} = object ["t" .= ("UserInfo" :: Text), "score" .= o_score]
+    toJSON History{..} = object ["t" .= ("History" :: Text), "history" .= o_history]
 
 instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card) where
 
@@ -140,4 +144,9 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
                liftIO . putStrLn . T.unpack . encodeT $ sets
                send $ Toast "there are sets on the board!"
 
+        return Done
+
+    recv GetHistory = do
+        hist <- use taken
+        send $ History (reverse hist)
         return Done
