@@ -130,6 +130,13 @@ connect state c = do
           Just (CreateGame unk) -> do
               sendWS c . Toast $ "unknown game type " <> unk
               loop
+          Just DeleteGame{..} -> do
+              who <- previewMVar state $ games.at i_gid._Just.creator
+              if who == Just (c^.cid)
+                 then do overMVar state $ games.at i_gid .~ Nothing
+                         withMVar state runGameList
+                 else return ()
+              loop
           -- admin
           Just (SaveState pwd) -> do
               withMVar state $ \s ->
