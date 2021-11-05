@@ -95,6 +95,7 @@ main {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-gap: 10px 10px;
+            overflow: hidden;
 
             > div.cell {
                 position: relative;
@@ -105,9 +106,10 @@ main {
                 // text-align: center;
 
                 background-color: white;
-                transition: background-color 0.1s;
+                transition: background-color 0.1s, transform 0.1s;
                 border-radius: 5px;
                 overflow: hidden;
+
 
                 // width: 220px;
                 // margin: 10px;

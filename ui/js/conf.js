@@ -1,5 +1,7 @@
 m.conf = (function() {
 
+    var richterval, rots = Array(50).fill(0);
+
     var spec = {
         offset: {
             default: false,
@@ -11,14 +13,31 @@ m.conf = (function() {
         },
         rownum: {
             default: 4, min: 1, max: 12,
-            update: n => {
-                m.e.wall.style.gridTemplateColumns = `repeat(${n},1fr)`;
-                m.net.rerun('Cards'); // for hotkeys
-            }
+            init: n => m.e.wall.style.gridTemplateColumns = `repeat(${n},1fr)`,
+            update: () => m.net.rerun('Cards') // for hotkeys
         },
         square: {
             default: true,
-            update: () => m.dom.resize()
+            init: () => m.dom.resize()
+        },
+        richter: {
+            default: 0, min: 0, max: 9,
+            init: n => {
+                clearInterval(richterval);
+                if (!n) {
+                    rots = Array(50).fill(0);
+                    m.dom.cells.forEach(c => c.style.transform = '');
+                    return;
+                }
+                richterval = setInterval(() => {
+                    m.dom.cells.forEach((c,i) => {
+                        c.style.transform = `rotate(${rots[i]+=(Math.random()-0.5)*Math.pow(1.5, n)}deg)`;
+                    });
+                }, 50);
+            },
+            deinit: () => {
+                clearInterval(richterval);
+            }
         }
     };
 
@@ -41,6 +60,12 @@ m.conf = (function() {
             });
         },
 
+        deinit: function() {
+            if (m[m.game]) (m[m.game].conf || []).forEach(key => {
+                if (spec[key].deinit) spec[key].deinit(this.get(key));
+            });
+        },
+
         _onload: function() {
             for (key in spec) { (key => {
                 var obj = spec[key],
@@ -50,12 +75,15 @@ m.conf = (function() {
                     plus  = cont.getElementsByClassName('plus')[0],
                     disp  = cont.getElementsByClassName('disp')[0];
 
-                obj.updfn = (v, nowrite) => {
+                obj.updfn = (v, isinit) => {
                     settings[m.game][key] = v;
-                    if (obj.update) obj.update(v);
                     if (box) box.checked = v;
                     if (disp) disp.textContent = v;
-                    if (!nowrite) localStorage.setItem('settings', JSON.stringify(settings));
+                    if (obj.init) obj.init(v);
+                    if (!isinit) {
+                        if (obj.update) obj.update(v);
+                        localStorage.setItem('settings', JSON.stringify(settings));
+                    }
                 };
 
                 if (minus) minus.addEventListener('click', () => obj.updfn(Math.max(obj.min, settings[m.game][key]-1)));

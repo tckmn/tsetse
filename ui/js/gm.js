@@ -88,7 +88,11 @@ m.gm = (function() {
             m.dom.clr(m.e.wall);
             m.dom.clr(m.e.sbmain);
             m.dom.cells = [];
-            m.conf.init(m.game = msg.gtype);
+
+            m.conf.deinit();
+            m.game = msg.gtype;
+            m.conf.init();
+
             // bit of an ugly hack to put this here
             m.e.wrap.classList.toggle('hasgame', !!m.game);
             m.e.helplink.setAttribute('target', m.game ? '_blank' : '_self');
