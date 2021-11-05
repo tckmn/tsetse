@@ -129,6 +129,14 @@ main {
                     transform: translate(-50%, -50%);
                 }
 
+                > span.hotkey {
+                    position: absolute;
+                    top: 5px;
+                    right: 5px;
+                    color: black;
+                    font: 9pt monospace;
+                }
+
                 // &:hover    { background-color: #282828; }
                 // &.selected { background-color: #383838; }
             }

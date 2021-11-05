@@ -1,5 +1,14 @@
 m.dom = (function() {
 
+    var hotkeys = [
+        '1234567890',
+        'qwertyuiop',
+        'asdfghjkl;',
+        'zxcvbnm,./'
+    ];
+
+    var keylisten = {};
+
     return {
 
         resize: function() {
@@ -34,20 +43,27 @@ m.dom = (function() {
         cells: [],
 
         addCell: function(content, idx, autosubmit) {
+            var perrow = m.conf.get('rownum'),
+                hotkey = (hotkeys[idx/perrow|0]||'')[idx%perrow] || '';
+
             var cell = document.createElement('div');
             cell.dataset.idx = idx;
             cell.classList.add('cell');
             cell.appendChild(content);
+            cell.appendChild(this.el('span', {
+                text: hotkey, class: 'hotkey'
+            }));
             m.e.wall.appendChild(cell);
             this.cells.push(cell);
 
             var fn = e => {
-                e.preventDefault();
+                if (e) e.preventDefault();
                 cell.classList.toggle('selected');
                 this.submitCells(autosubmit);
             };
             cell.addEventListener('mousedown', fn);
             cell.addEventListener('touchstart', fn);
+            keylisten[hotkey] = fn;
         },
 
         submitCells: function(reqnum) {
@@ -70,6 +86,7 @@ m.dom = (function() {
             window.addEventListener('resize', this.resize);
             window.addEventListener('keydown', e => {
                 if (e.key == 'Enter') this.submitCells();
+                else if (keylisten[e.key]) keylisten[e.key]();
             });
         }
     };

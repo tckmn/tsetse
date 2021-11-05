@@ -11,7 +11,10 @@ m.conf = (function() {
         },
         rownum: {
             default: 4, min: 1, max: 12,
-            update: n => m.e.wall.style.gridTemplateColumns = `repeat(${n},1fr)`
+            update: n => {
+                m.e.wall.style.gridTemplateColumns = `repeat(${n},1fr)`;
+                m.net.rerun('Cards'); // for hotkeys
+            }
         },
         square: {
             default: true,
