@@ -172,17 +172,10 @@ disconnect state c = do
     modifyMVar_ state $ \s ->
         runUserlist c $ s & clients %~ filter ((c^.conn /=) . _conn)
 
-setpass :: IOException -> IO Text
-setpass _ = do
-    putStr "please set an admin password: "
+initstate :: IOException -> IO ServerState
+initstate _ = do
+    putStr "admin password: "
     pwd <- T.getLine
-    T.writeFile "pwd" pwd
-    return pwd
-
-setstate :: IOException -> IO ServerState
-setstate _ = do
-    let chomp = T.reverse . T.dropWhile (=='\n') . T.reverse
-    pwd <- (chomp <$> T.readFile "pwd") `catch` setpass
     return ServerState { _clients = []
                        , _users = []
                        , _nextConn = 0
@@ -194,6 +187,6 @@ setstate _ = do
 
 main :: IO ()
 main = do
-    state <- newMVar =<< B.decodeFile "state" `catch` setstate
+    state <- newMVar =<< B.decodeFile "state" `catch` initstate
     log "starting server"
     WS.runServer "0.0.0.0" 5354 $ app state
