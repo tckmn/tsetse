@@ -49,7 +49,14 @@ m.net = (function() {
         },
 
         register: function() {
-            this.send('Register', { uname: prompt('enter a username') });
+            var uname = prompt('enter a username');
+            if (uname === null) {
+                m.e.name.style.display = 'none';
+                m.e.discon.style.display = 'block';
+                m.e.discon.textContent = 'you must provide a username';
+                return;
+            }
+            this.send('Register', { uname: uname });
         },
 
         _onload: function() {
