@@ -1,5 +1,6 @@
 module AllGames
     ( module Asset
+    , module Cece
     , module Cset
     , module Foid
     , module Fold
@@ -9,6 +10,7 @@ module AllGames
     ) where
 
 import Asset
+import Cece
 import Cset
 import Foid
 import Fold
