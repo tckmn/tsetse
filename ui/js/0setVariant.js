@@ -26,7 +26,7 @@ m.setVariant = (function() {
                     m.dom.clr(m.e.histbody);
                     msg.history.forEach(([uid, cards, time]) => {
                         m.e.histbody.appendChild(m.dom.el('p', {
-                            text: `user ${uid} at ${time}`
+                            text: `${uid} at ${new Date(time).toLocaleString()}`
                         }));
                         var cdiv = m.dom.el('div');
                         cards.forEach(card => {

@@ -63,7 +63,7 @@ instance SetVariant card => FromJSON (Msg card) where
 
 data OutMsg card = Cards { o_cards :: [card] }
                  | UserInfo { o_score :: Int }
-                 | History { o_history :: [(ClientId, [card], UTCTime)] }
+                 | History { o_history :: [(Text, [card], UTCTime)] }
 
 instance SetVariant card => ToJSON (OutMsg card) where
     toJSON Cards{..} = object ["t" .= ("Cards" :: Text), "cards" .= o_cards]
@@ -148,5 +148,9 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
 
     recv GetHistory = do
         hist <- use taken
-        send $ History (reverse hist)
+        hist' <- mapM patchu (reverse hist)
+        send $ History hist'
         return Done
+            where patchu h@(uid, _, _) = do
+                    u <- view $ _2.byUid uid.uname
+                    return $ h & _1 .~ u :: GameIO (SetVariantGame card) (Text, [card], UTCTime)
