@@ -5,12 +5,13 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import Prelude hiding (log)
 
 import Control.Applicative
 import Control.Concurrent
-import Control.Exception (catch, finally, IOException)
+import Control.Exception
 import Data.Char (isSpace)
 import Data.Tuple (swap)
 import Data.Time.Clock.POSIX (getPOSIXTime)
@@ -93,7 +94,12 @@ negotiate state conn = do
 play :: MVar ServerState -> Connection -> ClientId -> GameId -> IO ()
 play state conn cid gid = do
     let c = Client conn cid gid
-    newgid <- (connect state c) `finally` (disconnect state c)
+    newgid <- catches (connect state c `finally` disconnect state c)
+                      [ Handler (\(e :: WS.ConnectionException) -> throw e)
+                      , Handler (\(e :: SomeException) -> do
+                          logC c $ "**exception " <> T.pack (show (e :: SomeException))
+                          throw e)
+                      ]
     play state conn cid newgid
 
 newgame :: Game g msg => MVar ServerState -> Client -> g -> IO GameId
