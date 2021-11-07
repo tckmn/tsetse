@@ -129,7 +129,7 @@ connect state c = do
           Just JoinGame{..} -> return i_gid
           Just (CreateGame "C53T") -> (new :: IO CsetGame) >>= newgame state c
           Just (CreateGame "FO1D") -> (new :: IO FoidGame) >>= newgame state c
-          Just (CreateGame "S3T2") -> (new :: IO Set2Game) >>= newgame state c
+          Just (CreateGame "S3CT") -> (new :: IO SectGame) >>= newgame state c
           Just (CreateGame "A5SET") -> (new :: IO AssetGame) >>= newgame state c
           Just (CreateGame "OCTA") -> (new :: IO OctaGame) >>= newgame state c
           Just (CreateGame "FOLD") -> (new :: IO FoldGame) >>= newgame state c

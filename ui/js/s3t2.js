@@ -1,4 +1,4 @@
-m.S3T2 = (function() {
+m.S3CT = (function() {
 
     return {
 

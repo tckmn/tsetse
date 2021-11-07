@@ -17,4 +17,4 @@ trial deck n goods total = do
     trial deck n (if null sets then goods else succ goods) (succ total)
 
 main = do
-    trial (fullDeck :: [Set2Card]) 9 0 0
+    trial (fullDeck :: [SectCard]) 9 0 0
