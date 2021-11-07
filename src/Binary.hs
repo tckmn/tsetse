@@ -23,6 +23,7 @@ instance Binary GeneralGame where
                         "FOLD" -> GeneralGame <$> (get :: Get FoldGame)
                         "OCTA" -> GeneralGame <$> (get :: Get OctaGame)
                         "S3CT" -> GeneralGame <$> (get :: Get SectGame)
+                        "C3C3" -> GeneralGame <$> (get :: Get CeceGame)
                         _ -> error "unknown game name in state file???"
         partial <*> get <*> get
 
