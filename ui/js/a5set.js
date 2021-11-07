@@ -71,9 +71,7 @@ m.A5SET = (function() {
             return this.render(a);
         },
 
-        conf: 'rownum square'.split(' '),
-
-        ...m.setVariant.props(3)
+        ...m.setVariant.props({ autosubmit: 3 })
 
     };
 

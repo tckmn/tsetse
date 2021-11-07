@@ -25,9 +25,7 @@ m.FOLD = (function() {
             return this.render([[rand()*6|0, rand()<0.5], [rand()*6|0, rand()<0.5]]);
         },
 
-        conf: 'rownum square'.split(' '),
-
-        ...m.setVariant.props(5)
+        ...m.setVariant.props({ autosubmit: 5 })
 
     };
 

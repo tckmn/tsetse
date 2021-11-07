@@ -67,9 +67,7 @@ m.OCTA = (function() {
             return this.render([m.util.shuffle(m.util.range(4), rand), rand() < 0.5]);
         },
 
-        conf: 'rownum square'.split(' '),
-
-        ...m.setVariant.props(3)
+        ...m.setVariant.props({ autosubmit: 5, perrow: 3 })
 
     };
 

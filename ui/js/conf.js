@@ -41,6 +41,18 @@ m.conf = (function() {
         }
     };
 
+    var gspec = (k,q) =>
+           m[m.game]
+        && m[m.game].conf
+        && m[m.game].conf[k]
+        && m[m.game].conf[k][q] !== undefined ?
+        m[m.game].conf[k][q] : spec[k][q];
+
+    var gcall = (k,q,...args) => {
+        var fn = gspec(k, q);
+        if (fn) return fn(...args);
+    };
+
     var settings = localStorage.getItem('settings');
     settings = settings ? JSON.parse(settings) : {};
 
@@ -48,21 +60,21 @@ m.conf = (function() {
 
         get: function(s) {
             return settings[m.game] && settings[m.game][s] !== undefined ?
-                settings[m.game][s] : spec[s].default;
+                settings[m.game][s] : gspec(s, 'default');
         },
 
         init: function() {
             Array.from(m.e.sbconf.children).forEach(c => c.style.display = 'none');
             if (!settings[m.game]) settings[m.game] = {};
-            if (m[m.game]) (m[m.game].conf || []).forEach(key => {
+            if (m[m.game]) Object.keys(m[m.game].conf || {}).forEach(key => {
                 spec[key].updfn(this.get(key), true);
                 document.getElementById('conf'+key).style.display = 'block';
             });
         },
 
         deinit: function() {
-            if (m[m.game]) (m[m.game].conf || []).forEach(key => {
-                if (spec[key].deinit) spec[key].deinit(this.get(key));
+            if (m[m.game]) Object.keys(m[m.game].conf || {}).forEach(key => {
+                gcall(key, 'deinit', this.get(key));
             });
         },
 
@@ -79,15 +91,15 @@ m.conf = (function() {
                     settings[m.game][key] = v;
                     if (box) box.checked = v;
                     if (disp) disp.textContent = v;
-                    if (obj.init) obj.init(v);
+                    gcall(key, 'init', v);
                     if (!isinit) {
-                        if (obj.update) obj.update(v);
+                        gcall(key, 'update', v);
                         localStorage.setItem('settings', JSON.stringify(settings));
                     }
                 };
 
-                if (minus) minus.addEventListener('click', () => obj.updfn(Math.max(obj.min, settings[m.game][key]-1)));
-                if (plus) plus.addEventListener('click', () => obj.updfn(Math.min(obj.max, settings[m.game][key]+1)));
+                if (minus) minus.addEventListener('click', () => obj.updfn(Math.max(gspec(key, 'min'), settings[m.game][key]-1)));
+                if (plus) plus.addEventListener('click', () => obj.updfn(Math.min(gspec(key, 'max'), settings[m.game][key]+1)));
                 if (box) box.addEventListener('change', () => obj.updfn(box.checked));
             })(key); }
         }

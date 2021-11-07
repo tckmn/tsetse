@@ -61,9 +61,10 @@ m.C53T = (function() {
             return this.render([rand()*5|0, rand()*5|0, rand()*5|0]);
         },
 
-        conf: 'offset filled rownum square'.split(' '),
-
-        ...m.setVariant.props(5)
+        ...m.setVariant.props({
+            autosubmit: 5,
+            conf: { offset: {}, filled: {} }
+        })
 
     };
 

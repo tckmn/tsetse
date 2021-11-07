@@ -42,9 +42,7 @@ m.C3C3 = (function() {
             return this.render([rand()*3|0].concat([m.util.shuffle([0,1,2], rand)]));
         },
 
-        conf: 'rownum square richter'.split(' '),
-
-        ...m.setVariant.props(3)
+        ...m.setVariant.props({ autosubmit: 3 })
 
     };
 

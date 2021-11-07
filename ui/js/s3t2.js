@@ -53,9 +53,7 @@ m.S3CT = (function() {
             return this.render(rand() < 0.5 ? a.concat(b) : b.concat(a));
         },
 
-        conf: 'rownum square richter'.split(' '),
-
-        ...m.setVariant.props(3)
+        ...m.setVariant.props({ autosubmit: 3 })
 
     };
 

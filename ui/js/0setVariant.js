@@ -2,13 +2,13 @@ m.setVariant = (function() {
 
     return {
 
-        props: function(autosubmit) {
+        props: function(args) {
             return {
 
                 Cards: function(msg) {
                     m.dom.clearCells();
                     msg.cards.forEach((card, idx) => {
-                        m.dom.addCell(this.render(card), idx, autosubmit);
+                        m.dom.addCell(this.render(card), idx, args.autosubmit || Infinity);
                     });
                 },
 
@@ -37,6 +37,13 @@ m.setVariant = (function() {
                         m.e.histbody.appendChild(cdiv);
                     });
                     m.modal.show('hist');
+                },
+
+                conf: {
+                    rownum: args.perrow ? { default: args.perrow } : {},
+                    square: {},
+                    richter: {},
+                    ...args.conf
                 }
 
             };
