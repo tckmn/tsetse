@@ -14,7 +14,7 @@ module Types
     , module System.Random
     , module Data.Time.Clock
     , module Network
-    , Text, Binary
+    , Text, Binary, HashMap
     , module Types
     ) where
 
@@ -22,6 +22,7 @@ import Control.Monad
 import Data.Functor
 import Data.List (nub)
 import Data.Text (Text)
+import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
 
@@ -109,7 +110,7 @@ data ServerState = ServerState { _clients :: [Client]
                                , _nextClient :: ClientId
                                , _nextGame :: GameId
                                , _password :: Text
-                               , _games :: M.HashMap Int GeneralGame
+                               , _games :: HashMap Int GeneralGame
                                }
 
 -- lens
@@ -155,6 +156,6 @@ instance Binary UTCTime where
     get = posixSecondsToUTCTime . secondsToNominalDiffTime . (/ 1e9) . fromInt <$> B.get
         where fromInt x = fromIntegral (x :: Int)
 
-instance (Hashable k, Eq k, Binary k, Binary v) => Binary (M.HashMap k v) where
+instance (Hashable k, Eq k, Binary k, Binary v) => Binary (HashMap k v) where
     put = B.put . M.toList
     get = M.fromList <$> B.get

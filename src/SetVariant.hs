@@ -22,6 +22,11 @@ import Util
 
 import Data.Aeson
 
+rudebuf :: Int
+rudetime :: NominalDiffTime
+rudebuf = 3
+rudetime = 10
+
 class (Eq card, ToJSON card, FromJSON card) => SetVariant card where
     name :: card -> Text
     boardSize :: card -> Int
@@ -33,6 +38,7 @@ data SetVariantGame card =
     SetVariantGame { _deck :: [card]
                    , _cards :: [card]
                    , _taken :: [(ClientId, [card], UTCTime)]
+                   , _rudeness :: HashMap ClientId [UTCTime]
                    }
 
 instance Binary card => Binary (SetVariantGame card) where
@@ -42,6 +48,7 @@ instance Binary card => Binary (SetVariantGame card) where
     get = do SetVariantGame <$> B.get
                             <*> B.get
                             <*> B.get
+                            <*> pure M.empty
 
 makeLenses ''SetVariantGame
 
@@ -78,6 +85,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
         return SetVariantGame { _deck = deck
                               , _cards = cards
                               , _taken = []
+                              , _rudeness = M.empty
                               }
 
     catchup = do
@@ -92,6 +100,17 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
     desc g = (name (undefined :: card), (T.pack . show $ length (_deck g) + length (_cards g)) <> " cards left")
 
     recv Claim{..} = do
+        who <- view $ _1.cid
+        when <- liftIO getCurrentTime
+
+        -- don't be rude
+        rude <- preuse $ rudeness.at who._Just.ix (rudebuf-1)
+        case rude of
+          Just t | when `diffUTCTime` t < rudetime -> do
+              send $ Toast "too many wrong guesses"
+              empty
+          _ -> return ()
+
         -- make sure the request is well-formed
         cs <- use cards
         ts <- use $ taken.folded._2
@@ -101,12 +120,11 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
 
         -- flash em red if they're not a set
         unless (checkSet set) $ do
+            rudeness.at who %= Just . take rudebuf . (when:) . fromMaybe []
             send $ Highlight idxs' False
             empty
 
         -- they're a set! tell everyone
-        who <- view $ _1.cid
-        when <- liftIO getCurrentTime
         taken <>= [(who, set, when)]
         broadcast $ Highlight idxs' True
         userlist
