@@ -1,5 +1,7 @@
 m.util = (function() {
 
+    var pad = n => n < 10 ? '0' : '';
+
     return {
 
         phi: 1.61803398875,
@@ -30,6 +32,12 @@ m.util = (function() {
               t ^= t + Math.imul(t ^ t >>> 7, t | 61);
               return ((t ^ t >>> 14) >>> 0) / 4294967296;
             };
+        },
+
+        stt: function(t) {
+            var s = t % 60, m = (t/60|0) % 60, h = t/3600|0;
+            return h ? `${h}:${pad(m)}${m}:${pad(s)}${s.toFixed(3)}` :
+                `${m}:${pad(s)}${s.toFixed(3)}`;
         }
 
     };

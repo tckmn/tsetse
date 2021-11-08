@@ -166,7 +166,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
 
     recv GetHistory = do
         hist <- use taken
-        hist' <- mapM patchu (reverse hist)
+        hist' <- mapM patchu hist
         send $ History hist'
         return Done
             where patchu h@(uid, _, _) = do

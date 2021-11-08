@@ -24,17 +24,22 @@ m.setVariant = (function() {
 
                 History: function(msg) {
                     m.dom.clr(m.e.histbody);
+                    var prevtime;
                     msg.history.forEach(([uid, cards, time]) => {
-                        m.e.histbody.appendChild(m.dom.el('p', {
-                            text: `${uid} at ${new Date(time).toLocaleString()}`
-                        }));
                         var cdiv = m.dom.el('div');
                         cards.forEach(card => {
                             var c = m.dom.el('div', { class: 'helpcard' });
                             c.appendChild(m[m.game].render(card));
                             cdiv.appendChild(c);
                         });
-                        m.e.histbody.appendChild(cdiv);
+                        m.e.histbody.insertBefore(cdiv, m.e.histbody.firstChild);
+
+                        time = new Date(time);
+                        m.e.histbody.insertBefore(m.dom.el('p', {
+                            text: `${uid} at ${time.toLocaleString()}` +
+                                (prevtime ? ` in ${m.util.stt((time - prevtime) / 1000)}` : '')
+                        }), m.e.histbody.firstChild);
+                        prevtime = time;
                     });
                     m.modal.show('hist');
                 },
