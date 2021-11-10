@@ -13,6 +13,7 @@ import Control.Applicative
 import Control.Concurrent
 import Control.Exception
 import Data.Char (isSpace)
+import Data.Maybe
 import Data.Tuple (swap)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import qualified Data.Text as T
@@ -122,6 +123,8 @@ connect state c = do
         runCatchup c s
         runUserlist c $ s & clients %~ (c:)
 
+    let toast = sendWS c . Toast
+
     -- main loop
     let loop = do
         msg <- recvWS c
@@ -135,21 +138,30 @@ connect state c = do
           Just (CreateGame "FOLD") -> (new :: IO FoldGame) >>= newgame state c
           Just (CreateGame "C3C3") -> (new :: IO CeceGame) >>= newgame state c
           Just (CreateGame unk) -> do
-              sendWS c . Toast $ "unknown game type " <> unk
+              toast $ "unknown game type " <> unk
               loop
           Just DeleteGame{..} -> do
               who <- previewMVar state $ games.at i_gid._Just.creator
               if who == Just (c^.cid)
                  then do overMVar state $ games.at i_gid .~ Nothing
                          withMVar state runGameList
-                 else return ()
+                 else toast "you can only delete your own games"
+              loop
+          Just GetScores -> do
+              let score GeneralGame{..} =
+                    amend (M.unionWith (+) (scores _game) . fromMaybe M.empty) (desc _game^._1)
+              let names s = mapKeys (\uid -> s^.byUid uid.uname)
+              withMVar state $ \s ->
+                  sendWS c . Scores . fmap (names s) $ M.foldr score M.empty (s^.games)
               loop
           -- admin
           Just (SaveState pwd) -> do
               withMVar state $ \s ->
                   if pwd == s^.password
-                     then liftIO . B.encodeFile "state" $ s
-                     else return ()
+                     then do
+                         liftIO . B.encodeFile "state" $ s
+                         toast "saved!"
+                     else toast "wrong password"
               loop
           -- Nothing and unimplemented
           _ -> do

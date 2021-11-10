@@ -23,6 +23,7 @@ m.dom = (function() {
                 document.createElement(name);
             if (props) for (prop in props) {
                 if (prop === 'text') el.appendChild(document.createTextNode(props.text));
+                else if (prop === 'children') props.children.forEach(el.appendChild.bind(el));
                 else if (prop.slice(0,2) === 'on') el.addEventListener(prop.slice(2), props[prop]);
                 else el.setAttribute(prop[0] === '_' ?
                         prop.slice(1) :

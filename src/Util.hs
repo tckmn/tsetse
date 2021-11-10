@@ -4,6 +4,7 @@ module Util
     , encodeT, decodeT
     , (.==.), (.&&.), (.$.)
     , (!!!)
+    , amend, mapKeys
     , Diffable, diffable, diff, linear
     , folds
     ) where
@@ -11,12 +12,15 @@ module Util
 import Control.Applicative
 import Control.Monad
 import Data.Aeson
+import Data.Bifunctor
+import Data.Hashable (Hashable)
 import Data.List (sortOn, permutations)
 import Data.Text (Text)
 import System.Random
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.HashMap.Strict as M
 
 shuffle :: [a] -> IO [a]
 shuffle [] = return []
@@ -46,6 +50,12 @@ decodeT = decode . LB.fromStrict . T.encodeUtf8
 [] !!! _ = Nothing
 (x:xs) !!! 0 = Just x
 (x:xs) !!! i = xs !!! pred i
+
+amend :: (Eq k, Hashable k) => (Maybe v -> v) -> k -> M.HashMap k v -> M.HashMap k v
+amend = M.alter . (Just .)
+
+mapKeys :: (Eq k2, Hashable k2) => (k1 -> k2) -> M.HashMap k1 v -> M.HashMap k2 v
+mapKeys f = M.fromList . map (first f) . M.toList
 
 diffable :: Eq b => (a -> a -> b) -> a -> a -> a -> a -> Bool
 diffable f a b c d = f a b == f c d

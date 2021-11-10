@@ -12,6 +12,7 @@ data GMMsg = Register { i_uname :: Text }
            | JoinGame { i_gid :: GameId }
            | CreateGame { i_gtype :: Text }
            | DeleteGame { i_gid :: GameId }
+           | GetScores
            -- admin
            | SaveState { i_password :: Text }
            deriving Generic
@@ -24,6 +25,7 @@ data GMOutMsg = Registered { o_cid :: ClientId, o_secret :: Text, o_name :: Text
               | GameList { o_list :: [(GameId, (Text, Text, Text, UTCTime))] }
               | GameType { o_gtype :: Text }
               | Highlight { o_idxs :: [Int], o_good :: Bool }
+              | Scores { o_scores :: HashMap Text (HashMap Text Int) }
               | Toast { o_msg :: Text }
               deriving Generic
 makeJSON ''GMOutMsg

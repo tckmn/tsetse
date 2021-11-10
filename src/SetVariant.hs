@@ -94,6 +94,10 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
 
     players g = nub $ g^..taken.folded._1
 
+    scores g = foldr (\(k, v, _) ->
+        let v' = length v
+         in M.alter (Just . maybe v' (+v')) k) M.empty $ g^.taken
+
     userinfo g cid = toJSON (UserInfo score :: OutMsg card)
         where score = sumOf (taken.folded.filteredBy (_1.only cid)._2.to length) g
 

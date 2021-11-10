@@ -100,6 +100,25 @@ m.gm = (function() {
             m.e.helplink.textContent = m.game ? 'rules' : 'help/about';
         },
 
+        Scores: function(msg) {
+            var table = m.dom.el('table'),
+                games = Object.keys(msg.scores);
+
+            table.appendChild(m.dom.el('tr', {
+                children: [m.dom.el('td')].concat(games.map(g => m.dom.el('th', { text: g })))
+            }));
+
+            new Set([].concat.apply([], Object.values(msg.scores).map(Object.keys))).forEach(u => {
+                table.appendChild(m.dom.el('tr', {
+                    children: [m.dom.el('th', { text: u, class: 'name' })].concat(games.map(g => m.dom.el('td', { text: msg.scores[g][u] || '' })))
+                }));
+            });
+
+            m.dom.clr(m.e.scoresbody);
+            m.e.scoresbody.appendChild(table);
+            m.modal.show('scores');
+        },
+
         Toast: function(msg) {
             // can't use onclick here because they're mutually recursive, lol
             var toast = m.dom.el('div', {

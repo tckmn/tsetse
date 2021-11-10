@@ -255,6 +255,11 @@ div#modals > div {
 
     &.small { width: 250px; height: 100px; }
     &.large { width: 80vw; height: 80vh; }
+
+    #scoresbody table {
+        th, td { text-align: center; padding: 2px 5px; }
+        th.name { text-align: right; }
+    }
 }
 
 button, textarea, input {

@@ -6,6 +6,8 @@
 
 module OCWall where
 
+import qualified Data.HashMap.Strict as M
+
 import GHC.Generics
 import Types
 
@@ -46,6 +48,8 @@ instance Game OCWallGame Msg where
             -- when (strikes /= 3)       $ sendWS conn $ encodeStrikes strikes
 
     players g = []
+
+    scores g = M.empty
 
     userinfo g cid = toJSON $ UserInfo 10
 

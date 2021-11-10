@@ -3,7 +3,7 @@ m.e = (function() {
     return {
 
         _onload: function() {
-            'wrap wallwrap wall gamelist name discon showadmin showhist histbody sbmain sbconf sbtoggle lobby helplink claim pluscard'.split(' ').forEach(id => this[id] = document.getElementById(id));
+            'wrap wallwrap wall gamelist name discon showadmin showhist showscores histbody scoresbody sbmain sbconf sbtoggle lobby helplink claim pluscard'.split(' ').forEach(id => this[id] = document.getElementById(id));
 
             if (localStorage.getItem('password')) this.wrap.classList.add('hasadmin');
 
@@ -11,6 +11,7 @@ m.e = (function() {
             this.showadmin.addEventListener('click', () => m.modal.show('admin'));
 
             this.showhist.addEventListener('click', () => m.net.send('GetHistory', {}));
+            this.showscores.addEventListener('click', e => { e.preventDefault(); m.net.send('GetScores'); });
 
             this.lobby.addEventListener('click', e => {
                 e.preventDefault();

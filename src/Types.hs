@@ -60,6 +60,7 @@ class (Binary g, FromJSON msg) => Game g msg | g -> msg where
     new :: IO g
     catchup :: GameIO g ()
     players :: g -> [ClientId]
+    scores :: g -> HashMap ClientId Int
     userinfo :: g -> ClientId -> Value
     desc :: g -> (Text, Text)
     recv :: msg -> GameIO g PostAction
