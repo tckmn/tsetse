@@ -39,23 +39,32 @@ class (Eq card, ToJSON card, FromJSON card) => SetVariant card where
     fullDeck :: [card]
     checkSet :: [card] -> Bool
 
+data Event = Taken ClientId
+           | Dealt
+           | Added
+           deriving Generic
+
+instance Binary Event
+
 data SetVariantGame card =
     SetVariantGame { _deck :: [card]
                    , _cards :: [card]
-                   , _taken :: [(ClientId, [card], UTCTime)]
+                   , _events :: [(Event, [card], UTCTime)]
                    , _rudeness :: HashMap ClientId [UTCTime]
                    }
 
 instance Binary card => Binary (SetVariantGame card) where
     put SetVariantGame{..} = do B.put _deck
                                 B.put _cards
-                                B.put _taken
+                                B.put _events
     get = do SetVariantGame <$> B.get
                             <*> B.get
                             <*> B.get
                             <*> pure M.empty
 
 makeLenses ''SetVariantGame
+taken :: Getter (SetVariantGame card) [(ClientId, [card], UTCTime)]
+taken = events.to (\x -> [(a,b,c) | (Taken a,b,c) <- x])
 
 data Msg card = Claim { idxs :: [Int] }
               | PostClaim { pwd :: Text, i_cards :: [card] }
@@ -91,11 +100,12 @@ nosets cs = null [s | s <- subsequences cs
 instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card) where
 
     new = do
+        now <- liftIO getCurrentTime
         shuf <- shuffle fullDeck
         let (cards, deck) = splitAt (boardSize (undefined :: card)) shuf
         return SetVariantGame { _deck = deck
                               , _cards = cards
-                              , _taken = []
+                              , _events = [(Dealt, cards, now)]
                               , _rudeness = M.empty
                               }
 
@@ -140,7 +150,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
             empty
 
         -- they're a set! tell everyone
-        taken <>= [(who, set, when)]
+        events <>= [(Taken who, set, when)]
         broadcast $ Highlight idxs' True
         userlist
 
@@ -168,8 +178,10 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
                    tryDeal $ succ i
                else do
                    when (nosets cs) $ broadcast (Toast "failed to guarantee set existence")
+                   now <- liftIO getCurrentTime
                    deck %= drop dealCount
                    cards .= cs
+                   events <>= [(Dealt, newCards, now)]
                    broadcast $ Cards cs
                    return NewDesc
 
@@ -187,8 +199,13 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
         if nosets cs
            then do
                newCard <- deck %%= splitAt 1
-               cs <- cards <<>= newCard
-               broadcast $ Cards cs
+               if null newCard
+                  then send $ Toast "no more sets!"
+                  else do
+                      now <- liftIO getCurrentTime
+                      cs <- cards <<>= newCard
+                      events <>= [(Added, newCard, now)]
+                      broadcast $ Cards cs
            else send $ Toast "there are sets on the board!"
 
         return Done
