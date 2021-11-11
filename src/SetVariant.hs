@@ -17,10 +17,15 @@ import qualified Data.Text as T
 
 import GameUtil
 import GM
-import Types hiding ((.=))
+import Types hiding ((.>))
 import Util
 
-import Data.Aeson
+import Data.Aeson hiding ((.=))
+import qualified Data.Aeson as Ae
+(.>) :: (KeyValue kv, ToJSON v) => Text -> v -> kv
+(.>) = (Ae..=)
+(.=>) :: KeyValue kv => Text -> Text -> kv
+(.=>) = (Ae..=)
 
 rudebuf :: Int
 rudetime :: NominalDiffTime
@@ -73,9 +78,15 @@ data OutMsg card = Cards { o_cards :: [card] }
                  | History { o_history :: [(Text, [card], UTCTime)] }
 
 instance SetVariant card => ToJSON (OutMsg card) where
-    toJSON Cards{..} = object ["t" .= ("Cards" :: Text), "cards" .= o_cards]
-    toJSON UserInfo{..} = object ["t" .= ("UserInfo" :: Text), "score" .= o_score]
-    toJSON History{..} = object ["t" .= ("History" :: Text), "history" .= o_history]
+    toJSON Cards{..}    = object ["t" .=> "Cards",    "cards"   .> o_cards]
+    toJSON UserInfo{..} = object ["t" .=> "UserInfo", "score"   .> o_score]
+    toJSON History{..}  = object ["t" .=> "History",  "history" .> o_history]
+
+nosets :: forall card. SetVariant card => [card] -> Bool
+nosets cs = null [s | s <- subsequences cs
+                 , length s `elem` setSizes (undefined :: card)
+                 , checkSet s
+                 ]
 
 instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card) where
 
@@ -135,9 +146,9 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
 
         -- wait 5 seconds and clear the cards
         pwd <- view $ _2.password
-        return $ Delayed 5000000 (encodeT $ object [ "t" .= ("PostClaim" :: Text)
-                                                   , "pwd" .= pwd
-                                                   , "cards" .= set
+        return $ Delayed 5000000 (encodeT $ object [ "t" .=> "PostClaim"
+                                                   , "pwd" .> pwd
+                                                   , "cards" .> set
                                                    ])
 
     recv PostClaim{..} = do
@@ -146,25 +157,39 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
         nboard <- uses cards length
         let dealCount = max 0 $ (boardSize (undefined :: card)) - (nboard - length i_cards)
 
-        -- oh my god what a beautiful line
-        newCards <- deck %%= splitAt dealCount
-        let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
-        cs <- cards <%= mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
-        broadcast $ Cards cs
-        return NewDesc
+        let tryDeal i = do
+            newCards <- uses deck $ take dealCount
+            let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
+            cs <- uses cards $ mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
+            if nosets cs && i < 20
+               then do
+                   deck' <- join $ uses deck shuffle
+                   deck .= deck'
+                   tryDeal $ succ i
+               else do
+                   when (nosets cs) $ broadcast (Toast "failed to guarantee set existence")
+                   deck %= drop dealCount
+                   cards .= cs
+                   broadcast $ Cards cs
+                   return NewDesc
+
+        tryDeal 0
+
+        -- newCards <- deck %%= splitAt dealCount
+        -- let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
+        -- cs <- cards <%= mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
+        -- broadcast $ Cards cs
+        -- return NewDesc
 
     recv PlusCard = do
-        subs <- uses cards subsequences
-        let sets = [s | s <- subs, length s `elem` setSizes (undefined :: card), checkSet s]
+        cs <- use cards
 
-        if null sets
+        if nosets cs
            then do
                newCard <- deck %%= splitAt 1
                cs <- cards <<>= newCard
                broadcast $ Cards cs
-           else do
-               liftIO . putStrLn . T.unpack . encodeT $ sets
-               send $ Toast "there are sets on the board!"
+           else send $ Toast "there are sets on the board!"
 
         return Done
 

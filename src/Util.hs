@@ -11,6 +11,7 @@ module Util
 
 import Control.Applicative
 import Control.Monad
+import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Bifunctor
 import Data.Hashable (Hashable)
@@ -22,10 +23,10 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.HashMap.Strict as M
 
-shuffle :: [a] -> IO [a]
+shuffle :: MonadIO m => [a] -> m [a]
 shuffle [] = return []
 shuffle xs = do
-    idx <- randomRIO (0, length xs - 1)
+    idx <- liftIO $ randomRIO (0, length xs - 1)
     let (left, (x:right)) = splitAt idx xs
     (x:) <$> shuffle (left++right)
 
