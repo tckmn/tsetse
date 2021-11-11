@@ -70,26 +70,15 @@ data Msg card = Claim { idxs :: [Int] }
               | PostClaim { pwd :: Text, i_cards :: [card] }
               | PlusCard
               | GetHistory
-
-instance SetVariant card => FromJSON (Msg card) where
-    parseJSON (Object v) = do
-        t <- v .: "t"
-        case t of
-          String "Claim" -> Claim <$> v .: "idxs"
-          String "PostClaim" -> PostClaim <$> v .: "pwd" <*> v .: "cards"
-          String "PlusCard" -> pure PlusCard
-          String "GetHistory" -> pure GetHistory
-          _ -> empty
-    parseJSON _ = empty
+              deriving Generic
 
 data OutMsg card = Cards { o_cards :: [card] }
                  | UserInfo { o_score :: Int }
                  | History { o_history :: [(Text, [card], UTCTime)] }
+                 deriving Generic
 
-instance SetVariant card => ToJSON (OutMsg card) where
-    toJSON Cards{..}    = object ["t" .=> "Cards",    "cards"   .> o_cards]
-    toJSON UserInfo{..} = object ["t" .=> "UserInfo", "score"   .> o_score]
-    toJSON History{..}  = object ["t" .=> "History",  "history" .> o_history]
+instance SetVariant card => FromJSON (Msg card)
+instance SetVariant card => ToJSON (OutMsg card)
 
 nosets :: forall card. SetVariant card => ([card], [card]) -> Bool
 nosets (_, cs) = null [s | s <- subsequences cs
