@@ -54,6 +54,7 @@ runGameIO = ((runStateT . runMaybeT) .) . runReaderT
 data PostAction = Done
                 | NewDesc
                 | Delayed { delay :: Int, msg :: Text }
+                | Die
 
 -- main game type
 class (Binary g, FromJSON msg) => Game g msg | g -> msg where
@@ -103,6 +104,7 @@ data GeneralGame = forall g msg. Game g msg =>
     GeneralGame { _game :: g
                 , _creator :: ClientId
                 , _creation :: UTCTime
+                , _dead :: Bool
                 }
 
 data ServerState = ServerState { _clients :: [Client]

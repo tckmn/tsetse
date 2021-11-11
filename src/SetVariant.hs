@@ -91,11 +91,11 @@ instance SetVariant card => ToJSON (OutMsg card) where
     toJSON UserInfo{..} = object ["t" .=> "UserInfo", "score"   .> o_score]
     toJSON History{..}  = object ["t" .=> "History",  "history" .> o_history]
 
-nosets :: forall card. SetVariant card => [card] -> Bool
-nosets cs = null [s | s <- subsequences cs
-                 , length s `elem` setSizes (undefined :: card)
-                 , checkSet s
-                 ]
+nosets :: forall card. SetVariant card => ([card], [card]) -> Bool
+nosets (_, cs) = null [s | s <- subsequences cs
+                      , length s `elem` setSizes (undefined :: card)
+                      , checkSet s
+                      ]
 
 instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card) where
 
@@ -167,25 +167,42 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
         nboard <- uses cards length
         let dealCount = max 0 $ (boardSize (undefined :: card)) - (nboard - length i_cards)
 
-        let tryDeal i = do
+        let deal = do
             newCards <- uses deck $ take dealCount
             let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
             cs <- uses cards $ mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
-            if nosets cs && i < 20
+            return (newCards, cs)
+
+        let sendDeal (newCards, cs) = do
+            now <- liftIO getCurrentTime
+            deck %= drop dealCount
+            cards .= cs
+            events <>= [(Dealt, newCards, now)]
+            broadcast $ Cards cs
+
+        let tryDeal i = do
+            d <- deal
+            if nosets d && i < 20
                then do
                    deck' <- join $ uses deck shuffle
                    deck .= deck'
                    tryDeal $ succ i
                else do
-                   when (nosets cs) $ broadcast (Toast "failed to guarantee set existence")
-                   now <- liftIO getCurrentTime
-                   deck %= drop dealCount
-                   cards .= cs
-                   events <>= [(Dealt, newCards, now)]
-                   broadcast $ Cards cs
+                   when (nosets d) $ broadcast (Toast "failed to guarantee set existence")
+                   sendDeal d
                    return NewDesc
 
-        tryDeal 0
+        remaining <- uses deck length
+        if dealCount >= remaining
+           then do
+               d <- deal
+               sendDeal d
+               if nosets d
+                  then do
+                      broadcast $ Toast "game over!"
+                      return Die
+                  else return NewDesc
+           else tryDeal 0
 
         -- newCards <- deck %%= splitAt dealCount
         -- let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
@@ -196,7 +213,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
     recv PlusCard = do
         cs <- use cards
 
-        if nosets cs
+        if nosets ([], cs)
            then do
                newCard <- deck %%= splitAt 1
                if null newCard

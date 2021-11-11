@@ -68,7 +68,7 @@ m.gm = (function() {
 
             msg.list.forEach(g => {
                 var gamerect = m.dom.el('div', {
-                    class: 'gamerect',
+                    class: 'gamerect' + (g[2] ? ' dead' : ''),
                     onclick: () => {
                         m.net.send('JoinGame', { gid: g[0] });
                     }

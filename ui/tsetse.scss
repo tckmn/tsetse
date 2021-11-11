@@ -169,6 +169,7 @@ main {
                 .gamename { font-size: 16pt; font-weight: bold; }
                 .gamedesc { flex: 1; }
                 .gamesrc { color: #888; font-size: 9pt; }
+                &.dead { opacity: 0.5; }
                 &:hover { background-color: #282828; }
             }
         }

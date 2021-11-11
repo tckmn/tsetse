@@ -110,6 +110,7 @@ newgame state c g = do
     overMVar state $ games.at gid .~ Just GeneralGame { _game = g
                                                       , _creator = c^.cid
                                                       , _creation = now
+                                                      , _dead = False
                                                       }
     withMVar state runGameList
     return gid
@@ -170,6 +171,9 @@ connect state c = do
                   case post of
                     Done -> return ()
                     NewDesc -> withMVar state runGameList
+                    Die -> do
+                        overMVar state $ cgame c._Just.dead .~ True
+                        withMVar state runGameList
                     Delayed{..} -> void . forkIO $ do
                         threadDelay delay
                         gamemsg msg

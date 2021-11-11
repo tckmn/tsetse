@@ -14,6 +14,7 @@ instance Binary GeneralGame where
                              put _game
                              put _creator
                              put _creation
+                             put _dead
     get = do
         gname <- get
         let partial = case gname of
@@ -25,7 +26,7 @@ instance Binary GeneralGame where
                         "S3CT" -> GeneralGame <$> (get :: Get SectGame)
                         "C3C3" -> GeneralGame <$> (get :: Get CeceGame)
                         _ -> error "unknown game name in state file???"
-        partial <*> get <*> get
+        partial <*> get <*> get <*> get
 
 instance Binary ServerState where
     put ServerState{..} = do put _users

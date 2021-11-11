@@ -17,7 +17,7 @@ import qualified Data.HashMap.Strict as M
 
 renderGameList :: ServerState -> GMOutMsg
 renderGameList s = GameList . reverse . sortOn (^._2._4) $
-        (_2 %~ runDesc) <$> M.toList (s^.games)
+        (\(gid, g) -> (gid, runDesc g, g^.dead)) <$> M.toList (s^.games)
     where runDesc GeneralGame{..} = let (a, b) = desc _game
                                      in (a, b, s^.byUid _creator.uname, _creation)
 
@@ -42,6 +42,7 @@ runRecv c s msg = do
           (post, g') <- runGameIO gio (c, s) _game
           return $ (s & cgame c .~ Just GeneralGame { _creator
                                                     , _creation
+                                                    , _dead
                                                     , _game = g' }, fromMaybe Done post)
       Nothing -> return (s, Done)
 

@@ -22,7 +22,7 @@ data GMOutMsg = Registered { o_cid :: ClientId, o_secret :: Text, o_name :: Text
               | NotRegistered
               | Identified { o_name :: Text }
               | NotIdentified
-              | GameList { o_list :: [(GameId, (Text, Text, Text, UTCTime))] }
+              | GameList { o_list :: [(GameId, (Text, Text, Text, UTCTime), Bool)] }
               | GameType { o_gtype :: Text }
               | Highlight { o_idxs :: [Int], o_good :: Bool }
               | Scores { o_scores :: HashMap Text (HashMap Text Int) }
