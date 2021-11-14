@@ -13,10 +13,12 @@ m.modal = (function() {
 
         savestate: () => {
             m.net.send('SaveState', pwd);
+            m.modal.close();
         },
 
         creategame: () => {
             m.net.send('CreateGame', { gtype: v.gametype() });
+            m.modal.close();
         }
 
     };
