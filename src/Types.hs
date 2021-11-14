@@ -151,6 +151,15 @@ makeJSON t = [d|
         toEncoding = genericToEncoding jsonOpts
     |]
 
+makeJSON' :: Name -> DecsQ
+makeJSON' t = [d|
+    instance FromJSON a => FromJSON ($(pure $ ConT t) a) where
+        parseJSON = genericParseJSON jsonOpts
+    instance ToJSON a => ToJSON ($(pure $ ConT t) a) where
+        toJSON = genericToJSON jsonOpts
+        toEncoding = genericToEncoding jsonOpts
+    |]
+
 -- oops
 
 instance Binary UTCTime where

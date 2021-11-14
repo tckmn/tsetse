@@ -77,8 +77,8 @@ data OutMsg card = Cards { o_cards :: [card] }
                  | History { o_history :: [(Text, [card], UTCTime)] }
                  deriving Generic
 
-instance SetVariant card => FromJSON (Msg card)
-instance SetVariant card => ToJSON (OutMsg card)
+makeJSON' ''Msg
+makeJSON' ''OutMsg
 
 nosets :: forall card. SetVariant card => ([card], [card]) -> Bool
 nosets (_, cs) = null [s | s <- subsequences cs
