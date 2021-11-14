@@ -122,11 +122,11 @@ makeLenses ''ServerState
 makeLenses ''User
 makeLenses ''GeneralGame
 
-byUid :: ClientId -> Fold ServerState User
-byUid u = users.folded.filteredBy (uid.only u)
+byUid :: ClientId -> Traversal' ServerState User
+byUid u = users.traversed.filteredBy (uid.only u)
 
-byGid :: GameId -> Fold ServerState Client
-byGid n = clients.folded.filteredBy (gid.only n)
+byGid :: GameId -> Traversal' ServerState Client
+byGid n = clients.traversed.filteredBy (gid.only n)
 
 cgame :: Client -> Lens' ServerState (Maybe GeneralGame)
 cgame c = games.at (c^.gid)

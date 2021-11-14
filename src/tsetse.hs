@@ -54,6 +54,10 @@ app state pending = do
 
 previewMVar v lens = withMVar v $ return . preview lens
 overMVar v lens = modifyMVar_ v $ return . lens
+nameok state name = do
+    sameName <- withMVar state $
+        return . (^..users.traversed.filteredBy (uname.only name))
+    return $ (not . T.null . T.filter (not . isSpace)) name && null sameName
 
 negotiate :: MVar ServerState -> Connection -> IO ()
 negotiate state conn = do
@@ -72,14 +76,9 @@ negotiate state conn = do
                 negotiate state conn
                 return Nothing
       Just Register{..} -> do
-          sameName <- withMVar state $
-              return . (^..users.traversed.filteredBy (uname.only i_uname))
-          if T.null (T.filter (not . isSpace) i_uname) || not (null sameName)
+          isok <- nameok state i_uname
+          if isok
             then do
-                sendWS conn $ NotRegistered
-                negotiate state conn
-                return Nothing
-            else do
                 uid <- state .&++ nextClient
                 secret <- makeSecret
                 overMVar state $ users %~ (User { _uid = uid
@@ -88,6 +87,10 @@ negotiate state conn = do
                                                 }:)
                 sendWS conn $ Registered uid secret i_uname
                 return $ Just uid
+            else do
+                sendWS conn $ NotRegistered
+                negotiate state conn
+                return Nothing
       Nothing -> return Nothing
 
     forM_ cid $ \cid -> play state conn cid (-1)
@@ -154,6 +157,15 @@ connect state c = do
               let names s = mapKeys (\uid -> s^.byUid uid.uname)
               withMVar state $ \s ->
                   sendWS c . Scores . fmap (names s) $ M.foldr score M.empty (s^.games)
+              loop
+          Just Uname{..} -> do
+              isok <- nameok state i_uname
+              if isok
+                 then do
+                     overMVar state $ byUid (c^.cid).uname .~ i_uname
+                     -- TODO notify other players
+                     sendWS c $ Identified i_uname
+                 else toast "can't change to that name"
               loop
           -- admin
           Just (SaveState pwd) -> do
