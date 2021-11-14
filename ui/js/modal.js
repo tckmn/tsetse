@@ -14,6 +14,10 @@ m.modal = (function() {
 
         savestate: () => {
             m.net.send('SaveState', pwd);
+        },
+
+        creategame: () => {
+            m.net.send('CreateGame', { gtype: v.gametype() });
         }
 
     };

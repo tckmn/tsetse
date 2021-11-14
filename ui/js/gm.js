@@ -48,22 +48,11 @@ m.gm = (function() {
 
             m.dom.clr(m.e.gamelist);
 
-            var sel = m.dom.el('select');
-            'C53T FOLD FO1D OCTA A5SET S3CT C3C3'.split(' ').forEach(g => {
-                sel.appendChild(m.dom.el('option', {
-                    text: g, value: g
-                }));
-            });
-
             var newsec = m.dom.el('div');
-            newsec.appendChild(sel);
             newsec.appendChild(m.dom.el('button', {
                 text: 'create game',
-                onclick: () => {
-                    m.net.send('CreateGame', { gtype: sel.value });
-                }
+                onclick: () => m.modal.show('newgame')
             }));
-
             m.e.gamelist.appendChild(newsec);
 
             msg.list.forEach(g => {
