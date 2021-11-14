@@ -3,7 +3,6 @@ m.modal = (function() {
     var pwd = { password: localStorage.getItem('password') };
 
     var v = {};
-    'newname'.split(' ').forEach(x => { v[x] = () => document.getElementById(x).value; });
 
     var actions = {
 
@@ -38,6 +37,9 @@ m.modal = (function() {
         },
 
         _onload: function() {
+            Array.from(document.getElementsByClassName('mval')).forEach(x => {
+                v[x.dataset.mval] = () => x.value;
+            });
             Array.from(document.getElementsByClassName('dismiss')).forEach(e => {
                 e.addEventListener('click', this.close.bind(this));
             });
