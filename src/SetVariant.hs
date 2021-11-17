@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module SetVariant where
 
@@ -85,13 +86,9 @@ data OutMsg card = Cards { o_cards :: [card] }
 makeJSON' ''Msg
 makeJSON' ''OutMsg
 
-nosets :: forall card. SetVariant card => ([card], [card]) -> Bool
-nosets (_, cs) = null [s | s <- subsequences cs
-                      , length s `elem` setSizes (undefined :: card)
-                      , checkSet s
-                      ]
+instance (Binary card, SetVariant card) => Game (SetVariantGame card)  where
 
-instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card) where
+    type GMsg (SetVariantGame card) = Msg card
 
     new = do
         now <- liftIO getCurrentTime

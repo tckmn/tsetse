@@ -6,6 +6,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Types
     ( module Control.Lens
@@ -57,14 +59,15 @@ data PostAction = Done
                 | Die
 
 -- main game type
-class (Binary g, FromJSON msg) => Game g msg | g -> msg where
+class (Binary g, FromJSON (GMsg g)) => Game g where
+    type GMsg g :: *
     new :: IO g
     catchup :: GameIO g ()
     players :: g -> [ClientId]
     scores :: g -> HashMap ClientId Int
     userinfo :: g -> ClientId -> Value
     desc :: g -> (Text, Text)
-    recv :: msg -> GameIO g PostAction
+    recv :: GMsg g -> GameIO g PostAction
 
     recvT :: Text -> Maybe (GameIO g PostAction)
     recvT t = recv <$> decodeT t
@@ -100,7 +103,7 @@ data User = User { _uid :: ClientId
 
 -- main server type
 
-data GeneralGame = forall g msg. Game g msg =>
+data GeneralGame = forall g. Game g =>
     GeneralGame { _game :: g
                 , _creator :: ClientId
                 , _creation :: UTCTime

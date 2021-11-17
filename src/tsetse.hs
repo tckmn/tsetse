@@ -106,7 +106,7 @@ play state conn cid gid = do
                       ]
     play state conn cid newgid
 
-newgame :: Game g msg => MVar ServerState -> Client -> g -> IO GameId
+newgame :: Game g => MVar ServerState -> Client -> g -> IO GameId
 newgame state c g = do
     gid <- state .&++ nextGame
     now <- getCurrentTime

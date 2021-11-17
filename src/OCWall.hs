@@ -3,6 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module OCWall where
 
@@ -31,7 +32,9 @@ data OutMsg = UserInfo { o_foo :: Int }
             deriving Generic
 makeJSON ''OutMsg
 
-instance Game OCWallGame Msg where
+instance Game OCWallGame where
+
+    type GMsg OCWallGame = Msg
 
     new = return OCWallGame { _wall = []
                             , _groups = []
