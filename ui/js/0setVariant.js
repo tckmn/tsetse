@@ -3,6 +3,7 @@ m.setVariant = (function() {
     return {
 
         props: function(args) {
+            args = args || {};
             return {
 
                 Cards: function(msg) {

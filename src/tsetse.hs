@@ -141,6 +141,7 @@ connect state c = do
           Just (CreateGame "OCTA") -> (new :: IO OctaGame) >>= newgame state c
           Just (CreateGame "FOLD") -> (new :: IO FoldGame) >>= newgame state c
           Just (CreateGame "C3C3") -> (new :: IO CeceGame) >>= newgame state c
+          Just (CreateGame "SAT") -> (new :: IO SatGame) >>= newgame state c
           Just (CreateGame unk) -> do
               toast $ "unknown game type " <> unk
               loop

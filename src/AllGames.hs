@@ -6,6 +6,7 @@ module AllGames
     , module Fold
     , module OCWall
     , module Octa
+    , module Sat
     , module Set2
     ) where
 
@@ -16,4 +17,5 @@ import Foid
 import Fold
 import OCWall
 import Octa
+import Sat
 import Set2

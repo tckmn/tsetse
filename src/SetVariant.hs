@@ -38,6 +38,11 @@ class (Eq card, ToJSON card, FromJSON card) => SetVariant card where
     setSizes :: card -> [Int]
     fullDeck :: [card]
     checkSet :: [card] -> Bool
+    noSets :: ([card], [card]) -> Bool
+    noSets (_, cs) = null [s | s <- subsequences cs
+                          , length s `elem` setSizes (undefined :: card)
+                          , checkSet s
+                          ]
 
 data Event = Taken ClientId
            | Dealt
@@ -171,13 +176,13 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
 
         let tryDeal i = do
             d <- deal
-            if nosets d && i < 20
+            if noSets d && i < 20
                then do
                    deck' <- join $ uses deck shuffle
                    deck .= deck'
                    tryDeal $ succ i
                else do
-                   when (nosets d) $ broadcast (Toast "failed to guarantee set existence")
+                   when (noSets d) $ broadcast (Toast "failed to guarantee set existence")
                    sendDeal d
                    return NewDesc
 
@@ -186,7 +191,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
            then do
                d <- deal
                sendDeal d
-               if nosets d
+               if noSets d
                   then do
                       broadcast $ Toast "game over!"
                       return Die
@@ -202,7 +207,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) (Msg card)
     recv PlusCard = do
         cs <- use cards
 
-        if nosets ([], cs)
+        if noSets ([], cs)
            then do
                newCard <- deck %%= splitAt 1
                if null newCard
