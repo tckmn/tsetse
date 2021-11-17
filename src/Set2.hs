@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Set2 (SectGame, SectCard) where
 
@@ -18,6 +19,7 @@ instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where
+    type SVConf Card = NoConf
     name _ = "S3CT"
     boardSize _ = 10
     setSizes _ = [3]

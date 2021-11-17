@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module SetVariant where
 
@@ -33,7 +34,8 @@ rudetime :: NominalDiffTime
 rudebuf = 3
 rudetime = 10
 
-class (Eq card, ToJSON card, FromJSON card) => SetVariant card where
+class (Eq card, ToJSON card, FromJSON card, FromJSON (SVConf card)) => SetVariant card where
+    type SVConf card :: *
     name :: card -> Text
     boardSize :: card -> Int
     setSizes :: card -> [Int]
@@ -86,11 +88,12 @@ data OutMsg card = Cards { o_cards :: [card] }
 makeJSON' ''Msg
 makeJSON' ''OutMsg
 
-instance (Binary card, SetVariant card) => Game (SetVariantGame card)  where
+instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
 
     type GMsg (SetVariantGame card) = Msg card
+    type GConf (SetVariantGame card) = SVConf card
 
-    new = do
+    new _ = do
         now <- liftIO getCurrentTime
         shuf <- shuffle fullDeck
         let (cards, deck) = splitAt (boardSize (undefined :: card)) shuf

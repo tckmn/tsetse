@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Sat (SatGame, SatCard) where
 
@@ -34,6 +35,7 @@ sat constraints = any (allOf constraints . sats) . sequence . take nvars $ repea
             | otherwise = not $ vars !! (-(n+1))
 
 instance SetVariant Card where
+    type SVConf Card = NoConf
     name _ = "SAT"
     boardSize _ = 8
     setSizes _ = []

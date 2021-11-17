@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Fold (FoldGame, FoldCard) where
 
@@ -14,6 +15,7 @@ instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where
+    type SVConf Card = NoConf
     name _ = "FOLD"
     boardSize _ = 12
     setSizes _ = [3,5]

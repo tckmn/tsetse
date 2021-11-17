@@ -35,13 +35,14 @@ makeJSON ''OutMsg
 instance Game OCWallGame where
 
     type GMsg OCWallGame = Msg
+    type GConf OCWallGame = ()
 
-    new = return OCWallGame { _wall = []
-                            , _groups = []
-                            , _strikes = 3
-                            , _startTime = 0
-                            , _duration = 180
-                            }
+    new _ = return OCWallGame { _wall = []
+                              , _groups = []
+                              , _strikes = 3
+                              , _startTime = 0
+                              , _duration = 180
+                              }
 
     catchup = return ()
             -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True

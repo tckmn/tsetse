@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Octa (OctaGame, OctaCard) where
 
@@ -18,6 +19,7 @@ instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where
+    type SVConf Card = NoConf
     name _ = "OCTA"
     boardSize _ = 9
     setSizes _ = [3]

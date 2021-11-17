@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Cset (CsetGame, CsetCard) where
 
@@ -18,6 +19,7 @@ instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where
+    type SVConf Card = NoConf
     name _ = "C53T"
     boardSize _ = 12
     setSizes _ = [5]

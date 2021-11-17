@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Cece (CeceGame, CeceCard) where
 
@@ -21,6 +22,7 @@ instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where
+    type SVConf Card = NoConf
     name _ = "C3C3"
     boardSize _ = 12
     setSizes _ = [3]

@@ -134,15 +134,17 @@ connect state c = do
         msg <- recvWS c
         case decodeT msg of
           Just JoinGame{..} -> return i_gid
-          Just (CreateGame "C53T") -> (new :: IO CsetGame) >>= newgame state c
-          Just (CreateGame "FO1D") -> (new :: IO FoidGame) >>= newgame state c
-          Just (CreateGame "S3CT") -> (new :: IO SectGame) >>= newgame state c
-          Just (CreateGame "A5SET") -> (new :: IO AssetGame) >>= newgame state c
-          Just (CreateGame "OCTA") -> (new :: IO OctaGame) >>= newgame state c
-          Just (CreateGame "FOLD") -> (new :: IO FoldGame) >>= newgame state c
-          Just (CreateGame "C3C3") -> (new :: IO CeceGame) >>= newgame state c
-          Just (CreateGame "SAT") -> (new :: IO SatGame) >>= newgame state c
-          Just (CreateGame unk) -> do
+          Just (CreateGame "C53T" conf) -> case fromJSON conf of
+                                             Success conf -> (new conf :: IO CsetGame) >>= newgame state c
+                                             _ -> loop
+          -- Just (CreateGame "FO1D" conf) -> (new :: IO FoidGame) >>= newgame state c
+          -- Just (CreateGame "S3CT" conf) -> (new :: IO SectGame) >>= newgame state c
+          -- Just (CreateGame "A5SET" conf) -> (new :: IO AssetGame) >>= newgame state c
+          -- Just (CreateGame "OCTA" conf) -> (new :: IO OctaGame) >>= newgame state c
+          -- Just (CreateGame "FOLD" conf) -> (new :: IO FoldGame) >>= newgame state c
+          -- Just (CreateGame "C3C3" conf) -> (new :: IO CeceGame) >>= newgame state c
+          -- Just (CreateGame "SAT" conf) -> (new :: IO SatGame) >>= newgame state c
+          Just (CreateGame unk _) -> do
               toast $ "unknown game type " <> unk
               loop
           Just DeleteGame{..} -> do

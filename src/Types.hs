@@ -59,9 +59,11 @@ data PostAction = Done
                 | Die
 
 -- main game type
-class (Binary g, FromJSON (GMsg g)) => Game g where
+class (Binary g, FromJSON (GMsg g), FromJSON (GConf g)) => Game g where
     type GMsg g :: *
-    new :: IO g
+    type GConf g :: *
+
+    new :: GConf g -> IO g
     catchup :: GameIO g ()
     players :: g -> [ClientId]
     scores :: g -> HashMap ClientId Int
@@ -174,3 +176,7 @@ instance Binary UTCTime where
 instance (Hashable k, Eq k, Binary k, Binary v) => Binary (HashMap k v) where
     put = B.put . M.toList
     get = M.fromList <$> B.get
+
+newtype NoConf = NoConf ()
+instance FromJSON NoConf where
+    parseJSON _ = pure $ NoConf ()

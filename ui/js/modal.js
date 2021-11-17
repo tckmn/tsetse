@@ -17,7 +17,7 @@ m.modal = (function() {
         },
 
         creategame: () => {
-            m.net.send('CreateGame', { gtype: v.gametype() });
+            m.net.send('CreateGame', { gtype: v.gametype(), conf: null });
             m.modal.close();
         }
 

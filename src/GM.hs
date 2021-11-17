@@ -3,6 +3,7 @@
 
 module GM where
 
+import Data.Aeson
 import GHC.Generics
 import Types
 
@@ -10,7 +11,7 @@ data GMMsg = Register { i_uname :: Text }
            | Identify { i_cid :: ClientId, i_secret :: Text }
            | Uname { i_uname :: Text }
            | JoinGame { i_gid :: GameId }
-           | CreateGame { i_gtype :: Text }
+           | CreateGame { i_gtype :: Text, i_conf :: Value }
            | DeleteGame { i_gid :: GameId }
            | GetScores
            -- admin
