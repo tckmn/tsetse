@@ -34,7 +34,7 @@ rudetime :: NominalDiffTime
 rudebuf = 3
 rudetime = 10
 
-class (Eq card, ToJSON card, FromJSON card, FromJSON (SVConf card)) => SetVariant card where
+class (Eq card, ToJSON card, FromJSON card, FromJSON (SVConf card), Binary (SVConf card)) => SetVariant card where
     type SVConf card :: *
     name :: card -> Text
     boardSize :: card -> Int

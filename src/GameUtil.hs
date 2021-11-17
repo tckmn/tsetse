@@ -43,6 +43,7 @@ runRecv c s msg = do
           return $ (s & cgame c .~ Just GeneralGame { _creator
                                                     , _creation
                                                     , _dead
+                                                    , _gconf
                                                     , _game = g' }, fromMaybe Done post)
       Nothing -> return (s, Done)
 

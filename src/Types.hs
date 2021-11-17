@@ -59,7 +59,7 @@ data PostAction = Done
                 | Die
 
 -- main game type
-class (Binary g, FromJSON (GMsg g), FromJSON (GConf g)) => Game g where
+class (Binary g, Binary (GConf g), FromJSON (GMsg g), FromJSON (GConf g)) => Game g where
     type GMsg g :: *
     type GConf g :: *
 
@@ -107,6 +107,7 @@ data User = User { _uid :: ClientId
 
 data GeneralGame = forall g. Game g =>
     GeneralGame { _game :: g
+                , _gconf :: GConf g
                 , _creator :: ClientId
                 , _creation :: UTCTime
                 , _dead :: Bool
@@ -180,3 +181,6 @@ instance (Hashable k, Eq k, Binary k, Binary v) => Binary (HashMap k v) where
 newtype NoConf = NoConf ()
 instance FromJSON NoConf where
     parseJSON _ = pure $ NoConf ()
+instance Binary NoConf where
+    put _ = pure ()
+    get = pure (NoConf ())

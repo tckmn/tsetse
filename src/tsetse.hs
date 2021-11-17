@@ -106,11 +106,12 @@ play state conn cid gid = do
                       ]
     play state conn cid newgid
 
-newgame :: Game g => MVar ServerState -> Client -> g -> IO GameId
-newgame state c g = do
+newgame :: Game g => MVar ServerState -> Client -> GConf g -> g -> IO GameId
+newgame state c conf g = do
     gid <- state .&++ nextGame
     now <- getCurrentTime
     overMVar state $ games.at gid .~ Just GeneralGame { _game = g
+                                                      , _gconf = conf
                                                       , _creator = c^.cid
                                                       , _creation = now
                                                       , _dead = False
@@ -135,7 +136,7 @@ connect state c = do
         case decodeT msg of
           Just JoinGame{..} -> return i_gid
           Just (CreateGame "C53T" conf) -> case fromJSON conf of
-                                             Success conf -> (new conf :: IO CsetGame) >>= newgame state c
+                                             Success conf -> (new conf :: IO CsetGame) >>= newgame state c conf
                                              _ -> loop
           -- Just (CreateGame "FO1D" conf) -> (new :: IO FoidGame) >>= newgame state c
           -- Just (CreateGame "S3CT" conf) -> (new :: IO SectGame) >>= newgame state c

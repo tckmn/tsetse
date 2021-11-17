@@ -12,6 +12,7 @@ instance Binary User
 instance Binary GeneralGame where
     put GeneralGame{..} = do put $ fst (desc _game)
                              put _game
+                             put _gconf
                              put _creator
                              put _creation
                              put _dead
@@ -27,7 +28,7 @@ instance Binary GeneralGame where
                         "C3C3" -> GeneralGame <$> (get :: Get CeceGame)
                         "SAT" -> GeneralGame <$> (get :: Get SatGame)
                         _ -> error "unknown game name in state file???"
-        partial <*> get <*> get <*> get
+        partial <*> get <*> get <*> get <*> get
 
 instance Binary ServerState where
     put ServerState{..} = do put _users
