@@ -261,6 +261,8 @@ div#modals > div {
         th, td { text-align: center; padding: 2px 5px; }
         th.name { text-align: right; }
     }
+
+    #gameconfig { width: 90%; }
 }
 
 button, textarea, input {
@@ -291,3 +293,5 @@ button#sbtoggle .sbvis { display: inline; }
     button#sbtoggle .sbvis { display: none; }
     button#sbtoggle .sbhid { display: inline; }
 }
+
+.stack { display: flex; flex-direction: column; }

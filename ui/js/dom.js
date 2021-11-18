@@ -41,6 +41,20 @@ m.dom = (function() {
             while (el.firstChild) el.removeChild(el.firstChild);
         },
 
+        toast: function(msg) {
+            // can't use onclick here because they're mutually recursive, lol
+            var toast = m.dom.el('div', {
+                class: 'toast',
+                text: msg
+            }), close = () => {
+                if (toast) document.body.removeChild(toast);
+                toast = undefined;
+            };
+            toast.addEventListener('click', close);
+            document.body.appendChild(toast);
+            setTimeout(close, Math.max(5000, msg.length*200));
+        },
+
         cells: [],
 
         addCell: function(content, idx, autosubmit) {

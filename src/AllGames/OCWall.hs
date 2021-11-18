@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module AllGames.OCWall where
 
@@ -32,10 +33,14 @@ data OutMsg = UserInfo { o_foo :: Int }
             deriving Generic
 makeJSON ''OutMsg
 
+instance ToJSON (GConf OCWallGame)
+instance FromJSON (GConf OCWallGame)
+instance Binary (GConf OCWallGame)
+
 instance Game OCWallGame where
 
     type GMsg OCWallGame = Msg
-    type GConf OCWallGame = ()
+    newtype GConf OCWallGame = NoConf' () deriving Generic
 
     new _ = return OCWallGame { _wall = []
                               , _groups = []

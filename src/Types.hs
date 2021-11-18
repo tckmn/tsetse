@@ -66,9 +66,9 @@ data PostAction = Done
                 | Die
 
 -- main game type
-class (Binary g, Binary (GConf g), FromJSON (GMsg g), FromJSON (GConf g)) => Game g where
+class (Binary g, Binary (GConf g), FromJSON (GMsg g), ToJSON (GConf g), FromJSON (GConf g)) => Game g where
     type GMsg g :: *
-    type GConf g :: *
+    data GConf g :: *
 
     new :: GConf g -> IO g
     catchup :: GameIO g ()
@@ -186,6 +186,8 @@ instance (Hashable k, Eq k, Binary k, Binary v) => Binary (HashMap k v) where
     get = M.fromList <$> B.get
 
 newtype NoConf = NoConf ()
+instance ToJSON NoConf where
+    toJSON _ = Object M.empty
 instance FromJSON NoConf where
     parseJSON _ = pure $ NoConf ()
 instance Binary NoConf where

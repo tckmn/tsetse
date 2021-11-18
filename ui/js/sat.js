@@ -30,7 +30,7 @@ m.SAT = (function() {
             return this.render(new Array(6).fill().map(_ => rand() < 0.5));
         },
 
-        ...m.setVariant.props()
+        ...m.setVariant.props({ boardSize: 8 })
 
     };
 

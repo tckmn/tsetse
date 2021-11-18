@@ -17,7 +17,14 @@ m.modal = (function() {
         },
 
         creategame: () => {
-            m.net.send('CreateGame', { gtype: v.gametype(), conf: null });
+            var conf;
+            try {
+                conf = JSON.parse(v.gameconfig());
+            } catch (e) {
+                m.dom.toast("your config is not valid json");
+                return;
+            }
+            m.net.send('CreateGame', { gtype: v.gametype(), conf: conf });
             m.modal.close();
         }
 

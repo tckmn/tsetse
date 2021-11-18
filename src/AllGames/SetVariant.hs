@@ -6,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module AllGames.SetVariant where
 
@@ -34,18 +35,17 @@ rudetime :: NominalDiffTime
 rudebuf = 3
 rudetime = 10
 
-class (Eq card, ToJSON card, FromJSON card, FromJSON (SVConf card), Binary (SVConf card)) => SetVariant card where
+class (Eq card, ToJSON card, FromJSON card, ToJSON (SVConf card), FromJSON (SVConf card), Binary (SVConf card)) => SetVariant card where
     type SVConf card :: *
     name :: card -> Text
-    boardSize :: card -> Int
     setSizes :: card -> [Int]
     fullDeck :: [card]
-    checkSet :: [card] -> Bool
-    noSets :: ([card], [card]) -> Bool
-    noSets (_, cs) = null [s | s <- subsequences cs
-                          , length s `elem` setSizes (undefined :: card)
-                          , checkSet s
-                          ]
+    checkSet :: SVConf card -> [card] -> Bool
+    noSets :: SVConf card -> ([card], [card]) -> Bool
+    noSets conf (_, cs) = null [s | s <- subsequences cs
+                               , length s `elem` setSizes (undefined :: card)
+                               , checkSet conf s
+                               ]
 
 data Event = Taken ClientId
            | Dealt
@@ -88,15 +88,23 @@ data OutMsg card = Cards { o_cards :: [card] }
 makeJSON' ''Msg
 makeJSON' ''OutMsg
 
+instance SetVariant card => ToJSON (GConf (SetVariantGame card))
+instance SetVariant card => FromJSON (GConf (SetVariantGame card))
+instance SetVariant card => Binary (GConf (SetVariantGame card))
+
 instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
 
     type GMsg (SetVariantGame card) = Msg card
-    type GConf (SetVariantGame card) = SVConf card
+    data GConf (SetVariantGame card) = SVConf' { boardSize :: Int
+                                               , subconf :: SVConf card
+                                               }
+                                     deriving Generic
 
-    new _ = do
+    new SVConf'{..} = do
+        liftIO $ putStrLn "test"
         now <- liftIO getCurrentTime
         shuf <- shuffle fullDeck
-        let (cards, deck) = splitAt (boardSize (undefined :: card)) shuf
+        let (cards, deck) = splitAt boardSize shuf
         return SetVariantGame { _deck = deck
                               , _cards = cards
                               , _events = [(Dealt, cards, now)]
@@ -138,7 +146,8 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
         guard $ length idxs' == length set
 
         -- flash em red if they're not a set
-        unless (checkSet set) $ do
+        SVConf'{..} <- view rconf
+        unless (checkSet subconf set) $ do
             rudeness.at who %= Just . take rudebuf . (when:) . fromMaybe []
             send $ Highlight idxs' False
             empty
@@ -158,8 +167,9 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
     recv PostClaim{..} = do
         checkpwd pwd
 
+        SVConf'{..} <- view rconf
         nboard <- uses cards length
-        let dealCount = max 0 $ (boardSize (undefined :: card)) - (nboard - length i_cards)
+        let dealCount = max 0 $ boardSize - (nboard - length i_cards)
 
         let deal = do
             newCards <- uses deck $ take dealCount
@@ -176,13 +186,13 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
 
         let tryDeal i = do
             d <- deal
-            if noSets d && i < 20
+            if noSets subconf d && i < 20
                then do
                    deck' <- join $ uses deck shuffle
                    deck .= deck'
                    tryDeal $ succ i
                else do
-                   when (noSets d) $ broadcast (Toast "failed to guarantee set existence")
+                   when (noSets subconf d) $ broadcast (Toast "failed to guarantee set existence")
                    sendDeal d
                    return NewDesc
 
@@ -191,7 +201,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
            then do
                d <- deal
                sendDeal d
-               if noSets d
+               if noSets subconf d
                   then do
                       broadcast $ Toast "game over!"
                       return Die
@@ -206,8 +216,9 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
 
     recv PlusCard = do
         cs <- use cards
+        SVConf'{..} <- view rconf
 
-        if noSets ([], cs)
+        if noSets subconf ([], cs)
            then do
                newCard <- deck %%= splitAt 1
                if null newCard

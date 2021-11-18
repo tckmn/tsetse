@@ -21,11 +21,10 @@ makeJSON ''Card
 instance SetVariant Card where
     type SVConf Card = NoConf
     name _ = "S3CT"
-    boardSize _ = 10
     setSizes _ = [3]
     fullDeck = join [[Card (a,b,c,x,y,z), Card (x,y,z,a,b,c)]
       | [a,b,c] <- permutations [0,1,2], [x,y,z] <- permutations [3,4,5]]
-    checkSet set = any checkSet' $ permutations set
+    checkSet _ set = any checkSet' $ permutations set
         where checkSet' [a,b,c] = (a @- b) == (b @- c)
               checkSet' _ = False
 

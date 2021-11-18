@@ -109,17 +109,7 @@ m.gm = (function() {
         },
 
         Toast: function(msg) {
-            // can't use onclick here because they're mutually recursive, lol
-            var toast = m.dom.el('div', {
-                class: 'toast',
-                text: msg.msg
-            }), close = () => {
-                if (toast) document.body.removeChild(toast);
-                toast = undefined;
-            };
-            toast.addEventListener('click', close);
-            document.body.appendChild(toast);
-            setTimeout(close, Math.max(5000, msg.msg.length*200));
+            m.dom.toast(msg.msg);
         }
 
     };

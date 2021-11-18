@@ -3,6 +3,7 @@
 module Binary where
 
 import AllGames.AllGames
+import AllGames.SetVariant
 import Data.Binary
 import qualified Data.HashMap.Strict as M
 import Types hiding (put, get)
@@ -19,16 +20,16 @@ instance Binary GeneralGame where
     get = do
         gname <- get
         let partial = case gname of
-                        "A5SET" -> GeneralGame <$> (get :: Get AssetGame)
-                        "C53T" -> GeneralGame <$> (get :: Get CsetGame)
-                        "FO1D" -> GeneralGame <$> (get :: Get FoidGame)
-                        "FOLD" -> GeneralGame <$> (get :: Get FoldGame)
-                        "OCTA" -> GeneralGame <$> (get :: Get OctaGame)
-                        "S3CT" -> GeneralGame <$> (get :: Get SectGame)
-                        "C3C3" -> GeneralGame <$> (get :: Get CeceGame)
-                        "SAT" -> GeneralGame <$> (get :: Get SatGame)
+                        "A5SET" -> GeneralGame <$> (get :: Get AssetGame) <*> (pure $ SVConf' 10 (NoConf ()))
+                        "C53T" -> GeneralGame <$> (get :: Get CsetGame) <*> (pure $ SVConf' 12 (NoConf ()))
+                        "FO1D" -> GeneralGame <$> (get :: Get FoidGame) <*> (pure $ SVConf' 12 (NoConf ()))
+                        "FOLD" -> GeneralGame <$> (get :: Get FoldGame) <*> (pure $ SVConf' 12 (NoConf ()))
+                        "OCTA" -> GeneralGame <$> (get :: Get OctaGame) <*> (pure $ SVConf' 9 (NoConf ()))
+                        "S3CT" -> GeneralGame <$> (get :: Get SectGame) <*> (pure $ SVConf' 10 (NoConf ()))
+                        "C3C3" -> GeneralGame <$> (get :: Get CeceGame) <*> (pure $ SVConf' 12 (NoConf ()))
+                        "SAT" -> GeneralGame <$> (get :: Get SatGame) <*> (pure $ SVConf' 8 (NoConf ()))
                         _ -> error "unknown game name in state file???"
-        partial <*> get <*> get <*> get <*> get
+        partial <*> get <*> get <*> get
 
 instance Binary ServerState where
     put ServerState{..} = do put _users

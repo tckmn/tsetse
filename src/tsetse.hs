@@ -135,16 +135,23 @@ connect state c = do
         msg <- recvWS c
         case decodeT msg of
           Just JoinGame{..} -> return i_gid
-          Just (CreateGame "C53T" conf) -> case fromJSON conf of
-                                             Success conf -> (new conf :: IO CsetGame) >>= newgame state c conf
-                                             _ -> loop
-          -- Just (CreateGame "FO1D" conf) -> (new :: IO FoidGame) >>= newgame state c
-          -- Just (CreateGame "S3CT" conf) -> (new :: IO SectGame) >>= newgame state c
-          -- Just (CreateGame "A5SET" conf) -> (new :: IO AssetGame) >>= newgame state c
-          -- Just (CreateGame "OCTA" conf) -> (new :: IO OctaGame) >>= newgame state c
-          -- Just (CreateGame "FOLD" conf) -> (new :: IO FoldGame) >>= newgame state c
-          -- Just (CreateGame "C3C3" conf) -> (new :: IO CeceGame) >>= newgame state c
-          -- Just (CreateGame "SAT" conf) -> (new :: IO SatGame) >>= newgame state c
+          Just (CreateGame "C53T" conf)  -> case fromJSON conf of
+                                              Success conf -> (new conf :: IO CsetGame) >>= newgame state c conf
+                                              _ -> loop
+          Just (CreateGame "FO1D" conf)  -> case fromJSON conf of
+                                              Success conf -> (new conf :: IO FoidGame) >>= newgame state c conf
+          Just (CreateGame "S3CT" conf)  -> case fromJSON conf of
+                                              Success conf -> (new conf :: IO SectGame) >>= newgame state c conf
+          Just (CreateGame "A5SET" conf) -> case fromJSON conf of
+                                              Success conf -> (new conf :: IO AssetGame) >>= newgame state c conf
+          Just (CreateGame "OCTA" conf)  -> case fromJSON conf of
+                                              Success conf -> (new conf :: IO OctaGame) >>= newgame state c conf
+          Just (CreateGame "FOLD" conf)  -> case fromJSON conf of
+                                              Success conf -> (new conf :: IO FoldGame) >>= newgame state c conf
+          Just (CreateGame "C3C3" conf)  -> case fromJSON conf of
+                                              Success conf -> (new conf :: IO CeceGame) >>= newgame state c conf
+          Just (CreateGame "SAT" conf)   -> case fromJSON conf of
+                                              Success conf -> (new conf :: IO SatGame) >>= newgame state c conf
           Just (CreateGame unk _) -> do
               toast $ "unknown game type " <> unk
               loop

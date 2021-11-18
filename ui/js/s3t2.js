@@ -53,7 +53,7 @@ m.S3CT = (function() {
             return this.render(rand() < 0.5 ? a.concat(b) : b.concat(a));
         },
 
-        ...m.setVariant.props({ autosubmit: 3 })
+        ...m.setVariant.props({ boardSize: 10, autosubmit: 3 })
 
     };
 

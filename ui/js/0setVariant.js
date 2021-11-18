@@ -45,6 +45,11 @@ m.setVariant = (function() {
                     m.modal.show('hist');
                 },
 
+                defaultConfig: {
+                    boardSize: args.boardSize || 12,
+                    subconf: {}
+                },
+
                 conf: {
                     rownum: args.perrow ? { default: args.perrow } : {},
                     square: {},
