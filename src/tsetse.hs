@@ -24,7 +24,7 @@ import Data.Aeson hiding ((.=))
 import Data.Binary as B
 import qualified Network.WebSockets as WS
 
-import AllGames
+import AllGames.AllGames
 import Binary
 import GM
 import GameUtil

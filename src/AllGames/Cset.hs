@@ -3,10 +3,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Cset (CsetGame, CsetCard) where
+module AllGames.Cset (CsetGame, CsetCard) where
 
+import AllGames.SetVariant
 import GHC.Generics
-import SetVariant
 import Types
 import Util
 

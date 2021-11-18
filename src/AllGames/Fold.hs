@@ -3,10 +3,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Fold (FoldGame, FoldCard) where
+module AllGames.Fold (FoldGame, FoldCard) where
 
+import AllGames.SetVariant
 import GHC.Generics
-import SetVariant
 import Types
 import Util
 

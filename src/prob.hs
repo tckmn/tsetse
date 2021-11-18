@@ -1,9 +1,9 @@
 #!/usr/bin/env runhaskell
 
-import AllGames
+import AllGames.AllGames
+import AllGames.SetVariant
 import Data.List (subsequences)
 import Types
-import SetVariant
 import Util
 
 trial :: (Show card, SetVariant card) => [card] -> Int -> Int -> Int -> IO ()

@@ -3,29 +3,31 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Asset (AssetGame, AssetCard) where
+module AllGames.Set2 (SectGame, SectCard) where
 
+import AllGames.SetVariant
 import Data.List (findIndex, permutations)
 import GHC.Generics
-import SetVariant
 import Types
 
-newtype Card = Card [Int] deriving (Eq, Generic, Show)
+newtype Card = Card (Int, Int, Int, Int, Int, Int) deriving (Eq, Generic, Show)
 (@-) :: Card -> Card -> [Maybe Int]
-Card a @- Card b = [findIndex (==x) b | x <- a]
+Card (a,b,c,d,e,f) @- Card (a',b',c',d',e',f') = [findIndex (==x) arr' | x <- arr]
+    where arr = [a,b,c,d,e,f]
+          arr' = [a',b',c',d',e',f']
 instance Binary Card
 makeJSON ''Card
 
 instance SetVariant Card where
     type SVConf Card = NoConf
-    name _ = "A5SET"
+    name _ = "S3CT"
     boardSize _ = 10
     setSizes _ = [3]
-    fullDeck = Card <$> (filter evenP $ permutations [0..4])
-        where evenP a = even $ length [0 | i <- [0..4], j <- [i..4], a !! i > a !! j]
+    fullDeck = join [[Card (a,b,c,x,y,z), Card (x,y,z,a,b,c)]
+      | [a,b,c] <- permutations [0,1,2], [x,y,z] <- permutations [3,4,5]]
     checkSet set = any checkSet' $ permutations set
         where checkSet' [a,b,c] = (a @- b) == (b @- c)
               checkSet' _ = False
 
-type AssetGame = SetVariantGame Card
-type AssetCard = Card
+type SectGame = SetVariantGame Card
+type SectCard = Card

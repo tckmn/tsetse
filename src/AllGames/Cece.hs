@@ -3,10 +3,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Cece (CeceGame, CeceCard) where
+module AllGames.Cece (CeceGame, CeceCard) where
 
+import AllGames.SetVariant
 import GHC.Generics
-import SetVariant
 import Types
 import Util
 

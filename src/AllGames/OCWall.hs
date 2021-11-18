@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module OCWall where
+module AllGames.OCWall where
 
 import qualified Data.HashMap.Strict as M
 

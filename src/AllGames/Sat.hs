@@ -3,11 +3,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Sat (SatGame, SatCard) where
+module AllGames.Sat (SatGame, SatCard) where
 
+import AllGames.SetVariant
 import Data.List (sort, nub)
 import GHC.Generics
-import SetVariant
 import Types
 import Util
 

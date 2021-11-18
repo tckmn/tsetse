@@ -3,10 +3,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Foid (FoidGame, FoidCard) where
+module AllGames.Foid (FoidGame, FoidCard) where
 
+import AllGames.SetVariant
 import GHC.Generics
-import SetVariant
 import Types
 import Util
 

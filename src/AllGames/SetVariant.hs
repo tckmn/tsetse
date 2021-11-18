@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module SetVariant where
+module AllGames.SetVariant where
 
 import Control.Applicative
 import Data.Binary as B

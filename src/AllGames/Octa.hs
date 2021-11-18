@@ -3,11 +3,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Octa (OctaGame, OctaCard) where
+module AllGames.Octa (OctaGame, OctaCard) where
 
+import AllGames.SetVariant
 import Data.List (findIndex, permutations)
 import GHC.Generics
-import SetVariant
 import Types
 import Util
 

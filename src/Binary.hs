@@ -2,7 +2,7 @@
 
 module Binary where
 
-import AllGames
+import AllGames.AllGames
 import Data.Binary
 import qualified Data.HashMap.Strict as M
 import Types hiding (put, get)
