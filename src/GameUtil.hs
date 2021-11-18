@@ -31,7 +31,7 @@ runGameType c s = sendWS c . GameType $ case (s^.cgame c) of
 
 runCatchup :: Client -> ServerState -> IO ()
 runCatchup c s = case s^.cgame c of
-                   Just GeneralGame{..} -> runGameIO catchup (c, s) _game $> ()
+                   Just GeneralGame{..} -> runGameIO catchup (c, s, _gconf) _game $> ()
                    Nothing -> sendWS c (renderGameList s)
 
 runRecv :: Client -> ServerState -> Text -> IO (ServerState, PostAction)
@@ -39,7 +39,7 @@ runRecv c s msg = do
     case s^.cgame c of
       Just g@GeneralGame{..} -> do
           let gio = fromMaybe empty $ recvT msg
-          (post, g') <- runGameIO gio (c, s) _game
+          (post, g') <- runGameIO gio (c, s, _gconf) _game
           return $ (s & cgame c .~ Just GeneralGame { _creator
                                                     , _creation
                                                     , _dead
@@ -49,23 +49,23 @@ runRecv c s msg = do
 
 runUserlist :: Client -> ServerState -> IO ServerState
 runUserlist c s = case s^.cgame c of
-                    Just GeneralGame{..} -> runGameIO userlist (c, s) _game $> s
+                    Just GeneralGame{..} -> runGameIO userlist (c, s, _gconf) _game $> s
                     Nothing -> return s
 
 -- common game monad tasks
 
 send :: ToJSON a => a -> GameIO g ()
 send msg = do
-    conn <- view $ _1.conn
+    conn <- view $ rclient.conn
     liftIO $ sendWS conn msg
 
 broadcast :: ToJSON a => a -> GameIO g ()
 broadcast msg = do
-    g <- view $ _1.gid
-    s <- view $ _2
+    g <- view $ rclient.gid
+    s <- view $ rserver
     liftIO $ broadcastWS (s^..byGid g) msg
 
 checkpwd :: Text -> GameIO g ()
 checkpwd check = do
-    pwd <- view $ _2.password
+    pwd <- view $ rserver.password
     guard $ check == pwd

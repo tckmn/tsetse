@@ -119,7 +119,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
     desc g = (name (undefined :: card), (T.pack . show $ length (_deck g) + length (_cards g)) <> " cards left")
 
     recv Claim{..} = do
-        who <- view $ _1.cid
+        who <- view $ rclient.cid
         when <- liftIO getCurrentTime
 
         -- don't be rude
@@ -149,7 +149,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
         userlist
 
         -- wait 5 seconds and clear the cards
-        pwd <- view $ _2.password
+        pwd <- view $ rserver.password
         return $ Delayed 5000000 (encodeT $ object [ "t" .=> "PostClaim"
                                                    , "pwd" .> pwd
                                                    , "cards" .> set
@@ -227,5 +227,5 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
         send $ History hist'
         return Done
             where patchu h@(uid, _, _) = do
-                    u <- view $ _2.byUid uid.uname
+                    u <- view $ rserver.byUid uid.uname
                     return $ h & _1 .~ u :: GameIO (SetVariantGame card) (Text, [card], UTCTime)

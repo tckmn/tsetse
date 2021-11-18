@@ -49,9 +49,16 @@ import GHC.Generics (Generic)
 import Language.Haskell.TH
 
 -- main game monad
-type GameIO g = ReaderT (Client, ServerState) (MaybeT (StateT g IO))
-runGameIO :: GameIO g a -> (Client, ServerState) -> g -> IO (Maybe a, g)
+type GameIO g = ReaderT (Client, ServerState, GConf g) (MaybeT (StateT g IO))
+runGameIO :: GameIO g a -> (Client, ServerState, GConf g) -> g -> IO (Maybe a, g)
 runGameIO = ((runStateT . runMaybeT) .) . runReaderT
+
+rclient :: Field1 s t a b => Lens s t a b
+rserver :: Field2 s t a b => Lens s t a b
+rconf :: Field3 s t a b => Lens s t a b
+rclient = _1
+rserver = _2
+rconf = _3
 
 data PostAction = Done
                 | NewDesc
