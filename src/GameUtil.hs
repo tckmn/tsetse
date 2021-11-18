@@ -25,9 +25,9 @@ runGameList :: ServerState -> IO ()
 runGameList s = broadcastWS (s^..byGid (-1)) (renderGameList s)
 
 runGameType :: Client -> ServerState -> IO ()
-runGameType c s = sendWS c . GameType $ case (s^.cgame c) of
-                                          Just GeneralGame{..} -> desc _game ^. _1
-                                          Nothing -> ""
+runGameType c s = sendWS c $ case (s^.cgame c) of
+                               Just GeneralGame{..} -> GameType (desc _game ^. _1) (toJSON _gconf)
+                               Nothing -> GameType "" Null
 
 runCatchup :: Client -> ServerState -> IO ()
 runCatchup c s = case s^.cgame c of
