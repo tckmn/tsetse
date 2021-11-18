@@ -20,14 +20,14 @@ instance Binary GeneralGame where
     get = do
         gname <- get
         let partial = case gname of
-                        "A5SET" -> GeneralGame <$> (get :: Get AssetGame) <*> (pure $ SVConf' 10 (NoConf ()))
-                        "C53T" -> GeneralGame <$> (get :: Get CsetGame) <*> (pure $ SVConf' 12 (NoConf ()))
-                        "FO1D" -> GeneralGame <$> (get :: Get FoidGame) <*> (pure $ SVConf' 12 (NoConf ()))
-                        "FOLD" -> GeneralGame <$> (get :: Get FoldGame) <*> (pure $ SVConf' 12 (NoConf ()))
-                        "OCTA" -> GeneralGame <$> (get :: Get OctaGame) <*> (pure $ SVConf' 9 (NoConf ()))
-                        "S3CT" -> GeneralGame <$> (get :: Get SectGame) <*> (pure $ SVConf' 10 (NoConf ()))
-                        "C3C3" -> GeneralGame <$> (get :: Get CeceGame) <*> (pure $ SVConf' 12 (NoConf ()))
-                        "SAT" -> GeneralGame <$> (get :: Get SatGame) <*> (pure $ SVConf' 8 (NoConf ()))
+                        "A5SET" -> GeneralGame <$> (get :: Get AssetGame) <*> get
+                        "C53T" -> GeneralGame <$> (get :: Get CsetGame) <*> get
+                        "FO1D" -> GeneralGame <$> (get :: Get FoidGame) <*> get
+                        "FOLD" -> GeneralGame <$> (get :: Get FoldGame) <*> get
+                        "OCTA" -> GeneralGame <$> (get :: Get OctaGame) <*> get
+                        "S3CT" -> GeneralGame <$> (get :: Get SectGame) <*> get
+                        "C3C3" -> GeneralGame <$> (get :: Get CeceGame) <*> get
+                        "SAT" -> GeneralGame <$> (get :: Get SatGame) <*> get
                         _ -> error "unknown game name in state file???"
         partial <*> get <*> get <*> get
 
