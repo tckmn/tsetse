@@ -57,6 +57,7 @@
                     &nbsp;&nbsp;<a href='#OCTA'>OCTA</a><br>
                     &nbsp;&nbsp;<a href='#A5SET'>A5SET</a><br>
                     &nbsp;&nbsp;<a href='#S3CT'>S3CT</a><br>
+                    &nbsp;&nbsp;<a href='#C3C3'>C3C3</a><br>
                     <a href='#about'>Credits / About</a><br>
                     <a href='#gallery'>Photo gallery</a>
                     </p>
@@ -573,13 +574,157 @@
                     <h2 id='S3CT' class='helpsup'>S3CT</h2>
                     <p class='helpsub'>difficulty: very hard</p>
                     <p class='helpsub'>cards: 72 (deal 10)</p>
-                    <p class='helpsub'>pronounced "set-two" or "set-squared"</p>
+                    <p class='helpsub'>pronounced "sect"</p>
 
                     <p>
                     Here is an example of a set in S3CT:
                     </p>
 
                     <p id='S3CTex'></p>
+
+                    <p>
+                    Like in <a href='#OCTA'>OCTA</a>,
+                    a set in S3CT is three cards
+                    where the way to go from the first card to the second card
+                    is the same as the way to go from the second card to the third card.
+                    </p>
+
+                    <p>
+                    In the above example,
+                    to go from the first card to the second card,
+                    you grab the bottom triangle,
+                    move it to the top,
+                    and rotate it clockwise a little.
+                    From the second card to the third card,
+                    you also move the bottom triangle up and slightly clockwise.
+                    Similarly,
+                    between both pairs,
+                    the top triangle is moved down,
+                    reflected across a vertical line,
+                    and rotated counterclockwise a little.
+                    </p>
+
+                    <p>
+                    The underlying mathematical object is the natural
+                    <a href='https://en.wikipedia.org/wiki/Principal_homogeneous_space'>torsor</a>
+                    for the
+                    <a href='https://en.wikipedia.org/wiki/Wreath_product'>wreath product</a>
+                    S<sub>3</sub>≀C<sub>2</sub>,
+                    whence the name.
+                    </p>
+
+                    <p>
+                    S3CT is perhaps the variant with the most dramatic contrast
+                    between difficulty after first learning the rules
+                    and difficulty after learning some strategies.
+                    In particular,
+                    it becomes much easier when you consider two cards
+                    as the first and third elements of a set (the "ends"),
+                    and look for the card in the middle.
+                    To do this quickly,
+                    it is very helpful to categorize cards by <strong>parity</strong>.
+                    </p>
+
+                    <p>
+                    Each card has two kinds of parity --
+                    essentially,
+                    ways of splitting the deck into two groups.
+                    The first one is whether the black or gray spiral is on top,
+                    which I'll call <em>translational parity</em>.
+                    The second one is whether the two spirals go in the same direction,
+                    which I'll call <em>rotational parity</em>.
+                    A crucial fact for finding sets is:
+                    if two cards are the ends of a set,
+                    <strong>both parities must be the same</strong>.
+                    (The reason is that the operation between two cards
+                    either flips parity or doesn't;
+                    and since you're applying it twice,
+                    you either don't change the parity
+                    or change it and then change it back.)
+                    </p>
+
+                    <p>
+                    Now that we've labelled the cards like this,
+                    we can categorize all the different kinds of sets.
+                    The first thing to look at
+                    is whether the spirals <strong>change directions</strong>
+                    between the two end cards.
+                    (Remember that since rotational parity is fixed,
+                    either both do or neither do.)
+                    </p>
+
+                    <ul>
+
+                        <li>
+                            If the spirals don't change direction,
+                            the middle card must have the same rotational parity
+                            as the ends.
+                            We can then further categorize these sets
+                            by what happens in each triangle
+                            between the ends:
+                            <ul>
+
+                                <li>
+                                    If one of them rotates and one of them stays the same,
+                                    the middle card must have the same translational parity
+                                    as the ends,
+                                    it has to have the third rotation
+                                    of the rotating triangle,
+                                    and the other triangle has to share at least one dot
+                                    with the ends
+                                    (in other words,
+                                    it's either still the same
+                                    or one of the three reflections).
+                                </li>
+
+                                <li>
+                                    If both of them rotate in the same direction,
+                                </li>
+
+                                <li>
+                                    If both of them rotate in opposite directions,
+                                </li>
+
+                            </ul>
+                        </li>
+
+                        <li>
+                            <p>
+                            If the spirals do change direction,
+                            the situation is a lot simpler.
+                            First,
+                            note that there is exactly one dot that stays in the same place
+                            in each triangle.
+                            The set above is an example of this:
+                            the red dot stays fixed in the black triangle,
+                            and the green dot stays fixed in the gray triangle.
+                            </p>
+
+                            <p>
+                            Now,
+                            the middle card must have the opposite
+                            translational <em>and</em> rotational parity.
+                            And such a card completes the set
+                            if and only if the <strong>fixed dots swap places</strong>.
+                            In the above example,
+                            note that in the middle card,
+                            the green dot takes the place of the red dot,
+                            and vice versa.
+                            </p>
+                        </li>
+
+                    </ul>
+
+                    <h2 id='C3C3' class='helpsup'>C3C3</h2>
+                    <p class='helpsub'>difficulty: ???</p>
+                    <p class='helpsub'>cards: 81 (deal 12)</p>
+                    <p class='helpsub'>pronounced "kee-kee"</p>
+
+                    <p>
+                    Here is an example of a set in C3C3:
+                    </p>
+
+                    <p id='C3C3ex'></p>
 
                     <h2 id='about'>Credits / About</h2>
 

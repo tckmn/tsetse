@@ -77,9 +77,14 @@ window.addEventListener('load', () => {
     card(ex, m.A5SET.render([3,4,0,1,2]));
 
     var ex = document.getElementById('S3CTex');
-    card(ex, m.S3CT.render([0,1,2,3,4,5]));
-    card(ex, m.S3CT.render([0,1,2,3,4,5]));
-    card(ex, m.S3CT.render([0,1,2,3,4,5]));
+    card(ex, m.S3CT.render([3,4,5,0,1,2]));
+    card(ex, m.S3CT.render([1,0,2,4,5,3]));
+    card(ex, m.S3CT.render([5,4,3,0,2,1]));
+
+    var ex = document.getElementById('C3C3ex');
+    card(ex, m.C3C3.render([0,[0,0,0]]));
+    card(ex, m.C3C3.render([1,[2,0,1]]));
+    card(ex, m.C3C3.render([2,[2,1,0]]));
 
     var gprev = document.getElementById('gprev'),
         gnext = document.getElementById('gnext'),
