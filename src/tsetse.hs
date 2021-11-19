@@ -140,18 +140,25 @@ connect state c = do
                                               _ -> loop
           Just (CreateGame "FO1D" conf)  -> case fromJSON conf of
                                               Success conf -> (new conf :: IO FoidGame) >>= newgame state c conf
+                                              _ -> loop
           Just (CreateGame "S3CT" conf)  -> case fromJSON conf of
                                               Success conf -> (new conf :: IO SectGame) >>= newgame state c conf
+                                              _ -> loop
           Just (CreateGame "A5SET" conf) -> case fromJSON conf of
                                               Success conf -> (new conf :: IO AssetGame) >>= newgame state c conf
+                                              _ -> loop
           Just (CreateGame "OCTA" conf)  -> case fromJSON conf of
                                               Success conf -> (new conf :: IO OctaGame) >>= newgame state c conf
+                                              _ -> loop
           Just (CreateGame "FOLD" conf)  -> case fromJSON conf of
                                               Success conf -> (new conf :: IO FoldGame) >>= newgame state c conf
+                                              _ -> loop
           Just (CreateGame "C3C3" conf)  -> case fromJSON conf of
                                               Success conf -> (new conf :: IO CeceGame) >>= newgame state c conf
+                                              _ -> loop
           Just (CreateGame "SAT" conf)   -> case fromJSON conf of
                                               Success conf -> (new conf :: IO SatGame) >>= newgame state c conf
+                                              _ -> loop
           Just (CreateGame unk _) -> do
               toast $ "unknown game type " <> unk
               loop
