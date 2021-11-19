@@ -95,6 +95,61 @@ instance SetVariant card => ToJSON (GConf (SetVariantGame card))
 instance SetVariant card => FromJSON (GConf (SetVariantGame card))
 instance SetVariant card => Binary (GConf (SetVariantGame card))
 
+dealReplace :: SetVariant card => [card] -> Int -> GameIO (SetVariantGame card) ([card], [card])
+dealReplace i_cards dealCount = do
+    newCards <- uses deck $ take dealCount
+    let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
+    cs <- uses cards $ mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
+    return (newCards, cs)
+
+dealAdd :: SetVariant card => Int -> GameIO (SetVariantGame card) ([card], [card])
+dealAdd dealCount = do
+    newCards <- uses deck $ take dealCount
+    cs <- uses cards $ (<> newCards)
+    return (newCards, cs)
+
+sendDeal :: SetVariant card => Event -> Int -> ([card], [card]) -> GameIO (SetVariantGame card) ()
+sendDeal ev dealCount (newCards, cs) = do
+    now <- liftIO getCurrentTime
+    deck %= drop dealCount
+    cards .= cs
+    unless (null newCards) $ events <>= [(ev, newCards, now)]
+    broadcast $ Cards cs
+
+tryDeal :: SetVariant card => (Int -> GameIO (SetVariantGame card) ([card], [card])) -> Event -> Int -> Int -> GameIO (SetVariantGame card) PostAction
+tryDeal fn ev dealCount i = do
+    SVConf'{..} <- view rconf
+    d <- fn dealCount
+    let failed = noSets subconf d
+    if failed && i < 50
+       then do
+           deck' <- join $ uses deck shuffle
+           deck .= deck'
+           tryDeal fn ev dealCount $ succ i
+       else do
+           -- when failed $ broadcast (Toast "failed to guarantee set existence")
+           broadcast . Toast $
+               if failed
+                  then "failed to guarantee set existence"
+                  else "redeals: " <> T.pack (show i)
+           sendDeal ev dealCount d
+           return NewDesc
+
+repeatDeal :: SetVariant card => (Int -> GameIO (SetVariantGame card) ([card], [card])) -> Event -> Int -> GameIO (SetVariantGame card) PostAction
+repeatDeal fn ev dealCount = do
+    SVConf'{..} <- view rconf
+    remaining <- uses deck length
+    if dealCount >= remaining
+       then do
+           d <- fn dealCount
+           sendDeal ev dealCount d
+           if noSets subconf d
+              then do
+                  broadcast $ Toast "game over!"
+                  return Die
+              else return NewDesc
+       else tryDeal fn ev dealCount 0
+
 instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
 
     type GMsg (SetVariantGame card) = Msg card
@@ -173,43 +228,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
         SVConf'{..} <- view rconf
         nboard <- uses cards length
         let dealCount = max 0 $ boardSize - (nboard - length i_cards)
-
-        let deal = do
-            newCards <- uses deck $ take dealCount
-            let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
-            cs <- uses cards $ mapMaybe (\c -> fromMaybe (Just c) $ lookup c replaces)
-            return (newCards, cs)
-
-        let sendDeal (newCards, cs) = do
-            now <- liftIO getCurrentTime
-            deck %= drop dealCount
-            cards .= cs
-            events <>= [(Dealt, newCards, now)]
-            broadcast $ Cards cs
-
-        let tryDeal i = do
-            d <- deal
-            if noSets subconf d && i < 20
-               then do
-                   deck' <- join $ uses deck shuffle
-                   deck .= deck'
-                   tryDeal $ succ i
-               else do
-                   when (noSets subconf d) $ broadcast (Toast "failed to guarantee set existence")
-                   sendDeal d
-                   return NewDesc
-
-        remaining <- uses deck length
-        if dealCount >= remaining
-           then do
-               d <- deal
-               sendDeal d
-               if noSets subconf d
-                  then do
-                      broadcast $ Toast "game over!"
-                      return Die
-                  else return NewDesc
-           else tryDeal 0
+        repeatDeal (dealReplace i_cards) Dealt dealCount
 
         -- newCards <- deck %%= splitAt dealCount
         -- let replaces = zip i_cards $ (Just <$> newCards) ++ repeat Nothing
@@ -222,18 +241,8 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
         SVConf'{..} <- view rconf
 
         if noSets subconf ([], cs)
-           then do
-               newCard <- deck %%= splitAt 1
-               if null newCard
-                  then send $ Toast "no more sets!"
-                  else do
-                      now <- liftIO getCurrentTime
-                      cs <- cards <<>= newCard
-                      events <>= [(Added, newCard, now)]
-                      broadcast $ Cards cs
-           else send $ Toast "there are sets on the board!"
-
-        return Done
+           then repeatDeal dealAdd Added 3
+           else send (Toast "there are sets on the board!") $> Done
 
     recv GetHistory = do
         hist <- use taken
