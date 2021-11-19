@@ -16,7 +16,7 @@ module Types
     , module System.Random
     , module Data.Time.Clock
     , module Network
-    , Text, Binary, HashMap
+    , Text, Binary, HashMap, ToJSON, FromJSON
     , module Types
     ) where
 

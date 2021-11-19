@@ -22,7 +22,7 @@ instance SetVariant Card where
     type SVConf Card = NoConf
     name _ = "OCTA"
     setSizes _ = [3]
-    fullDeck = [Card a b | a <- permutations [0..3], b <- [False,True]]
+    fullDeck _ = [Card a b | a <- permutations [0..3], b <- [False,True]]
     checkSet _ = linear
 
 type OctaGame = SetVariantGame Card

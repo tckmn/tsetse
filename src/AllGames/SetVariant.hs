@@ -14,6 +14,7 @@ import Control.Applicative
 import Data.Binary as B
 import Data.List (nub, subsequences)
 import Data.Maybe
+import Data.Functor
 import GHC.Generics (Generic)
 import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
@@ -39,10 +40,12 @@ class (Eq card, ToJSON card, FromJSON card, ToJSON (SVConf card), FromJSON (SVCo
     type SVConf card :: *
     name :: card -> Text
     setSizes :: card -> [Int]
-    fullDeck :: [card]
+    fullDeck :: SVConf card -> [card]
     checkSet :: SVConf card -> [card] -> Bool
     noSets :: SVConf card -> ([card], [card]) -> Bool
-    noSets conf (_, cs) = null [s | s <- subsequences cs
+    noSets = defaultNoSets
+    defaultNoSets :: SVConf card -> ([card], [card]) -> Bool
+    defaultNoSets conf (_, cs) = null [s | s <- subsequences cs
                                , length s `elem` setSizes (undefined :: card)
                                , checkSet conf s
                                ]
@@ -103,7 +106,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
     new SVConf'{..} = do
         liftIO $ putStrLn "test"
         now <- liftIO getCurrentTime
-        shuf <- shuffle fullDeck
+        shuf <- shuffle $ fullDeck subconf
         let (cards, deck) = splitAt boardSize shuf
         return SetVariantGame { _deck = deck
                               , _cards = cards

@@ -9,7 +9,7 @@ m.SAT = (function() {
             var draw = m.draw.create('-1 -1 4 4');
 
             card.forEach(v => {
-                var vv = Math.abs(v)-1, x = vv / 3 | 0, y = vv % 3;
+                var vv = Math.abs(v)%100-1, x = vv / 3 | 0, y = vv % 3;
                 draw.el('circle', {
                     cx: x, cy: y, r: 0.4,
                     fill: colors[vv],
@@ -19,6 +19,13 @@ m.SAT = (function() {
                     draw.el('path', {
                         d: `M ${x-xsize} ${y-xsize} l ${2*xsize} ${2*xsize} M ${x-xsize} ${y+xsize} l ${2*xsize} ${-2*xsize}`,
                         stroke: '#000', strokeWidth: 0.1
+                    });
+                }
+                if (Math.abs(v) > 100) {
+                    draw.el('circle', {
+                        cx: x, cy: y, r: 0.5,
+                        fill: 'none',
+                        stroke: '#252', strokeWidth: 0.05
                     });
                 }
             });

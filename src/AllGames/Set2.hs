@@ -22,7 +22,7 @@ instance SetVariant Card where
     type SVConf Card = NoConf
     name _ = "S3CT"
     setSizes _ = [3]
-    fullDeck = join [[Card (a,b,c,x,y,z), Card (x,y,z,a,b,c)]
+    fullDeck _ = join [[Card (a,b,c,x,y,z), Card (x,y,z,a,b,c)]
       | [a,b,c] <- permutations [0,1,2], [x,y,z] <- permutations [3,4,5]]
     checkSet _ set = any checkSet' $ permutations set
         where checkSet' [a,b,c] = (a @- b) == (b @- c)

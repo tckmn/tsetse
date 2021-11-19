@@ -20,7 +20,7 @@ instance SetVariant Card where
     type SVConf Card = NoConf
     name _ = "A5SET"
     setSizes _ = [3]
-    fullDeck = Card <$> (filter evenP $ permutations [0..4])
+    fullDeck _ = Card <$> (filter evenP $ permutations [0..4])
         where evenP a = even $ length [0 | i <- [0..4], j <- [i..4], a !! i > a !! j]
     checkSet _ set = any checkSet' $ permutations set
         where checkSet' [a,b,c] = (a @- b) == (b @- c)

@@ -25,7 +25,7 @@ instance SetVariant Card where
     type SVConf Card = NoConf
     name _ = "C3C3"
     setSizes _ = [3]
-    fullDeck = [Card n (a,b,c) | n <- [0..2], a <- [0..2], b <- [0..2], c <- [0..2]]
+    fullDeck _ = [Card n (a,b,c) | n <- [0..2], a <- [0..2], b <- [0..2], c <- [0..2]]
     checkSet _ = linear
 
 type CeceGame = SetVariantGame Card

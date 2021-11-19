@@ -22,7 +22,7 @@ instance SetVariant Card where
     type SVConf Card = NoConf
     name _ = "C53T"
     setSizes _ = [5]
-    fullDeck = [Card (i,j,k) | let r = [0..4], i <- r, j <- r, k <- r]
+    fullDeck _ = [Card (i,j,k) | let r = [0..4], i <- r, j <- r, k <- r]
     checkSet _ = (length .==. pure 5) .&&. (mconcat .==. pure mempty)
 
 type CsetGame = SetVariantGame Card
