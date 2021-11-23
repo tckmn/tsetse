@@ -4,7 +4,7 @@ m.e = (function() {
 
         _onload: function() {
 
-            'wrap wallwrap wall gamelist name discon showadmin showhist showscores histbody scoresbody sbmain sbconf sbtoggle lobby helplink claim pluscard gametype gameconfig'.split(' ').forEach(id => this[id] = document.getElementById(id));
+            'wrap wallwrap wall gamelist name discon showadmin showhist showscores histbody scoresbody sbmain sbconf sbtoggle lobby helplink claim pluscard gametype gameconfig confreset'.split(' ').forEach(id => this[id] = document.getElementById(id));
 
             if (localStorage.getItem('password')) this.wrap.classList.add('hasadmin');
 
@@ -31,10 +31,12 @@ m.e = (function() {
                 m.net.send('PlusCard', {});
             });
 
-            var fn = () => {
+            var fn = e => {
+                if (e) e.preventDefault();
                 this.gameconfig.value = JSON.stringify(m[this.gametype.value].defaultConfig);
             };
             this.gametype.addEventListener('change', fn);
+            this.confreset.addEventListener('click', fn);
             fn();
 
         }
