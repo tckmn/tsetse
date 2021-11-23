@@ -164,7 +164,7 @@ connect state c = do
               loop
           Just DeleteGame{..} -> do
               who <- previewMVar state $ games.at i_gid._Just.creator
-              if who == Just (c^.cid)
+              if c^.cid == 0 || who == Just (c^.cid)
                  then do overMVar state $ games.at i_gid .~ Nothing
                          withMVar state runGameList
                  else toast "you can only delete your own games"
