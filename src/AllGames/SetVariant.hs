@@ -97,8 +97,10 @@ instance SetVariant card => FromJSON (GConf (SetVariantGame card))
 instance SetVariant card => Binary (GConf (SetVariantGame card)) where
     put SVConf'{..} = do B.put boardSize
                          B.put dealDelay
+                         B.put maxRedeals
                          B.put subconf
     get = SVConf' <$> B.get
+                  <*> B.get
                   <*> B.get
                   <*> B.get
 
@@ -128,7 +130,7 @@ tryDeal fn ev dealCount i = do
     SVConf'{..} <- view rconf
     d <- fn dealCount
     let failed = noSets subconf d
-    if failed && i < 50
+    if failed && i < maxRedeals
        then do
            deck' <- join $ uses deck shuffle
            deck .= deck'
@@ -162,6 +164,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
     type GMsg (SetVariantGame card) = Msg card
     data GConf (SetVariantGame card) = SVConf' { boardSize :: Int
                                                , dealDelay :: Int
+                                               , maxRedeals :: Int
                                                , subconf :: SVConf card
                                                }
                                      deriving Generic
