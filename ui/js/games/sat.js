@@ -37,7 +37,16 @@ m.SAT = (function() {
             return this.render(new Array(6).fill().map(_ => rand() < 0.5));
         },
 
-        ...m.setVariant.props({ boardSize: 8 })
+        ...m.setVariant.props({
+            boardSize: 8,
+            defaultConfig: {
+                nvars: 8,
+                nclause: [4],
+                hasneg: false,
+                cond: { tag: 'Exactly', contents: 2 },
+                assignmode: 'FromCards'
+            }
+        })
 
     };
 

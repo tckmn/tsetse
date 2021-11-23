@@ -47,7 +47,7 @@ m.setVariant = (function() {
 
                 defaultConfig: {
                     boardSize: args.boardSize || 12,
-                    subconf: {}
+                    subconf: args.defaultConfig || {}
                 },
 
                 conf: {
