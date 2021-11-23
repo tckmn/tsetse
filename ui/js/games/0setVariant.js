@@ -47,6 +47,7 @@ m.setVariant = (function() {
 
                 defaultConfig: {
                     boardSize: args.boardSize || 12,
+                    dealDelay: args.dealDelay || 5000,
                     subconf: args.defaultConfig || {}
                 },
 

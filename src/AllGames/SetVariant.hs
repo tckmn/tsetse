@@ -93,7 +93,14 @@ makeJSON' ''OutMsg
 
 instance SetVariant card => ToJSON (GConf (SetVariantGame card))
 instance SetVariant card => FromJSON (GConf (SetVariantGame card))
-instance SetVariant card => Binary (GConf (SetVariantGame card))
+
+instance SetVariant card => Binary (GConf (SetVariantGame card)) where
+    put SVConf'{..} = do B.put boardSize
+                         B.put dealDelay
+                         B.put subconf
+    get = SVConf' <$> B.get
+                  <*> B.get
+                  <*> B.get
 
 dealReplace :: SetVariant card => [card] -> Int -> GameIO (SetVariantGame card) ([card], [card])
 dealReplace i_cards dealCount = do
@@ -154,12 +161,12 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
 
     type GMsg (SetVariantGame card) = Msg card
     data GConf (SetVariantGame card) = SVConf' { boardSize :: Int
+                                               , dealDelay :: Int
                                                , subconf :: SVConf card
                                                }
                                      deriving Generic
 
     new SVConf'{..} = do
-        liftIO $ putStrLn "test"
         now <- liftIO getCurrentTime
         shuf <- shuffle $ fullDeck subconf
         let (cards, deck) = splitAt boardSize shuf
@@ -217,10 +224,10 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
 
         -- wait 5 seconds and clear the cards
         pwd <- view $ rserver.password
-        return $ Delayed 5000000 (encodeT $ object [ "t" .=> "PostClaim"
-                                                   , "pwd" .> pwd
-                                                   , "cards" .> set
-                                                   ])
+        return $ Delayed (dealDelay*1000) (encodeT $ object [ "t" .=> "PostClaim"
+                                                            , "pwd" .> pwd
+                                                            , "cards" .> set
+                                                            ])
 
     recv PostClaim{..} = do
         checkpwd pwd
