@@ -24,8 +24,11 @@ m.net = (function() {
             this.ws.onopen = () => {
                 this.backoff = 1;
                 var userinfo = localStorage.getItem('userinfo');
-                if (userinfo) this.send('Identify', JSON.parse(userinfo));
-                else this.register();
+                if (userinfo) {
+                    userinfo = JSON.parse(userinfo);
+                    m.cid = userinfo.cid;
+                    this.send('Identify', userinfo);
+                } else this.register();
             };
 
             this.ws.onmessage = e => {

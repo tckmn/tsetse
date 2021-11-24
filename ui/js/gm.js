@@ -7,6 +7,7 @@ m.gm = (function() {
                 cid: msg.cid,
                 secret: msg.secret
             }));
+            m.cid = msg.cid;
             m.e.name.textContent = msg.name;
         },
 
@@ -32,7 +33,7 @@ m.gm = (function() {
             msg.list
                 .sort((a,b) => (b.score - (b.conn?0:999)) - (a.score - (a.conn?0:999)))
                 .forEach(u => {
-                    var tr = m.dom.el('tr');
+                    var tr = m.dom.el('tr', { id: 'userlist-' + u.uid });
                     if (u.conn) tr.classList.add('conn');
                     if (u.play) tr.classList.add('play');
                     tr.appendChild(m.dom.el('td', { text: u.score }));

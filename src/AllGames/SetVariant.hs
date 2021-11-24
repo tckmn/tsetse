@@ -217,13 +217,13 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
         SVConf'{..} <- view rconf
         unless (checkSet subconf set) $ do
             rudeness.at who %= Just . take rudebuf . (when:) . fromMaybe []
-            send $ Highlight idxs' False
+            broadcast $ Highlight who idxs' False
             empty
 
         -- they're a set! tell everyone
         events <>= [(Taken who, set, when)]
-        broadcast $ Highlight idxs' True
         userlist
+        broadcast $ Highlight who idxs' True
 
         -- wait 5 seconds and clear the cards
         pwd <- view $ rserver.password

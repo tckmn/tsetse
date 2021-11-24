@@ -188,7 +188,12 @@ main {
 
         > div#sbmain {
             flex: 1;
-            table.userlist tr:not(.conn) { color: #666; }
+            table.userlist tr {
+                transition: color 0.1s;
+                &.right { color: #a1b56c; }
+                &.wrong { color: #ab4642; }
+                &:not(.conn) { color: #666; }
+            }
         }
 
         > div#sbconf {

@@ -25,7 +25,7 @@ data GMOutMsg = Registered { o_cid :: ClientId, o_secret :: Text, o_name :: Text
               | NotIdentified
               | GameList { o_list :: [(GameId, (Text, Text, Text, UTCTime), Bool)] }
               | GameType { o_gtype :: Text, o_conf :: Value }
-              | Highlight { o_idxs :: [Int], o_good :: Bool }
+              | Highlight { o_who :: ClientId, o_idxs :: [Int], o_good :: Bool }
               | Scores { o_scores :: HashMap Text (HashMap Text Int) }
               | Toast { o_msg :: Text }
               deriving Generic
