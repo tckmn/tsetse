@@ -36,8 +36,8 @@ m.gm = (function() {
                     var tr = m.dom.el('tr', { id: 'userlist-' + u.uid });
                     if (u.conn) tr.classList.add('conn');
                     if (u.play) tr.classList.add('play');
-                    tr.appendChild(m.dom.el('td', { text: u.score }));
-                    tr.appendChild(m.dom.el('td', { text: u.name }));
+                    tr.appendChild(m.dom.el('td', { class: 'score', text: u.score }));
+                    tr.appendChild(m.dom.el('td', { class: 'name', text: u.name }));
                     tbl.appendChild(tr);
                 });
 

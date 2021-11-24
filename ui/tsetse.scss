@@ -190,6 +190,7 @@ main {
             flex: 1;
             table.userlist tr {
                 transition: color 0.1s;
+                td.score { font-weight: bold; }
                 &.right { color: #a1b56c; }
                 &.wrong { color: #ab4642; }
                 &:not(.conn) { color: #666; }
