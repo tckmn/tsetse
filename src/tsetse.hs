@@ -6,6 +6,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 import Prelude hiding (log)
 
@@ -30,6 +31,8 @@ import GM
 import GameUtil
 import Types
 import Util
+
+import Language.Haskell.TH
 
 -- random utility functions (first generic, then codebase-specific)
 
@@ -135,33 +138,25 @@ connect state c = do
         msg <- recvWS c
         case decodeT msg of
           Just JoinGame{..} -> return i_gid
-          Just (CreateGame "C53T" conf)  -> case fromJSON conf of
-                                              Success conf -> (new conf :: IO CsetGame) >>= newgame state c conf
-                                              _ -> loop
-          Just (CreateGame "FO1D" conf)  -> case fromJSON conf of
-                                              Success conf -> (new conf :: IO FoidGame) >>= newgame state c conf
-                                              _ -> loop
-          Just (CreateGame "S3CT" conf)  -> case fromJSON conf of
-                                              Success conf -> (new conf :: IO SectGame) >>= newgame state c conf
-                                              _ -> loop
-          Just (CreateGame "A5SET" conf) -> case fromJSON conf of
-                                              Success conf -> (new conf :: IO AssetGame) >>= newgame state c conf
-                                              _ -> loop
-          Just (CreateGame "OCTA" conf)  -> case fromJSON conf of
-                                              Success conf -> (new conf :: IO OctaGame) >>= newgame state c conf
-                                              _ -> loop
-          Just (CreateGame "FOLD" conf)  -> case fromJSON conf of
-                                              Success conf -> (new conf :: IO FoldGame) >>= newgame state c conf
-                                              _ -> loop
-          Just (CreateGame "C3C3" conf)  -> case fromJSON conf of
-                                              Success conf -> (new conf :: IO CeceGame) >>= newgame state c conf
-                                              _ -> loop
-          Just (CreateGame "SAT" conf)   -> case fromJSON conf of
-                                              Success conf -> (new conf :: IO SatGame) >>= newgame state c conf
-                                              _ -> loop
-          Just (CreateGame unk _) -> do
-              toast $ "unknown game type " <> unk
-              loop
+          Just (CreateGame gtype conf) ->
+              $(caseE
+                (varE 'gtype)
+                (map (\(n,t) ->
+                    match (litP $ stringL n)
+                          (normalB [|
+                              case fromJSON conf of
+                                Success conf -> (new conf :: IO $(conT t)) >>= newgame state c conf
+                                _ -> do
+                                    toast "malformed game config"
+                                    loop |])
+                          []
+                ) namesToTypes ++ [
+                    match (varP $ mkName "unk")
+                          (normalB [| do
+                              toast $ "unknown game type " <> unk
+                              loop |])
+                          []
+                ]))
           Just DeleteGame{..} -> do
               who <- previewMVar state $ games.at i_gid._Just.creator
               if c^.cid == 0 || who == Just (c^.cid)
