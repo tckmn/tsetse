@@ -32,8 +32,6 @@ import GameUtil
 import Types
 import Util
 
-import Language.Haskell.TH
-
 -- random utility functions (first generic, then codebase-specific)
 
 timeMillis :: Integral a => IO a
@@ -139,24 +137,17 @@ connect state c = do
         case decodeT msg of
           Just JoinGame{..} -> return i_gid
           Just (CreateGame gtype conf) ->
-              $(caseE
-                (varE 'gtype)
-                (map (\(n,t) ->
-                    match (litP $ stringL n)
-                          (normalB [|
-                              case fromJSON conf of
-                                Success conf -> (new conf :: IO $(conT t)) >>= newgame state c conf
-                                _ -> do
-                                    toast "malformed game config"
-                                    loop |])
-                          []
-                ) namesToTypes ++ [
-                    match (varP $ mkName "unk")
-                          (normalB [| do
-                              toast $ "unknown game type " <> unk
-                              loop |])
-                          []
-                ]))
+              $(onGameType 'gtype (\t -> [|
+                  case fromJSON conf of
+                    Success conf -> (new conf :: IO $(t)) >>= newgame state c conf
+                    _ -> do
+                        toast "malformed game config"
+                        loop
+                |]) [|
+                    do
+                        toast $ "unknown game type " <> unk
+                        loop
+                |])
           Just DeleteGame{..} -> do
               who <- previewMVar state $ games.at i_gid._Just.creator
               if c^.cid == 0 || who == Just (c^.cid)

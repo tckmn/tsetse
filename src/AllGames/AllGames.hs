@@ -10,7 +10,7 @@ module AllGames.AllGames
     , module AllGames.Octa
     , module AllGames.Sat
     , module AllGames.Set2
-    , namesToTypes
+    , onGameType
     ) where
 
 import AllGames.Asset
@@ -23,15 +23,32 @@ import AllGames.Octa
 import AllGames.Sat
 import AllGames.Set2
 
+import qualified Types
+import qualified Data.Text as T
+
 import Language.Haskell.TH
 
 namesToTypes :: [(String, Name)]
-namesToTypes = [ ("A5SET", ''AssetGame)
-               , ("C53T",  ''CsetGame)
-               , ("FO1D",  ''FoidGame)
-               , ("FOLD",  ''FoldGame)
-               , ("OCTA",  ''OctaGame)
-               , ("S3CT",  ''SectGame)
-               , ("C3C3",  ''CeceGame)
-               , ("SAT",   ''SatGame)
+namesToTypes = [ (T.unpack . fst $ Types.desc (undefined :: AssetGame), ''AssetGame)
+               , (T.unpack . fst $ Types.desc (undefined :: CeceGame),  ''CeceGame)
+               , (T.unpack . fst $ Types.desc (undefined :: CsetGame),  ''CsetGame)
+               , (T.unpack . fst $ Types.desc (undefined :: FoidGame),  ''FoidGame)
+               , (T.unpack . fst $ Types.desc (undefined :: FoldGame),  ''FoldGame)
+               , (T.unpack . fst $ Types.desc (undefined :: OctaGame),  ''OctaGame)
+               , (T.unpack . fst $ Types.desc (undefined :: SatGame),   ''SatGame)
+               , (T.unpack . fst $ Types.desc (undefined :: SectGame),  ''SectGame)
                ]
+
+onGameType :: Name -> (TypeQ -> ExpQ) -> ExpQ -> ExpQ
+onGameType name ymatch nmatch =
+    caseE (varE name) $
+      map (\(n,t) ->
+          match (litP $ stringL n)
+                (normalB . ymatch $ conT t)
+                []
+      ) namesToTypes ++
+      [
+          match (varP $ mkName "unk")
+                (normalB nmatch)
+                []
+      ]

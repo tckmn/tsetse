@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Binary where
 
@@ -19,16 +20,9 @@ instance Binary GeneralGame where
                              put _dead
     get = do
         gname <- get
-        let partial = case gname of
-                        "A5SET" -> GeneralGame <$> (get :: Get AssetGame) <*> get
-                        "C53T" -> GeneralGame <$> (get :: Get CsetGame) <*> get
-                        "FO1D" -> GeneralGame <$> (get :: Get FoidGame) <*> get
-                        "FOLD" -> GeneralGame <$> (get :: Get FoldGame) <*> get
-                        "OCTA" -> GeneralGame <$> (get :: Get OctaGame) <*> get
-                        "S3CT" -> GeneralGame <$> (get :: Get SectGame) <*> get
-                        "C3C3" -> GeneralGame <$> (get :: Get CeceGame) <*> get
-                        "SAT" -> GeneralGame <$> (get :: Get SatGame) <*> get
-                        _ -> error "unknown game name in state file???"
+        let partial = $(onGameType 'gname
+                (\t -> [| GeneralGame <$> (get :: Get $(t)) <*> get |])
+                [| error "unknown game name in state file???" |])
         partial <*> get <*> get <*> get
 
 instance Binary ServerState where
