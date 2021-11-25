@@ -9,7 +9,7 @@ m.setVariant = (function() {
                 Cards: function(msg) {
                     m.dom.clearCells();
                     msg.cards.forEach((card, idx) => {
-                        m.dom.addCell(this.render(card), idx, args.autosubmit || Infinity);
+                        m.dom.addCell(this.render(card, m.gconf), idx, args.autosubmit || Infinity);
                     });
                     // TODO what a hack
                     document.querySelectorAll('div#sbmain table.userlist tr').forEach(x => x.classList.remove('right'));
@@ -38,7 +38,7 @@ m.setVariant = (function() {
                         var cdiv = m.dom.el('div');
                         cards.forEach(card => {
                             var c = m.dom.el('div', { class: 'helpcard' });
-                            c.appendChild(m[m.game].render(card));
+                            c.appendChild(this.render(card, m.gconf));
                             cdiv.appendChild(c);
                         });
                         m.e.histbody.insertBefore(cdiv, m.e.histbody.firstChild);

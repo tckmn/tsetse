@@ -2,11 +2,11 @@ m.SAT = (function() {
 
     return {
 
-        render: function(card) {
+        render: function(card, conf) {
             var colors = ['#f00', '#ff0', '#09f', '#f80', '#0c0', '#90f', '#000', '#888'],
                 xsize = 0.4;
 
-            var draw = m.draw.create('-1 -1 4 4');
+            var draw = m.draw.create(`-1 -1 ${1+Math.ceil(conf.subconf.nvars/3)} 4`);
 
             card.forEach(v => {
                 var vv = Math.abs(v)%100-1, x = vv / 3 | 0, y = vv % 3;
@@ -33,8 +33,8 @@ m.SAT = (function() {
             return draw.svg;
         },
 
-        img: function(rand) {
-            return this.render(new Array(6).fill().map(_ => rand() < 0.5));
+        img: function(rand, conf) {
+            return this.render(m.util.shuffle(m.util.range(8, x=>x+1), rand).slice(0, 3), conf);
         },
 
         ...m.setVariant.props({

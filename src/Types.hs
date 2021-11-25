@@ -28,7 +28,7 @@ import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
 
-import Control.Lens
+import Control.Lens hiding ((.>))
 import Data.Aeson
 import Data.Binary as B
 import Data.Time.Clock

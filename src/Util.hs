@@ -1,5 +1,6 @@
 module Util
-    ( shuffle
+    ( (.>), (.=>)
+    , shuffle
     , makeSecret
     , encodeT, decodeT
     , (.==.), (.&&.), (.$.)
@@ -22,6 +23,12 @@ import qualified Data.ByteString.Lazy as LB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.HashMap.Strict as M
+
+import qualified Data.Aeson as Ae
+(.>) :: (KeyValue kv, ToJSON v) => Text -> v -> kv
+(.>) = (Ae..=)
+(.=>) :: KeyValue kv => Text -> Text -> kv
+(.=>) = (Ae..=)
 
 shuffle :: MonadIO m => [a] -> m [a]
 shuffle [] = return []

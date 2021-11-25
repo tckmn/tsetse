@@ -58,17 +58,17 @@ m.gm = (function() {
 
             msg.list.forEach(g => {
                 var gamerect = m.dom.el('div', {
-                    class: 'gamerect' + (g[2] ? ' dead' : ''),
+                    class: 'gamerect' + (g.dead ? ' dead' : ''),
                     onclick: () => {
-                        m.net.send('JoinGame', { gid: g[0] });
+                        m.net.send('JoinGame', { gid: g.gid });
                     }
                 });
                 var gameimg = m.dom.el('div', { class: 'gameimg' });
-                gameimg.appendChild(m[g[1][0]].img(m.util.srand(JSON.stringify(g))));
+                gameimg.appendChild(m[g.gtype].img(m.util.srand(g.creation), g.conf));
                 gamerect.appendChild(gameimg);
-                gamerect.appendChild(m.dom.el('span', { text: g[1][0], class: 'gamename' }));
-                gamerect.appendChild(m.dom.el('span', { text: g[1][1], class: 'gamedesc' }));
-                gamerect.appendChild(m.dom.el('span', { text: `by ${g[1][2]} at ${new Date(g[1][3]).toLocaleString()}`, class: 'gamesrc' }));
+                gamerect.appendChild(m.dom.el('span', { text: g.gtype, class: 'gamename' }));
+                gamerect.appendChild(m.dom.el('span', { text: g.gdesc, class: 'gamedesc' }));
+                gamerect.appendChild(m.dom.el('span', { text: `by ${g.creator} at ${new Date(g.creation).toLocaleString()}`, class: 'gamesrc' }));
                 m.e.gamelist.appendChild(gamerect);
             });
 
@@ -81,6 +81,7 @@ m.gm = (function() {
 
             m.conf.deinit();
             m.game = msg.gtype;
+            m.gconf = msg.conf;
             m.conf.init();
 
             // bit of an ugly hack to put this here

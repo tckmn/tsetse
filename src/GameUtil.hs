@@ -11,15 +11,23 @@ import Data.List (sortOn)
 import Data.Maybe (fromMaybe)
 import GM
 import Types
+import Util
 import qualified Data.HashMap.Strict as M
 
 -- functions for accessing games without pain
 
 renderGameList :: ServerState -> GMOutMsg
-renderGameList s = GameList . reverse . sortOn (^._2._4) $
-        (\(gid, g) -> (gid, runDesc g, g^.dead)) <$> M.toList (s^.games)
-    where runDesc GeneralGame{..} = let (a, b) = desc _game
-                                     in (a, b, s^.byUid _creator.uname, _creation)
+renderGameList s = GameList $ map runDesc . reverse . sortOn (_creation . snd) $ M.toList (s^.games)
+    where runDesc (gid, g@GeneralGame{..}) =
+            let (gtype, gdesc) = desc _game
+             in object [ "gid"      .> gid
+                       , "gtype"    .> gtype
+                       , "gdesc"    .> gdesc
+                       , "creator"  .> (s^.byUid _creator.uname)
+                       , "creation" .> _creation
+                       , "dead"     .> _dead
+                       , "conf"     .> toJSON _gconf
+                       ]
 
 runGameList :: ServerState -> IO ()
 runGameList s = broadcastWS (s^..byGid (-1)) (renderGameList s)

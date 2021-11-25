@@ -21,15 +21,10 @@ import qualified Data.Text as T
 
 import GameUtil
 import GM
-import Types hiding ((.>))
+import Types
 import Util
 
 import Data.Aeson hiding ((.=))
-import qualified Data.Aeson as Ae
-(.>) :: (KeyValue kv, ToJSON v) => Text -> v -> kv
-(.>) = (Ae..=)
-(.=>) :: KeyValue kv => Text -> Text -> kv
-(.=>) = (Ae..=)
 
 rudebuf :: Int
 rudetime :: NominalDiffTime
