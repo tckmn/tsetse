@@ -3,7 +3,7 @@
 
 module Network where
 
-import Prelude hiding (log)
+import Prelude hiding (log, truncate)
 
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Data.Time.LocalTime (getZonedTime)
@@ -49,18 +49,21 @@ logC c s = log $ pad connid <> ": " <> s
           pad = T.pack . reverse . take 5 . (++repeat '0') . reverse . show
 
 -- sending and receiving websocket messages
+truncate :: Text -> Text
+truncate t = if T.length t > 1000 then T.take 997 t <> "..." else t
+
 sendWS :: (HasConn a, ToJSON b) => a -> b -> IO ()
 sendWS hc msg = do
     let c@(Connection conn _) = getconn hc
     let t = encodeT msg
-    logC c $ "SEND " <> t
+    logC c $ "SEND " <> truncate t
     WS.sendTextData conn t
 
 recvWS :: HasConn a => a -> IO Text
 recvWS hc = do
     let c@(Connection conn _) = getconn hc
     t <- WS.receiveData conn
-    logC c $ "RECV " <> t
+    logC c $ "RECV " <> truncate t
     return t
 
 broadcastWS :: ToJSON a => [Client] -> a -> IO ()
