@@ -107,6 +107,9 @@ play state conn cid gid = do
                       ]
     play state conn cid newgid
 
+reqadmin :: Client -> IO () -> IO ()
+reqadmin c action = if c^.cid == 0 then action else sendWS c $ Toast "requires admin"
+
 connect :: MVar ServerState -> Client -> IO GameId
 connect state c = do
     logC c "connected"
@@ -154,12 +157,13 @@ connect state c = do
                 |])
           Just ModifyGame{..} -> do
               -- this level of abstract lensing is a little absurd to me
-              modifyMVar_ state $ games.at i_gid._Just %%~ \GeneralGame{..} -> do
+              reqadmin c . modifyMVar_ state $ games.at i_gid._Just %%~ \GeneralGame{..} -> do
                   conf <- case fromJSON i_conf of
                             Success conf -> do
+                                -- TODO update clients
                                 toast "game config updated!"
                                 return conf
-                            _ ->  do
+                            _ -> do
                                 toast "malformed game config"
                                 return _gconf
                   return $ GeneralGame { _game
@@ -168,7 +172,6 @@ connect state c = do
                                        , _creation
                                        , _dead
                                        }
-              -- TODO update clients
               loop
           Just DeleteGame{..} -> do
               who <- previewMVar state $ games.at i_gid._Just.creator
