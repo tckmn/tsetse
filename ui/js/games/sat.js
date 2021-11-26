@@ -34,7 +34,8 @@ m.SAT = (function() {
         },
 
         img: function(rand, conf) {
-            return this.render(m.util.shuffle(m.util.range(8, x=>x+1), rand).slice(0, 3), conf);
+            // TODO the extras
+            return this.render(m.util.shuffle(m.util.range(conf.subconf.nvars, x=>x+1), rand).slice(0, m.util.shuffle(conf.subconf.nclause)[0]), conf);
         },
 
         ...m.setVariant.props({
