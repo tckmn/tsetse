@@ -12,6 +12,7 @@ data GMMsg = Register { i_uname :: Text }
            | Uname { i_uname :: Text }
            | JoinGame { i_gid :: GameId }
            | CreateGame { i_gtype :: Text, i_conf :: Value }
+           | ModifyGame { i_gid :: GameId, i_conf :: Value }
            | DeleteGame { i_gid :: GameId }
            | GetScores
            -- admin

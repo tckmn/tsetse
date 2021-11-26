@@ -152,6 +152,24 @@ connect state c = do
                         toast $ "unknown game type " <> unk
                         loop
                 |])
+          Just ModifyGame{..} -> do
+              -- this level of abstract lensing is a little absurd to me
+              modifyMVar_ state $ games.at i_gid._Just %%~ \GeneralGame{..} -> do
+                  conf <- case fromJSON i_conf of
+                            Success conf -> do
+                                toast "game config updated!"
+                                return conf
+                            _ ->  do
+                                toast "malformed game config"
+                                return _gconf
+                  return $ GeneralGame { _game
+                                       , _gconf = conf
+                                       , _creator
+                                       , _creation
+                                       , _dead
+                                       }
+              -- TODO update clients
+              loop
           Just DeleteGame{..} -> do
               who <- previewMVar state $ games.at i_gid._Just.creator
               if c^.cid == 0 || who == Just (c^.cid)
