@@ -107,19 +107,6 @@ play state conn cid gid = do
                       ]
     play state conn cid newgid
 
-newgame :: Game g => MVar ServerState -> Client -> GConf g -> g -> IO GameId
-newgame state c conf g = do
-    gid <- state .&++ nextGame
-    now <- getCurrentTime
-    overMVar state $ games.at gid .~ Just GeneralGame { _game = g
-                                                      , _gconf = conf
-                                                      , _creator = c^.cid
-                                                      , _creation = now
-                                                      , _dead = False
-                                                      }
-    withMVar state runGameList
-    return gid
-
 connect :: MVar ServerState -> Client -> IO GameId
 connect state c = do
     logC c "connected"
@@ -139,7 +126,24 @@ connect state c = do
           Just (CreateGame gtype conf) ->
               $(onGameType 'gtype (\t -> [|
                   case fromJSON conf of
-                    Success conf -> (new conf :: IO $(t)) >>= newgame state c conf
+                    Success conf -> do
+                        g <- new conf
+                        case g of
+                          Right g -> do
+                              gid <- state .&++ nextGame
+                              now <- getCurrentTime
+                              overMVar state $ games.at gid .~
+                                  Just GeneralGame { _game = g :: $(t)
+                                                   , _gconf = conf
+                                                   , _creator = c^.cid
+                                                   , _creation = now
+                                                   , _dead = False
+                                                   }
+                              withMVar state runGameList
+                              return gid
+                          Left err -> do
+                              toast err
+                              loop
                     _ -> do
                         toast "malformed game config"
                         loop

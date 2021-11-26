@@ -169,15 +169,18 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
                                                }
                                      deriving Generic
 
-    new SVConf'{..} = do
-        now <- liftIO getCurrentTime
-        shuf <- shuffle $ fullDeck subconf
-        let (cards, deck) = splitAt boardSize shuf
-        return SetVariantGame { _deck = deck
-                              , _cards = cards
-                              , _events = [(Dealt, cards, now)]
-                              , _rudeness = M.empty
-                              }
+    new SVConf'{..}
+      | boardSize < 6 = return $ Left "at least 6 cards required"
+      | maxRedeals > 100 = return $ Left "at most 100 redeals allowed"
+      | otherwise = Right <$> do
+          now <- liftIO getCurrentTime
+          shuf <- shuffle $ fullDeck subconf
+          let (cards, deck) = splitAt boardSize shuf
+          return SetVariantGame { _deck = deck
+                                , _cards = cards
+                                , _events = [(Dealt, cards, now)]
+                                , _rudeness = M.empty
+                                }
 
     catchup = do
         cs <- use cards

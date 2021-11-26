@@ -42,12 +42,12 @@ instance Game OCWallGame where
     type GMsg OCWallGame = Msg
     newtype GConf OCWallGame = NoConf' () deriving Generic
 
-    new _ = return OCWallGame { _wall = []
-                              , _groups = []
-                              , _strikes = 3
-                              , _startTime = 0
-                              , _duration = 180
-                              }
+    new _ = return . Right $ OCWallGame { _wall = []
+                                        , _groups = []
+                                        , _strikes = 3
+                                        , _startTime = 0
+                                        , _duration = 180
+                                        }
 
     catchup = return ()
             -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
