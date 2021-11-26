@@ -26,6 +26,10 @@ import Util
 
 import Data.Aeson hiding ((.=))
 
+-- import Debug.Trace
+-- debug x = trace (T.unpack . encodeT $ x) x
+debug = id
+
 rudebuf :: Int
 rudetime :: NominalDiffTime
 rudebuf = 3
@@ -40,10 +44,11 @@ class (Eq card, ToJSON card, FromJSON card, ToJSON (SVConf card), FromJSON (SVCo
     noSets :: SVConf card -> ([card], [card]) -> Bool
     noSets = defaultNoSets
     defaultNoSets :: SVConf card -> ([card], [card]) -> Bool
-    defaultNoSets conf (_, cs) = null [s | s <- subsequences cs
-                               , length s `elem` setSizes (undefined :: card)
-                               , checkSet conf s
-                               ]
+    defaultNoSets conf (_, cs) =
+        null . debug $ [s | s <- subsequences cs
+                       , length s `elem` setSizes (undefined :: card)
+                       , checkSet conf s
+                       ]
 
 data Event = Taken ClientId
            | Dealt
