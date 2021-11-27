@@ -87,7 +87,6 @@ main {
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow-y: auto;
 
         > div#wall {
             width: 100%;
@@ -143,10 +142,14 @@ main {
                 // &.selected { background-color: #383838; }
             }
         }
+    }
+
+    > div#lobbywrap {
+        flex: 1;
+        overflow-y: auto;
 
         > div#gamelist {
             width: 100%;
-            height: 100%;
 
             > div.gamerect {
                 display: flex;

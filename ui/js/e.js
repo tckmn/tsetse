@@ -4,9 +4,12 @@ m.e = (function() {
 
         _onload: function() {
 
-            'wrap wallwrap wall gamelist name discon showadmin showhist showscores histbody scoresbody sbmain sbconf sbtoggle lobby helplink claim pluscard gametype gameconfig confreset'.split(' ').forEach(id => this[id] = document.getElementById(id));
+            'wrap wallwrap wall showdead gamelist name discon showadmin showhist showscores histbody scoresbody sbmain sbconf sbtoggle lobby helplink claim pluscard gametype gameconfig confreset'.split(' ').forEach(id => this[id] = document.getElementById(id));
 
             if (localStorage.getItem('password')) this.wrap.classList.add('hasadmin');
+
+            // TODO all the showdead nonsense should be abstracted into something similar to m.conf
+            this.showdead.addEventListener('change', () => m.net.rerun('GameList'));
 
             this.name.addEventListener('click', () => m.modal.show('namechange'));
             this.showadmin.addEventListener('click', () => m.modal.show('admin'));

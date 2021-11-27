@@ -29,9 +29,18 @@
 
             <main>
 
-                <div id='wallwrap'>
-                    <div id='wall' class='onlygame'></div>
-                    <div id='gamelist' class='onlylobby'></div>
+                <div id='wallwrap' class='onlygame'>
+                    <div id='wall'></div>
+                </div>
+
+                <div id='lobbywrap' class='onlylobby'>
+                    <div id='gamemenu'>
+                        <button class='mopen' data-mopen='newgame'>create game</button>
+                        <label>
+                            <input id='showdead' type='checkbox'> show dead
+                        </label>
+                    </div>
+                    <div id='gamelist'></div>
                 </div>
 
                 <div id='sidebar'>

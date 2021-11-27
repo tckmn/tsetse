@@ -49,6 +49,9 @@ m.modal = (function() {
             Array.from(document.getElementsByClassName('mval')).forEach(x => {
                 v[x.dataset.mval] = () => x.value;
             });
+            Array.from(document.getElementsByClassName('mopen')).forEach(x => {
+                x.addEventListener('click', () => this.show(x.dataset.mopen));
+            });
             Array.from(document.getElementsByClassName('dismiss')).forEach(e => {
                 e.addEventListener('click', this.close.bind(this));
             });

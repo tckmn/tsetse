@@ -18,7 +18,7 @@ m.conf = (function() {
         },
         square: {
             default: true,
-            init: () => m.dom.resize()
+            init: () => setTimeout(m.dom.resize, 0) // because css needs to process
         },
         richter: {
             default: 0, min: 0, max: 9,

@@ -49,14 +49,8 @@ m.gm = (function() {
 
             m.dom.clr(m.e.gamelist);
 
-            var newsec = m.dom.el('div');
-            newsec.appendChild(m.dom.el('button', {
-                text: 'create game',
-                onclick: () => m.modal.show('newgame')
-            }));
-            m.e.gamelist.appendChild(newsec);
-
             msg.list.forEach(g => {
+                if (g.dead && !m.e.showdead.checked) return;
                 var gamerect = m.dom.el('div', {
                     class: 'gamerect' + (g.dead ? ' dead' : ''),
                     onclick: () => {
