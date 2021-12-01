@@ -42,7 +42,7 @@ m.SAT = (function() {
             boardSize: 8,
             defaultConfig: {
                 nvars: 8,
-                nclause: [4],
+                nclause: [5],
                 hasneg: false,
                 cond: { tag: 'Exactly', contents: 2 },
                 assignmode: 'FromCards'
