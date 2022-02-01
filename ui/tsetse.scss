@@ -267,8 +267,10 @@ div#modals > div {
     &.large { width: 80vw; height: 80vh; }
 
     #scoresbody table {
+        border-collapse: collapse;
         th, td { text-align: center; padding: 2px 5px; }
         th.name { text-align: right; }
+        tr:nth-of-type(2n) { background-color: #556; }
     }
 
     #gameconfig { width: 90%; height: 300px; }
