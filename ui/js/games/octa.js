@@ -43,7 +43,7 @@ m.OCTA = (function() {
                     });
                 }
             });
-            draw.fancy(0.08, 0.05);
+            draw.fancy(0.1, 0.05);
 
             // octahedron
             draw.group({ transform: `rotate(180) translate(0,${1+pad/2})` });
@@ -55,7 +55,7 @@ m.OCTA = (function() {
             draw.poly(m.util.range(3, i => oout(i)), {
                 fill: ocolor[card[0][3]], fancy: 1
             });
-            draw.fancy(0.08, 0.05);
+            draw.fancy(0.1, 0.05);
             draw.fidget(3, spirat, card[1], {
                 stroke: card[1] ? '#000' : '#fff', strokeWidth: 0.05
             });
