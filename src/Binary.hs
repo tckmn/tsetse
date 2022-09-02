@@ -30,10 +30,12 @@ instance Binary ServerState where
                              put _nextClient
                              put _nextGame
                              put _password
+                             put _allowLogins
                              put _games
     get = ServerState <$> pure []
                       <*> get
                       <*> pure 0
+                      <*> get
                       <*> get
                       <*> get
                       <*> get

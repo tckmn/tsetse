@@ -56,9 +56,8 @@ app state pending = do
 previewMVar v lens = withMVar v $ return . preview lens
 overMVar v lens = modifyMVar_ v $ return . lens
 nameok state name = do
-    sameName <- withMVar state $
-        return . (^..users.traversed.filteredBy (uname.only name))
-    return $ (not . T.null . T.filter (not . isSpace)) name && null sameName
+    sameName <- previewMVar state $ users.traversed.filteredBy (uname.only name)
+    return (not . T.null . T.filter (not . isSpace) $ name, sameName)
 
 negotiate :: MVar ServerState -> Connection -> IO ()
 negotiate state conn = do
@@ -78,8 +77,16 @@ negotiate state conn = do
                 return Nothing
       Just Register{..} -> do
           isok <- nameok state i_uname
-          if isok
-            then do
+          logins <- withMVar state $ return . view allowLogins
+          case isok of
+            (False, _) -> do
+                sendWS conn $ NotRegistered
+                negotiate state conn
+                return Nothing
+            (_, Just u) | logins -> do
+                sendWS conn $ Identified (u^.uname)
+                return . Just $ u^.uid
+            _ -> do
                 uid <- state .&++ nextClient
                 secret <- makeSecret
                 overMVar state $ users %~ (User { _uid = uid
@@ -88,10 +95,7 @@ negotiate state conn = do
                                                 }:)
                 sendWS conn $ Registered uid secret i_uname
                 return $ Just uid
-            else do
-                sendWS conn $ NotRegistered
-                negotiate state conn
-                return Nothing
+
       Nothing -> return Nothing
 
     forM_ cid $ \cid -> play state conn cid (-1)
@@ -189,12 +193,13 @@ connect state c = do
               loop
           Just Uname{..} -> do
               isok <- nameok state i_uname
-              if isok
-                 then do
-                     overMVar state $ byUid (c^.cid).uname .~ i_uname
-                     -- TODO notify other players
-                     sendWS c $ Identified i_uname
-                 else toast "can't change to that name"
+              case isok of
+                (True, Nothing) -> do
+                    overMVar state $ byUid (c^.cid).uname .~ i_uname
+                    -- TODO notify other players
+                    sendWS c $ Identified i_uname
+                (_, Just _) -> toast "that name is already taken"
+                _ -> toast "that name is illegal"
               loop
           -- admin
           Just (SaveState pwd) -> do
@@ -239,6 +244,7 @@ initstate _ = do
                        , _nextClient = 0
                        , _nextGame = 0
                        , _password = pwd
+                       , _allowLogins = True
                        , _games = M.empty
                        }
 

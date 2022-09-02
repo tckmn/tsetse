@@ -14,6 +14,7 @@ import Util
 
 import Data.Binary as B
 
+big :: Int
 big = 100
 
 newtype Card = Card [Int] deriving (Eq, Generic, Show)

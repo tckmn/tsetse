@@ -30,6 +30,7 @@ import qualified Data.Text as T
 
 import Control.Lens hiding ((.>))
 import Data.Aeson
+import Data.Aeson.KeyMap (toHashMap, fromHashMap)
 import Data.Binary as B
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
@@ -95,12 +96,13 @@ class (Binary g, Binary (GConf g), FromJSON (GMsg g), ToJSON (GConf g), FromJSON
             , ("list", toJSON $ fix _users cids pids .$. info <$> nub (cids ++ pids))
             ]
             where fix users cids pids uid (Object o) = Object
+                    . fromHashMap
                     . M.delete "t"
                     . M.insert "uid" (Number $ fromIntegral uid)
                     . M.insert "name" (String $ users^.folded.filtered ((==uid) . _uid).uname')
                     . M.insert "conn" (Bool $ uid `elem` cids)
                     . M.insert "play" (Bool $ uid `elem` pids)
-                    $ o
+                    $ toHashMap o
                   fix _ _ _ _ x = x
                   uname' = lens _uname (\x y -> x { _uname = y }) -- ridiculously ugly hack
 
@@ -126,6 +128,7 @@ data ServerState = ServerState { _clients :: [Client]
                                , _nextClient :: ClientId
                                , _nextGame :: GameId
                                , _password :: Text
+                               , _allowLogins :: Bool
                                , _games :: HashMap Int GeneralGame
                                }
 
@@ -187,7 +190,7 @@ instance (Hashable k, Eq k, Binary k, Binary v) => Binary (HashMap k v) where
 
 newtype NoConf = NoConf ()
 instance ToJSON NoConf where
-    toJSON _ = Object M.empty
+    toJSON _ = Object $ fromHashMap M.empty
 instance FromJSON NoConf where
     parseJSON _ = pure $ NoConf ()
 instance Binary NoConf where
