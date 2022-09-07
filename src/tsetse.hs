@@ -84,7 +84,7 @@ negotiate state conn = do
                 negotiate state conn
                 return Nothing
             (_, Just u) | logins -> do
-                sendWS conn $ Identified (u^.uname)
+                sendWS conn $ Registered (u^.uid) (u^.secret) (u^.uname)
                 return . Just $ u^.uid
             _ -> do
                 uid <- state .&++ nextClient
