@@ -3,13 +3,16 @@ m.draw = (function() {
     return {
 
         create: (viewBox, svgProps) => ({
+
             group: function(props) {
                 this.activeGroup = m.dom.svgel('g', props);
                 this.svg.appendChild(this.activeGroup);
             },
+
             el: function(name, props) {
                 (this.activeGroup || this.svg).appendChild(m.dom.svgel(name, props));
             },
+
             line: function(pts, props) {
                 this.el('path', {
                     d: 'M ' + pts.map(a => a.join(' ')).join(' L '),
@@ -17,6 +20,7 @@ m.draw = (function() {
                     fill: 'none', ...props
                 });
             },
+
             polys: [],
             poly: function(pts, props) {
                 if (props && props.fancy) {
@@ -29,6 +33,7 @@ m.draw = (function() {
                     ...props
                 });
             },
+
             fancy: function(outer, inner) {
                 this.polys.forEach(p => {
                     this.poly(p, {
@@ -42,6 +47,7 @@ m.draw = (function() {
                 });
                 this.polys = [];
             },
+
             fidget: function(n, r, parity, props) {
                 var offset = 0;
                 if (props && props.offset) {
@@ -58,7 +64,9 @@ m.draw = (function() {
                     });
                 });
             },
+
             svg: m.dom.svgel('svg', { _viewBox: viewBox, ...svgProps })
+
         })
 
     };
