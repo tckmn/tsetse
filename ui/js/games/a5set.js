@@ -47,7 +47,7 @@ m.A5SET = (function() {
                     fill: dcolor(m.util.range(5, i => perm[card[i]])), fancy: 1
                 });
             });
-            draw.fancy(0.08, 0.05);
+            draw.fancy(0.1, 0.05);
 
             draw.group({ transform: `translate(0,${1+pad/2})` });
             ifaces.forEach(([tri, i]) => {
@@ -55,7 +55,7 @@ m.A5SET = (function() {
                     fill: icolor[card.indexOf(i)], fancy: 1
                 });
             });
-            draw.fancy(0.08, 0.05);
+            draw.fancy(0.1, 0.05);
 
             return draw.svg;
         },
