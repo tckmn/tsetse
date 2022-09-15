@@ -12,7 +12,7 @@ module AllGames.SetVariant where
 
 import Control.Applicative
 import Data.Binary as B
-import Data.List (nub, subsequences)
+import Data.List (nub, subsequences, elemIndex)
 import Data.Maybe
 import Data.Functor
 import GHC.Generics (Generic)
@@ -41,14 +41,16 @@ class (Eq card, ToJSON card, FromJSON card, ToJSON (SVConf card), FromJSON (SVCo
     setSizes :: card -> [Int]
     fullDeck :: SVConf card -> [card]
     checkSet :: SVConf card -> [card] -> Bool
+    findSets :: SVConf card -> ([card], [card]) -> [[card]]
+    findSets conf (_, cs) =
+        [s | s <- subsequences cs
+        , length s `elem` setSizes (undefined :: card)
+        , checkSet conf s
+        ]
     noSets :: SVConf card -> ([card], [card]) -> Bool
     noSets = defaultNoSets
     defaultNoSets :: SVConf card -> ([card], [card]) -> Bool
-    defaultNoSets conf (_, cs) =
-        null . debug $ [s | s <- subsequences cs
-                       , length s `elem` setSizes (undefined :: card)
-                       , checkSet conf s
-                       ]
+    defaultNoSets = (null .) . findSets
 
 data Event = Taken ClientId
            | Dealt
@@ -81,6 +83,7 @@ data Msg card = Claim { idxs :: [Int] }
               | PostClaim { pwd :: Text, i_cards :: [card] }
               | PlusCard
               | GetHistory
+              | ExhibitSet { i_password :: Text }
               deriving Generic
 
 data OutMsg card = Cards { o_cards :: [card] }
@@ -265,3 +268,12 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
             where patchu h@(uid, _, _) = do
                     u <- view $ rserver.byUid uid.uname
                     return $ h & _1 .~ u :: GameIO (SetVariantGame card) (Text, [card], UTCTime)
+
+    recv ExhibitSet{..} = do
+        checkpwd i_password
+
+        cs <- use cards
+        SVConf'{..} <- view rconf
+
+        send . Toast . encodeT $ map (fromMaybe 0 . flip elemIndex cs) <$> findSets subconf ([], cs)
+        return Done

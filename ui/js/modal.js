@@ -16,6 +16,11 @@ m.modal = (function() {
             m.modal.close();
         },
 
+        exhibitset: () => {
+            m.net.send('ExhibitSet', pwd);
+            m.modal.close();
+        },
+
         creategame: () => {
             var conf;
             try {
