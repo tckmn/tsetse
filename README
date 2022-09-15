@@ -1,5 +1,6 @@
 tsetse - a collection of various set variants playable online
 
+
 nix config for hosting with SSL + reverse proxy:
 
     security.acme.acceptTerms = true;
@@ -27,3 +28,20 @@ nix config for hosting with SSL + reverse proxy:
         };
       };
     };
+
+
+to add a new game:
+
+ - add the game to the backend
+
+   * implement the main game file (src/AllGames/XXX.hs)
+
+   * add it to the namesToTypes list (src/AllGames/AllGames.hs)
+
+ - add the game to the frontend
+
+   * implement the main game file (ui/js/games/XXX.js)
+
+   * add it to the game type dropdown (dist/tsetse.html)
+
+   * add a help section (dist/help.html, dist/help.js)
