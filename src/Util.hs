@@ -33,6 +33,10 @@ import qualified Data.Aeson as Ae
 (.=>) :: KeyValue kv => Key -> Text -> kv
 (.=>) = (Ae..=)
 
+if' :: Bool -> a -> a -> a
+if' True  x _ = x
+if' False _ y = y
+
 shuffle :: MonadIO m => [a] -> m [a]
 shuffle [] = return []
 shuffle xs = do
@@ -73,7 +77,7 @@ class Eq (DiffResult a) => Diffable a where
     (@-) :: a -> a -> DiffResult a
 
 linear :: Diffable a => [a] -> Bool
-linear = any linear' . permutations
+linear = liftM3 if' ((> 8) . length) linear' (any linear' . permutations)
     where linear' [a,b,c] = (a @- b) == (b @- c)
           linear' (a:b:c:xs) = (a @- b) == (b @- c) && linear' (b:c:xs)
           linear' _ = False
