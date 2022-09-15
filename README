@@ -35,12 +35,17 @@ to add a new game:
  - add the game to the backend
 
    * implement the main game file (src/AllGames/XXX.hs)
+     + [todo]
 
    * add it to the namesToTypes list (src/AllGames/AllGames.hs)
 
  - add the game to the frontend
 
    * implement the main game file (ui/js/games/XXX.js)
+     + img: takes a seeded RNG and returns the icon to display in the game list
+     + defaultConfig: used in game creation menu, sent to server
+     + conf: client-side config specification
+     + [todo]
 
    * add it to the game type dropdown (dist/tsetse.html)
 

@@ -6,7 +6,7 @@ module AllGames.AllGames
     , module AllGames.Cset
     , module AllGames.Foid
     , module AllGames.Fold
-    , module AllGames.OCWall
+    , module AllGames.OCon
     , module AllGames.Octa
     , module AllGames.Sat
     , module AllGames.Set2
@@ -18,7 +18,7 @@ import AllGames.Cece
 import AllGames.Cset
 import AllGames.Foid
 import AllGames.Fold
-import AllGames.OCWall
+import AllGames.OCon
 import AllGames.Octa
 import AllGames.Sat
 import AllGames.Set2
@@ -34,6 +34,7 @@ namesToTypes = [ (T.unpack . fst $ Types.desc (undefined :: AssetGame), ''AssetG
                , (T.unpack . fst $ Types.desc (undefined :: CsetGame),  ''CsetGame)
                , (T.unpack . fst $ Types.desc (undefined :: FoidGame),  ''FoidGame)
                , (T.unpack . fst $ Types.desc (undefined :: FoldGame),  ''FoldGame)
+               , (T.unpack . fst $ Types.desc (undefined :: OConGame),  ''OConGame)
                , (T.unpack . fst $ Types.desc (undefined :: OctaGame),  ''OctaGame)
                , (T.unpack . fst $ Types.desc (undefined :: SatGame),   ''SatGame)
                , (T.unpack . fst $ Types.desc (undefined :: SectGame),  ''SectGame)

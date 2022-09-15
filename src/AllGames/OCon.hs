@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.OCWall where
+module AllGames.OCon where
 
 import qualified Data.HashMap.Strict as M
 
@@ -15,14 +15,14 @@ import Types
 
 import Data.Aeson
 
-data OCWallGame = OCWallGame { _wall :: [(Int,Text)]
-                             , _groups :: [Int]
-                             , _strikes :: Int
-                             , _startTime :: Integer
-                             , _duration :: Int
-                             } deriving Generic
-instance Binary OCWallGame
-makeLenses ''OCWallGame
+data OConGame = OConGame { _wall :: [(Int,Text)]
+                         , _groups :: [Int]
+                         , _strikes :: Int
+                         , _startTime :: Integer
+                         , _duration :: Int
+                         } deriving Generic
+instance Binary OConGame
+makeLenses ''OConGame
 
 data Msg = SetWall { i_categories :: [Text] }
          | Guess { i_guess :: [Int] }
@@ -33,21 +33,21 @@ data OutMsg = UserInfo { o_foo :: Int }
             deriving Generic
 makeJSON ''OutMsg
 
-instance ToJSON (GConf OCWallGame)
-instance FromJSON (GConf OCWallGame)
-instance Binary (GConf OCWallGame)
+instance ToJSON (GConf OConGame)
+instance FromJSON (GConf OConGame)
+instance Binary (GConf OConGame)
 
-instance Game OCWallGame where
+instance Game OConGame where
 
-    type GMsg OCWallGame = Msg
-    newtype GConf OCWallGame = NoConf' () deriving Generic
+    type GMsg OConGame = Msg
+    newtype GConf OConGame = NoConf' () deriving Generic
 
-    new _ = return . Right $ OCWallGame { _wall = []
-                                        , _groups = []
-                                        , _strikes = 3
-                                        , _startTime = 0
-                                        , _duration = 180
-                                        }
+    new _ = return . Right $ OConGame { _wall = []
+                                      , _groups = []
+                                      , _strikes = 3
+                                      , _startTime = 0
+                                      , _duration = 180
+                                      }
 
     catchup = return ()
             -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True
@@ -62,7 +62,7 @@ instance Game OCWallGame where
 
     userinfo g cid = toJSON $ UserInfo 10
 
-    desc g = ("connecting wall", "whee")
+    desc g = ("OC", "wip only connect implementation")
 
     recv SetWall{..} = do
         return Done
