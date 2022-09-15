@@ -74,7 +74,7 @@ m.dom = (function() {
             var fn = e => {
                 if (e) e.preventDefault();
                 cell.classList.toggle('selected');
-                this.submitCells(autosubmit);
+                this.submitCells(e.shiftKey ? Infinity : autosubmit);
             };
             cell.addEventListener('mousedown', fn);
             cell.addEventListener('touchstart', fn);
@@ -101,7 +101,7 @@ m.dom = (function() {
             window.addEventListener('resize', this.resize);
             window.addEventListener('keydown', e => {
                 if (e.key == 'Enter') this.submitCells();
-                else if (keylisten[e.key]) keylisten[e.key]();
+                else if (keylisten[e.key]) keylisten[e.key](e);
             });
         }
     };
