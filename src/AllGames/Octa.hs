@@ -13,8 +13,8 @@ import Util
 
 data Card = Card [Int] Bool deriving (Eq, Generic, Show)
 instance Diffable Card where
-    diff = diffable (@-)
-        where Card a b @- Card a' b' = ([findIndex (==x) a | x <- a'], b /= b')
+    type DiffResult Card = ([Maybe Int], Bool)
+    Card a b @- Card a' b' = ([findIndex (==x) a | x <- a'], b /= b')
 instance Binary Card
 makeJSON ''Card
 

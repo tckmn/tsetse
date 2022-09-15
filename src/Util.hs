@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+
 module Util
     ( (.>), (.=>)
     , shuffle
@@ -6,7 +9,7 @@ module Util
     , (.==.), (.&&.), (.$.)
     , (!!!)
     , amend, mapKeys
-    , Diffable, diffable, diff, linear
+    , Diffable, DiffResult, (@-), linear
     , folds
     ) where
 
@@ -65,14 +68,14 @@ amend = M.alter . (Just .)
 mapKeys :: (Eq k2, Hashable k2) => (k1 -> k2) -> M.HashMap k1 v -> M.HashMap k2 v
 mapKeys f = M.fromList . map (first f) . M.toList
 
-diffable :: Eq b => (a -> a -> b) -> a -> a -> a -> a -> Bool
-diffable f a b c d = f a b == f c d
-class Diffable a where
-    diff :: a -> a -> a -> a -> Bool
+class Eq (DiffResult a) => Diffable a where
+    type DiffResult a :: *
+    (@-) :: a -> a -> DiffResult a
 
 linear :: Diffable a => [a] -> Bool
 linear = any linear' . permutations
-    where linear' [a,b,c] = diff a b b c
+    where linear' [a,b,c] = (a @- b) == (b @- c)
+          linear' (a:b:c:xs) = (a @- b) == (b @- c) && linear' (b:c:xs)
           linear' _ = False
 
 notouch :: [(Int, Bool)] -> Bool
