@@ -216,7 +216,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
         cs <- use cards
         ts <- use $ taken.folded._2
         let idxs' = nub idxs
-            set = [c | idx <- idxs', let Just c = cs^?ix idx, c `notElem` ts]
+            set = [c | idx <- idxs', c <- cs^..ix idx, c `notElem` ts]
         guard $ length idxs' == length set
 
         -- flash em red if they're not a set
