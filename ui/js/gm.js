@@ -69,9 +69,8 @@ m.gm = (function() {
         },
 
         GameType: function(msg) {
-            m.dom.clr(m.e.wall);
+            m.dom.clearCells();
             m.dom.clr(m.e.sbmain);
-            m.dom.cells = [];
 
             m.conf.deinit();
             m.game = msg.gtype;

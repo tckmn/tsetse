@@ -7,6 +7,7 @@ m.dom = (function() {
         'zxcvbnm,./'
     ];
 
+    var selected = [];
     var keylisten = {};
 
     return {
@@ -56,7 +57,6 @@ m.dom = (function() {
         },
 
         cells: [],
-        selected: [],
 
         addCell: function(content, idx, autosubmit) {
             var perrow = m.conf.get('rownum'),
@@ -74,11 +74,11 @@ m.dom = (function() {
 
             var fn = e => {
                 if (e) e.preventDefault();
-                var idx = this.selected.indexOf(+cell.dataset.idx);
+                var idx = selected.indexOf(+cell.dataset.idx);
                 if (cell.classList.toggle('selected')) {
-                    if (idx === -1) this.selected.push(+cell.dataset.idx);
+                    if (idx === -1) selected.push(+cell.dataset.idx);
                 } else {
-                    if (idx !== -1) this.selected.splice(idx, 1);
+                    if (idx !== -1) selected.splice(idx, 1);
                 }
                 this.submitCells(e.shiftKey ? Infinity : autosubmit);
             };
@@ -88,18 +88,19 @@ m.dom = (function() {
         },
 
         submitCells: function(reqnum) {
-            if (this.selected.length >= (reqnum || 1)) {
+            if (selected.length >= (reqnum || 1)) {
                 Array.from(document.getElementsByClassName('selected'))
                     .forEach(g => g.classList.remove('selected'));
-                m.net.send('Claim', { idxs: this.selected });
-                this.selected = [];
+                m.net.send('Claim', { idxs: selected });
+                selected = [];
             }
         },
 
         clearCells: function() {
             this.clr(m.e.wall);
             this.cells = [];
-            this.selected = [];
+            selected = [];
+            keylisten = {};
         },
 
         _onload: function() {
