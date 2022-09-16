@@ -35,19 +35,19 @@ m.modal = (function() {
 
     };
 
+    var active = undefined;
+
     return {
 
-        active: undefined,
-
         show: function(id) {
-            if (this.active) return;
-            this.active = document.getElementById('modal_'+id);
-            this.active.style.display = 'flex';
+            if (active) return;
+            active = document.getElementById('modal_'+id);
+            active.style.display = 'flex';
         },
 
         close: function() {
-            if (this.active) this.active.style.display = 'none';
-            this.active = undefined;
+            if (active) active.style.display = 'none';
+            active = undefined;
         },
 
         _onload: function() {

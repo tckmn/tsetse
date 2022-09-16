@@ -9,10 +9,11 @@ m.net = (function() {
         else console.log('bad msg type '+msg.t); // TODO
     };
 
+    var backoff = 1;
+
     return {
 
         ws: undefined,
-        backoff: 1,
 
         connect: function() {
             m.e.name.textContent = 'connecting...';
@@ -22,7 +23,7 @@ m.net = (function() {
             this.ws = new WebSocket('wss://' + location.hostname + '/ws/');
 
             this.ws.onopen = () => {
-                this.backoff = 1;
+                backoff = 1;
                 var userinfo = localStorage.getItem('userinfo');
                 if (userinfo) {
                     userinfo = JSON.parse(userinfo);
@@ -38,8 +39,8 @@ m.net = (function() {
             this.ws.onclose = () => {
                 m.e.name.style.display = 'none';
                 m.e.discon.style.display = 'block';
-                setTimeout(this.connect.bind(this), this.backoff*1000);
-                this.backoff = (1 + Math.exp(-this.backoff/100))*this.backoff;
+                setTimeout(this.connect.bind(this), backoff*1000);
+                backoff = (1 + Math.exp(-backoff/100))*backoff;
             };
         },
 
