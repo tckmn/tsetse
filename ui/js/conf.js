@@ -26,11 +26,11 @@ m.conf = (function() {
                 clearInterval(richterval);
                 if (!n) {
                     rots = Array(50).fill(0);
-                    m.dom.cells.forEach(c => c.style.transform = '');
+                    m.dom.eachCell(c => c.style.transform = '');
                     return;
                 }
                 richterval = setInterval(() => {
-                    m.dom.cells.forEach((c,i) => {
+                    m.dom.eachCell((c,i) => {
                         c.style.transform = `rotate(${rots[i]+=(Math.random()-0.5)*Math.pow(1.5, n)}deg)`;
                     });
                 }, 50);

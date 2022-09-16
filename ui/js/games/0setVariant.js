@@ -20,13 +20,13 @@ m.setVariant = (function() {
                     var kls = msg.good ? 'right' : 'wrong',
                         uel = document.getElementById('userlist-' + msg.who);
 
-                    m.dom.cells.forEach(cell => {
+                    m.dom.eachCell(cell => {
                         if (msg.idxs.indexOf(+cell.dataset.idx) !== -1) cell.classList.add(kls);
                     });
                     if (uel) uel.classList.add(kls);
 
                     if (!msg.good) setTimeout(() => {
-                        m.dom.cells.forEach(cell => cell.classList.remove(kls));
+                        m.dom.eachCell(cell => cell.classList.remove(kls));
                         if (uel) uel.classList.remove(kls);
                     }, 200);
                 },

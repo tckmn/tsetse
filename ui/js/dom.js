@@ -7,6 +7,7 @@ m.dom = (function() {
         'zxcvbnm,./'
     ];
 
+    var cells = [];
     var selected = [];
     var keylisten = {};
 
@@ -56,8 +57,6 @@ m.dom = (function() {
             setTimeout(close, Math.max(5000, msg.length*200));
         },
 
-        cells: [],
-
         addCell: function(content, idx, autosubmit) {
             var perrow = m.conf.get('rownum'),
                 hotkey = (hotkeys[idx/perrow|0]||'')[idx%perrow] || '';
@@ -70,7 +69,7 @@ m.dom = (function() {
                 text: hotkey, class: 'hotkey'
             }));
             m.e.wall.appendChild(cell);
-            this.cells.push(cell);
+            cells.push(cell);
 
             var fn = e => {
                 if (e) e.preventDefault();
@@ -87,6 +86,10 @@ m.dom = (function() {
             keylisten[hotkey] = fn;
         },
 
+        eachCell: function(f) {
+            return cells.forEach(f);
+        },
+
         submitCells: function(reqnum) {
             if (selected.length >= (reqnum || 1)) {
                 Array.from(document.getElementsByClassName('selected'))
@@ -98,7 +101,7 @@ m.dom = (function() {
 
         clearCells: function() {
             this.clr(m.e.wall);
-            this.cells = [];
+            cells = [];
             selected = [];
             keylisten = {};
         },
