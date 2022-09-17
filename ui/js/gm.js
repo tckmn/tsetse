@@ -63,6 +63,14 @@ m.gm = (function() {
                 gamerect.appendChild(m.dom.el('span', { text: g.gtype, class: 'gamename' }));
                 gamerect.appendChild(m.dom.el('span', { text: g.gdesc, class: 'gamedesc' }));
                 gamerect.appendChild(m.dom.el('span', { text: `by ${g.creator} at ${new Date(g.creation).toLocaleString()}`, class: 'gamesrc' }));
+                gamerect.appendChild(m.dom.el('span', {
+                    text: '×',
+                    class: 'gamedel',
+                    onclick: e => {
+                        e.stopPropagation();
+                        m.modal.show('delgame', g.gid);
+                    }
+                }));
                 m.e.gamelist.appendChild(gamerect);
             });
 

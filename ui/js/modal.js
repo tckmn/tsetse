@@ -31,18 +31,24 @@ m.modal = (function() {
             }
             m.net.send('CreateGame', { gtype: v.gametype(), conf: conf });
             m.modal.close();
+        },
+
+        delgame: () => {
+            m.net.send('DeleteGame', { gid: info });
+            m.modal.close();
         }
 
     };
 
-    var active = undefined;
+    var active = undefined, info = undefined;
 
     return {
 
-        show: function(id) {
+        show: function(id, info2) {
             if (active) return;
             active = document.getElementById('modal_'+id);
             active.style.display = 'flex';
+            info = info2;
         },
 
         close: function() {

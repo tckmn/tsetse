@@ -153,6 +153,7 @@ main {
 
             > div.gamerect {
                 display: flex;
+                position: relative;
                 flex-wrap: wrap;
                 background-color: #181818;
                 border-radius: 10px;
@@ -172,6 +173,19 @@ main {
                 .gamename { font-size: 16pt; font-weight: bold; }
                 .gamedesc { flex: 1; }
                 .gamesrc { color: #888; font-size: 9pt; }
+                .gamedel {
+                    position: absolute;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 10px;
+                    height: 10px;
+                    font-size: 10px;
+                    border-radius: 10px;
+                    right: 0; top: 0;
+                    background-color: #400;
+                    &:hover { background-color: #b00; }
+                }
                 &.dead { opacity: 0.5; }
                 &:hover { background-color: #282828; }
             }
