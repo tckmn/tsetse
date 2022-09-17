@@ -3,6 +3,7 @@ m.FOLD = (function() {
     return {
 
         render: function(card) {
+            console.log(card);
             var draw = m.draw.create('-1 -1 2 2', { class: 'grow' });
 
             var offset = 0.5,
@@ -22,7 +23,8 @@ m.FOLD = (function() {
         },
 
         img: function(rand) {
-            return this.render([[rand()*6|0, rand()<0.5], [rand()*6|0, rand()<0.5]]);
+            // TODO don't make monochrome lines
+            return this.render([[(rand()*5|0)+1, rand()<0.5], [(rand()*5|0)+1, rand()<0.5]]);
         },
 
         ...m.setVariant.props({ autosubmit: 5 })
