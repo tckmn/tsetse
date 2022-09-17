@@ -162,14 +162,7 @@ main {
                 padding: 5px;
                 cursor: pointer;
                 > * { margin: 5px; }
-                .gameimg {
-                    width: 28px;
-                    height: 40px;
-                    border-radius: 3px;
-                    background-color: white;
-                    position: relative;
-                    > svg { position: absolute; width: 100%; height: 100%; }
-                }
+                .gameimg { width: 28px; height: 40px; }
                 .gamename { font-size: 16pt; font-weight: bold; }
                 .gamedesc { flex: 1; }
                 .gamesrc { color: #888; font-size: 9pt; }
@@ -287,6 +280,23 @@ div#modals > div {
         tr:nth-of-type(2n) { background-color: #556; }
     }
 
+    #gametype > div {
+        display: inline-block;
+        background-color: #181818;
+        font-size: 20pt;
+        font-weight: bold;
+        width: 100px;
+        margin: 10px;
+        padding: 10px;
+        border-radius: 3px;
+        text-align: center;
+        cursor: pointer;
+        user-select: none;
+        .gameimg { width: 56px; height: 80px; margin: 0 auto; }
+
+        &:hover { background-color: #282828; }
+        &#gtchoice { background-color: mix(#a1b56c, #000, 50%); color: #fff; }
+    }
     #gameconfig { width: 90%; height: 300px; }
 }
 
@@ -320,3 +330,11 @@ button#sbtoggle .sbvis { display: inline; }
 }
 
 .stack { display: flex; flex-direction: column; }
+
+.gameimg {
+    border-radius: 3px;
+    background-color: white;
+    position: relative;
+    text-align: left;
+    > svg { position: absolute; width: 100%; height: 100%; }
+}

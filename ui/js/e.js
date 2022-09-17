@@ -34,13 +34,32 @@ m.e = (function() {
                 m.net.send('PlusCard', {});
             });
 
-            var fn = e => {
-                if (e) e.preventDefault();
-                this.gameconfig.value = JSON.stringify(m[this.gametype.value].defaultConfig);
-            };
-            this.gametype.addEventListener('change', fn);
-            this.confreset.addEventListener('click', fn);
-            fn();
+            // TODO maybe this belongs elsewhere
+            'C53T FOLD FO1D OCTA A5SET S3CT C3C3 SAT OC'.split(' ').forEach(g => {
+                var el = m.dom.el('div', {
+                    children: [
+                        m.dom.el('div', {
+                            class: 'gameimg',
+                            children: [m[g].img(m.util.srand(''), m[g].defaultConfig)]
+                        }),
+                        g
+                    ],
+                    onclick: e => {
+                        var prev = document.getElementById('gtchoice');
+                        if (prev) prev.removeAttribute('id');
+                        el.setAttribute('id', 'gtchoice');
+                        this.gameconfig.value = JSON.stringify(m[g].defaultConfig);
+                    }
+                });
+                el.dataset.g = g;
+                this.gametype.appendChild(el);
+            });
+
+            this.confreset.addEventListener('click', e => {
+                e.preventDefault();
+                var g = document.getElementById('gtchoice');
+                if (g) this.gameconfig.value = JSON.stringify(m[g.dataset.g].defaultConfig);
+            });
 
         }
 

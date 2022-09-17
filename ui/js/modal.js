@@ -22,6 +22,11 @@ m.modal = (function() {
         },
 
         creategame: () => {
+            var g = document.getElementById('gtchoice');
+            if (!g) {
+                m.dom.toast('choose a game!');
+                return;
+            }
             var conf;
             try {
                 conf = JSON.parse(v.gameconfig());
@@ -29,7 +34,7 @@ m.modal = (function() {
                 m.dom.toast("your config is not valid json");
                 return;
             }
-            m.net.send('CreateGame', { gtype: v.gametype(), conf: conf });
+            m.net.send('CreateGame', { gtype: g.dataset.g, conf: conf });
             m.modal.close();
         },
 

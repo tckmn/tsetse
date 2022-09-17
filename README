@@ -47,6 +47,6 @@ to add a new game:
      + conf: client-side config specification
      + [todo]
 
-   * add it to the game type dropdown (dist/tsetse.html)
+   * add it to the list of game types (ui/js/e.js)
 
    * add a help section (dist/help.html, dist/help.js)
