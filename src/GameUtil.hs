@@ -23,7 +23,8 @@ renderGameList s = GameList $ map runDesc . reverse . sortOn (_creation . snd) $
              in object [ "gid"      .> gid
                        , "gtype"    .> gtype
                        , "gdesc"    .> gdesc
-                       , "creator"  .> (s^.byUid _creator.uname)
+                       , "uname"    .> (s^.byUid _creator.uname)
+                       , "creator"  .> _creator
                        , "creation" .> _creation
                        , "dead"     .> _dead
                        , "conf"     .> toJSON _gconf
