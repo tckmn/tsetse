@@ -53,6 +53,7 @@ app state pending = do
     connid <- state .&++ nextConn
     WS.withPingThread conn 30 (pure ()) $ negotiate state (Connection conn connid)
 
+viewMVar v lens = withMVar v $ return . view lens
 previewMVar v lens = withMVar v $ return . preview lens
 overMVar v lens = modifyMVar_ v $ return . lens
 nameok state name = do
@@ -77,7 +78,7 @@ negotiate state conn = do
                 return Nothing
       Just Register{..} -> do
           isok <- nameok state i_uname
-          logins <- withMVar state $ return . view allowLogins
+          logins <- viewMVar state allowLogins
           case isok of
             (False, _) -> do
                 sendWS conn $ NotRegistered
@@ -134,7 +135,7 @@ connect state c = do
               $(onGameType 'gtype (\t -> [|
                   case fromJSON conf of
                     Success conf -> do
-                        g <- new conf
+                        g <- new conf c
                         case g of
                           Right g -> do
                               gid <- state .&++ nextGame
@@ -179,10 +180,17 @@ connect state c = do
               loop
           Just DeleteGame{..} -> do
               who <- previewMVar state $ games.at i_gid._Just.creator
-              if c^.cid == 0 || who == Just (c^.cid)
-                 then do overMVar state $ games.at i_gid .~ Nothing
-                         withMVar state runGameList
-                 else toast "you can only delete your own games"
+              del <- withMVar state $ return . flip runDeletable i_gid
+              pwd <- viewMVar state $ password.to Just
+              let err
+                      | i_mpassword == pwd   = Nothing
+                      | who /= Just (c^.cid) = Just "you can only delete your own games"
+                      | not del              = Just "you can't delete a game that already started"
+                      | otherwise            = Nothing
+              case err of
+                Just e -> toast e
+                _ -> do overMVar state $ games.at i_gid .~ Nothing
+                        withMVar state runGameList
               loop
           Just GetScores -> do
               let score GeneralGame{..} =

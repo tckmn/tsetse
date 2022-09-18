@@ -61,6 +61,11 @@ runUserlist c s = case s^.cgame c of
                     Just GeneralGame{..} -> runGameIO userlist (c, s, _gconf) _game $> s
                     Nothing -> return s
 
+runDeletable :: ServerState -> GameId -> Bool
+runDeletable s g = case s^.games.at g of
+                    Just GeneralGame{..} -> deletable _game
+                    Nothing -> False
+
 -- common game monad tasks
 
 send :: ToJSON a => a -> GameIO g ()
