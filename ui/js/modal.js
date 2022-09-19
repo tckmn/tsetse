@@ -1,6 +1,10 @@
 m.modal = (function() {
 
-    var pwd = { password: localStorage.getItem('password') };
+    var pwd = (o, k) => {
+        var p = localStorage.getItem('password');
+        if (p) o[k || 'password'] = p;
+        return o;
+    };
 
     var v = {};
 
@@ -12,12 +16,12 @@ m.modal = (function() {
         },
 
         savestate: () => {
-            m.net.send('SaveState', pwd);
+            m.net.send('SaveState', pwd({}));
             m.modal.close();
         },
 
         exhibitset: () => {
-            m.net.send('ExhibitSet', pwd);
+            m.net.send('ExhibitSet', pwd({}));
             m.modal.close();
         },
 
@@ -39,7 +43,7 @@ m.modal = (function() {
         },
 
         delgame: () => {
-            m.net.send('DeleteGame', { gid: info });
+            m.net.send('DeleteGame', pwd({ gid: info }, 'mpassword'));
             m.modal.close();
         }
 

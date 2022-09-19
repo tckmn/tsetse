@@ -63,7 +63,7 @@ m.gm = (function() {
                 gamerect.appendChild(m.dom.el('span', { text: g.gtype, class: 'gamename' }));
                 gamerect.appendChild(m.dom.el('span', { text: g.gdesc, class: 'gamedesc' }));
                 gamerect.appendChild(m.dom.el('span', { text: `by ${g.uname} at ${new Date(g.creation).toLocaleString()}`, class: 'gamesrc' }));
-                if (g.creator === m.cid) {
+                if (localStorage.getItem('password') || g.creator === m.cid) {
                     gamerect.appendChild(m.dom.el('span', {
                         text: '×',
                         class: 'gamedel',
