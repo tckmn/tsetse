@@ -195,6 +195,8 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
         let v' = length v
          in M.alter (Just . maybe v' (+v')) k) M.empty $ g^.taken
 
+    deletable g = null $ g^.taken
+
     userinfo g cid = toJSON (UserInfo score :: OutMsg card)
         where score = sumOf (taken.folded.filteredBy (_1.only cid)._2.to length) g
 

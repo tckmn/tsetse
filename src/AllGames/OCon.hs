@@ -60,6 +60,8 @@ instance Game OConGame where
 
     scores g = M.empty
 
+    deletable g = True
+
     userinfo g cid = toJSON $ UserInfo 10
 
     desc g = ("OC", "wip only connect implementation")
