@@ -15,11 +15,31 @@ import Types
 
 import Data.Aeson
 
-data OConGame = OConGame { _wall :: [(Int,Text)]
-                         , _groups :: [Int]
-                         , _strikes :: Int
-                         , _startTime :: Integer
-                         , _duration :: Int
+
+data Round = ConnRound  { _clues :: [Text]
+                        , _answer :: Text
+                        }
+           | WallRound  { _bricks :: [(Int,Text)]
+                        , _groups :: [(Int,Text)]
+                        , _strikes :: Int
+                        }
+           | VowelRound { _clues :: [Text]
+                        , _category :: Text
+                        }
+           | IdleRound
+           deriving Generic
+instance Binary Round
+
+data TimeInfo = Timer { _startTime :: Integer
+                      , _duration :: Int
+                      }
+              | NoTimer
+              deriving Generic
+instance Binary TimeInfo
+
+data OConGame = OConGame { _admins :: [ClientId]
+                         , _rounds :: [(Round, TimeInfo)]
+                         , _cur :: Int
                          } deriving Generic
 instance Binary OConGame
 makeLenses ''OConGame
@@ -42,12 +62,10 @@ instance Game OConGame where
     type GMsg OConGame = Msg
     newtype GConf OConGame = NoConf' () deriving Generic
 
-    new _ = return . Right $ OConGame { _wall = []
-                                      , _groups = []
-                                      , _strikes = 3
-                                      , _startTime = 0
-                                      , _duration = 180
-                                      }
+    new _ c = return . Right $ OConGame { _admins = [c^.cid]
+                                        , _rounds = []
+                                        , _cur = 0
+                                        }
 
     catchup = return ()
             -- when (cid `elem` admins)  $ sendWS conn $ encodeAdmin True

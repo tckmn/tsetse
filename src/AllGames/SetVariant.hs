@@ -172,7 +172,7 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
                                                }
                                      deriving Generic
 
-    new SVConf'{..}
+    new SVConf'{..} _
       | boardSize < 6 = return $ Left "at least 6 cards required"
       | maxRedeals > 100 = return $ Left "at most 100 redeals allowed"
       | otherwise = Right <$> do

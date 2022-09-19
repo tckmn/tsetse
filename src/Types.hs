@@ -71,7 +71,7 @@ class (Binary g, Binary (GConf g), FromJSON (GMsg g), ToJSON (GConf g), FromJSON
     type GMsg g :: *
     data GConf g :: *
 
-    new :: GConf g -> IO (Either Text g)
+    new :: GConf g -> Client -> IO (Either Text g)
     catchup :: GameIO g ()
     players :: g -> [ClientId]
     scores :: g -> HashMap ClientId Int
