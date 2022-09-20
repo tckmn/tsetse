@@ -99,10 +99,7 @@ makeJSON' ''OutMsg
 -- torsor helpers
 
 data TorsorConf = Linear | Parallelogram | CommSquare deriving Generic
-instance Binary TorsorConf where
-    get = do
-        x <- B.get :: Get NoConf
-        pure Linear
+instance Binary TorsorConf
 makeJSON ''TorsorConf
 
 class Eq (GroupElement a) => Torsor a where

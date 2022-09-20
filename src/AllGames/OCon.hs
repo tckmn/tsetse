@@ -60,7 +60,7 @@ instance Binary (GConf OConGame)
 instance Game OConGame where
 
     type GMsg OConGame = Msg
-    newtype GConf OConGame = NoConf' () deriving Generic
+    newtype GConf OConGame = NoConf () deriving Generic
 
     new _ c = return . Right $ OConGame { _admins = [c^.cid]
                                         , _rounds = []

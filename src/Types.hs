@@ -188,12 +188,3 @@ instance Binary UTCTime where
 instance (Hashable k, Eq k, Binary k, Binary v) => Binary (HashMap k v) where
     put = B.put . M.toList
     get = M.fromList <$> B.get
-
-newtype NoConf = NoConf ()
-instance ToJSON NoConf where
-    toJSON _ = Object $ fromHashMap M.empty
-instance FromJSON NoConf where
-    parseJSON _ = pure $ NoConf ()
-instance Binary NoConf where
-    put _ = pure ()
-    get = pure (NoConf ())
