@@ -7,15 +7,17 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
 
 module AllGames.SetVariant where
 
 import Control.Applicative
 import Data.Binary as B
-import Data.List (nub, subsequences, elemIndex)
+import Data.List (nub, subsequences, elemIndex, permutations)
 import Data.Maybe
 import Data.Functor
 import GHC.Generics (Generic)
+import Language.Haskell.TH
 import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
 
@@ -36,15 +38,15 @@ rudebuf = 3
 rudetime = 10
 
 class (Eq card, ToJSON card, FromJSON card, ToJSON (SVConf card), FromJSON (SVConf card), Binary (SVConf card)) => SetVariant card where
-    type SVConf card :: *
+    data SVConf card :: *
     name :: card -> Text
-    setSizes :: card -> [Int]
+    setSizes :: SVConf card -> [Int]
     fullDeck :: SVConf card -> [card]
     checkSet :: SVConf card -> [card] -> Bool
     findSets :: SVConf card -> ([card], [card]) -> [[card]]
     findSets conf (_, cs) =
         [s | s <- subsequences cs
-        , length s `elem` setSizes (undefined :: card)
+        , length s `elem` setSizes conf
         , checkSet conf s
         ]
     noSets :: SVConf card -> ([card], [card]) -> Bool
@@ -94,6 +96,40 @@ data OutMsg card = Cards { o_cards :: [card] }
 makeJSON' ''Msg
 makeJSON' ''OutMsg
 
+-- torsor helpers
+
+data TorsorConf = Linear | Parallelogram | CommSquare deriving Generic
+instance Binary TorsorConf where
+    get = do
+        x <- B.get :: Get NoConf
+        pure Linear
+makeJSON ''TorsorConf
+
+class Eq (GroupElement a) => Torsor a where
+    type GroupElement a :: *
+    (@-) :: a -> a -> GroupElement a
+
+helpful :: Torsor a => (Int -> Bool) -> ([a] -> Bool) -> [a] -> Bool
+helpful c f = (c . length) .&&. (liftM3 if' ((> 8) . length) f (any f . permutations))
+
+torsor :: Torsor a => TorsorConf -> [a] -> Bool
+
+torsor Linear = helpful (>= 3) linear
+    where linear (a:b:c:xs) = (a @- b) == (b @- c) && linear (b:c:xs)
+          linear _ = True
+
+torsor Parallelogram = helpful ((>= 4) .&&. even) para
+    where para (a:b:c:d:xs) = (a @- b) == (c @- d) && para (c:d:xs)
+          para _ = True
+
+torsor CommSquare = helpful (== 4) comm
+    where comm [a,b,c,d] = (a @- b) == (c @- d) && (a @- c) == (b @- d)
+          comm _ = False
+
+torsorSizes :: TorsorConf -> [Int]
+torsorSizes Linear = [3]
+torsorSizes _ = [4]
+
 instance SetVariant card => ToJSON (GConf (SetVariantGame card))
 instance SetVariant card => FromJSON (GConf (SetVariantGame card))
 
@@ -106,6 +142,8 @@ instance SetVariant card => Binary (GConf (SetVariantGame card)) where
                   <*> B.get
                   <*> B.get
                   <*> B.get
+
+-- actions
 
 dealReplace :: SetVariant card => [card] -> Int -> GameIO (SetVariantGame card) ([card], [card])
 dealReplace i_cards dealCount = do
@@ -279,3 +317,19 @@ instance (Binary card, SetVariant card) => Game (SetVariantGame card) where
 
         send . Toast . encodeT $ map (fromMaybe 0 . flip elemIndex cs) <$> findSets subconf ([], cs)
         return Done
+
+makeCard :: Name -> DecsQ
+makeCard t = [d|
+    instance Binary $(pure $ ConT t)
+    instance FromJSON $(pure $ ConT t) where
+        parseJSON = genericParseJSON jsonOpts
+    instance ToJSON $(pure $ ConT t) where
+        toJSON = genericToJSON jsonOpts
+        toEncoding = genericToEncoding jsonOpts
+    instance Binary (SVConf $(pure $ ConT t))
+    instance FromJSON (SVConf $(pure $ ConT t)) where
+        parseJSON = genericParseJSON jsonOpts
+    instance ToJSON (SVConf $(pure $ ConT t)) where
+        toJSON = genericToJSON jsonOpts
+        toEncoding = genericToEncoding jsonOpts
+    |]

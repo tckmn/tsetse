@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module AllGames.Set2 (SectGame, SectCard) where
 
@@ -12,21 +13,20 @@ import Types
 import Util
 
 newtype Card = Card (Int, Int, Int, Int, Int, Int) deriving (Eq, Generic, Show)
-instance Diffable Card where
-    type DiffResult Card = [Maybe Int]
+instance Torsor Card where
+    type GroupElement Card = [Maybe Int]
     Card (a,b,c,d,e,f) @- Card (a',b',c',d',e',f') = [findIndex (==x) arr' | x <- arr]
         where arr = [a,b,c,d,e,f]
               arr' = [a',b',c',d',e',f']
-instance Binary Card
-makeJSON ''Card
+makeCard ''Card
 
 instance SetVariant Card where
-    type SVConf Card = NoConf
+    data SVConf Card = Conf { conf :: TorsorConf } deriving Generic
     name _ = "S3CT"
-    setSizes _ = [3]
+    setSizes = torsorSizes . conf
     fullDeck _ = join [[Card (a,b,c,x,y,z), Card (x,y,z,a,b,c)]
       | [a,b,c] <- permutations [0,1,2], [x,y,z] <- permutations [3,4,5]]
-    checkSet _ = linear
+    checkSet = torsor . conf
 
 type SectGame = SetVariantGame Card
 type SectCard = Card

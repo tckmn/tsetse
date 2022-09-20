@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module AllGames.Octa (OctaGame, OctaCard) where
 
@@ -12,18 +13,17 @@ import Types
 import Util
 
 data Card = Card [Int] Bool deriving (Eq, Generic, Show)
-instance Diffable Card where
-    type DiffResult Card = ([Maybe Int], Bool)
+instance Torsor Card where
+    type GroupElement Card = ([Maybe Int], Bool)
     Card a b @- Card a' b' = ([findIndex (==x) a | x <- a'], b /= b')
-instance Binary Card
-makeJSON ''Card
+makeCard ''Card
 
 instance SetVariant Card where
-    type SVConf Card = NoConf
+    data SVConf Card = Conf { conf :: TorsorConf } deriving Generic
     name _ = "OCTA"
-    setSizes _ = [3]
+    setSizes = torsorSizes . conf
     fullDeck _ = [Card a b | a <- permutations [0..3], b <- [False,True]]
-    checkSet _ = linear
+    checkSet = torsor . conf
 
 type OctaGame = SetVariantGame Card
 type OctaCard = Card

@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module AllGames.Foid (FoidGame, FoidCard) where
 
@@ -11,11 +12,10 @@ import Types
 import Util
 
 newtype Card = Card [(Int, Bool)] deriving (Eq, Generic, Show)
-instance Binary Card
-makeJSON ''Card
+makeCard ''Card
 
 instance SetVariant Card where
-    type SVConf Card = NoConf
+    data SVConf Card = NoConf deriving Generic
     name _ = "FO1D"
     setSizes _ = [3,5]
     fullDeck _ = [Card [(i,b),((i+1)`mod`10,b)] | i <- [0..9], b <- [True,False]]

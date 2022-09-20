@@ -3,8 +3,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.Sat (SatGame, SatCard, Conf(..), Cond(..), AssignMode(..)) where
+module AllGames.Sat (SatGame, SatCard, Cond(..), AssignMode(..)) where
 
 import AllGames.SetVariant
 import Data.List (sort, nub, subsequences)
@@ -18,8 +19,6 @@ big :: Int
 big = 100
 
 newtype Card = Card [Int] deriving (Eq, Generic, Show)
-instance Binary Card
-makeJSON ''Card
 
 data Cond = AtLeast Int | AtMost Int | Exactly Int deriving Generic
 instance ToJSON Cond
@@ -31,21 +30,10 @@ instance ToJSON AssignMode
 instance FromJSON AssignMode
 instance Binary AssignMode
 
-data Conf = Conf { nvars :: Int
-                 , nclause :: [Int]
-                 , hasneg :: Bool
-                 , cond :: Cond
-                 , assignmode :: AssignMode
-                 } deriving Generic
-instance ToJSON Conf
-instance FromJSON Conf
-instance Binary Conf --where
-    -- get = do
-    --     x <- B.get :: Get NoConf
-    --     pure $ Conf 8 [4] False (Exactly 1) Exists
+makeCard ''Card
 
 -- is this set of cards satisfiable?
-sat :: Conf -> [Card] -> Bool
+sat :: SVConf Card -> [Card] -> Bool
 sat Conf{..} cards = any (allOf constraints . vsats) (pvars assignmode)
     where allOf = flip all
           arrs = (\(Card c) -> c) <$> cards
@@ -72,7 +60,12 @@ sat Conf{..} cards = any (allOf constraints . vsats) (pvars assignmode)
             | otherwise = (== m+n+1)
 
 instance SetVariant Card where
-    type SVConf Card = Conf
+    data SVConf Card = Conf { nvars :: Int
+                            , nclause :: [Int]
+                            , hasneg :: Bool
+                            , cond :: Cond
+                            , assignmode :: AssignMode
+                            } deriving Generic
     name _ = "SAT"
     setSizes _ = [2..99]
     fullDeck Conf{..} = Card <$> (base >>= tass >>= tneg)

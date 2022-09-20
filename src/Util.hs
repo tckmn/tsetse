@@ -6,10 +6,8 @@ module Util
     , shuffle
     , makeSecret
     , encodeT, decodeT
-    , (.==.), (.&&.), (.$.)
-    , (!!!)
+    , (.==.), (.&&.), (.$.), (!!!), if'
     , amend, mapKeys
-    , Diffable, DiffResult, (@-), linear
     , folds
     ) where
 
@@ -19,7 +17,7 @@ import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Bifunctor
 import Data.Hashable (Hashable)
-import Data.List (sortOn, permutations)
+import Data.List (sortOn)
 import Data.Text (Text)
 import System.Random
 import qualified Data.ByteString.Lazy as LB
@@ -32,10 +30,6 @@ import qualified Data.Aeson as Ae
 (.>) = (Ae..=)
 (.=>) :: KeyValue kv => Key -> Text -> kv
 (.=>) = (Ae..=)
-
-if' :: Bool -> a -> a -> a
-if' True  x _ = x
-if' False _ y = y
 
 shuffle :: MonadIO m => [a] -> m [a]
 shuffle [] = return []
@@ -66,21 +60,15 @@ decodeT = decode . LB.fromStrict . T.encodeUtf8
 (x:xs) !!! 0 = Just x
 (x:xs) !!! i = xs !!! pred i
 
+if' :: Bool -> a -> a -> a
+if' True  x _ = x
+if' False _ y = y
+
 amend :: (Eq k, Hashable k) => (Maybe v -> v) -> k -> M.HashMap k v -> M.HashMap k v
 amend = M.alter . (Just .)
 
 mapKeys :: (Eq k2, Hashable k2) => (k1 -> k2) -> M.HashMap k1 v -> M.HashMap k2 v
 mapKeys f = M.fromList . map (first f) . M.toList
-
-class Eq (DiffResult a) => Diffable a where
-    type DiffResult a :: *
-    (@-) :: a -> a -> DiffResult a
-
-linear :: Diffable a => [a] -> Bool
-linear = liftM3 if' ((> 8) . length) linear' (any linear' . permutations)
-    where linear' [a,b,c] = (a @- b) == (b @- c)
-          linear' (a:b:c:xs) = (a @- b) == (b @- c) && linear' (b:c:xs)
-          linear' _ = False
 
 notouch :: [(Int, Bool)] -> Bool
 notouch ((n1,a1):c@(n2,a2):cs) = n1 /= n2 && notouch (c:cs)

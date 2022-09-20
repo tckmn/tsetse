@@ -2,6 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module AllGames.Fold (FoldGame, FoldCard) where
 
@@ -11,11 +12,10 @@ import Types
 import Util
 
 data Card = Card (Int, Bool) (Int, Bool) deriving (Eq, Generic, Show)
-instance Binary Card
-makeJSON ''Card
+makeCard ''Card
 
 instance SetVariant Card where
-    type SVConf Card = NoConf
+    data SVConf Card = NoConf deriving Generic
     name _ = "FOLD"
     setSizes _ = [3,5]
     fullDeck _ = [Card (i,a) (j,b) | i <- [1..5], j <- [1..5],
