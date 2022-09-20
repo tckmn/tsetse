@@ -71,7 +71,11 @@ m.A5SET = (function() {
             return this.render(a);
         },
 
-        ...m.setVariant.props({ boardSize: 10, autosubmit: 3 })
+        ...m.setVariant.props({
+            boardSize: 10,
+            autosubmit: 3,
+            defaultConfig: {conf: 'Linear'}
+        })
 
     };
 

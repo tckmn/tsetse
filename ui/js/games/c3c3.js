@@ -42,7 +42,10 @@ m.C3C3 = (function() {
             return this.render([rand()*3|0].concat([m.util.shuffle([0,1,2], rand)]));
         },
 
-        ...m.setVariant.props({ autosubmit: 3 })
+        ...m.setVariant.props({
+            autosubmit: 3,
+            defaultConfig: {conf: 'Linear'}
+        })
 
     };
 

@@ -67,7 +67,12 @@ m.OCTA = (function() {
             return this.render([m.util.shuffle(m.util.range(4), rand), rand() < 0.5]);
         },
 
-        ...m.setVariant.props({ boardSize: 9, autosubmit: 3, perrow: 3 })
+        ...m.setVariant.props({
+            boardSize: 9,
+            autosubmit: 3,
+            perrow: 3,
+            defaultConfig: {conf: 'Linear'}
+        })
 
     };
 
