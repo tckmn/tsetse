@@ -3,7 +3,6 @@ m.FOLD = (function() {
     return {
 
         render: function(card) {
-            console.log(card);
             var draw = m.draw.create('-1 -1 2 2', { class: 'grow' });
 
             var offset = 0.5,
