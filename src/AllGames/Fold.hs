@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.Fold (FoldGame, FoldCard) where
+module AllGames.Fold (FoldGame, FoldCard, SVConf(FoldConf)) where
 
 import AllGames.SetVariant
 import GHC.Generics
@@ -15,7 +15,7 @@ data Card = Card (Int, Bool) (Int, Bool) deriving (Eq, Generic, Show)
 makeCard ''Card
 
 instance SetVariant Card where
-    data SVConf Card = NoConf deriving Generic
+    data SVConf Card = FoldConf deriving Generic
     name _ = "FOLD"
     setSizes _ = [3,5]
     fullDeck _ = [Card (i,a) (j,b) | i <- [1..5], j <- [1..5],

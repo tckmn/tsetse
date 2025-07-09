@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.Set2 (SectGame, SectCard) where
+module AllGames.Set2 (SectGame, SectCard, SVConf(SectConf)) where
 
 import AllGames.SetVariant
 import Control.Monad
@@ -22,7 +22,7 @@ instance Torsor Card where
 makeCard ''Card
 
 instance SetVariant Card where
-    data SVConf Card = Conf { conf :: TorsorConf } deriving Generic
+    data SVConf Card = SectConf { conf :: TorsorConf } deriving Generic
     name _ = "S3CT"
     setSizes = torsorSizes . conf
     fullDeck _ = join [[Card (a,b,c,x,y,z), Card (x,y,z,a,b,c)]

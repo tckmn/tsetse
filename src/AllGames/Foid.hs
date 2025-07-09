@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.Foid (FoidGame, FoidCard) where
+module AllGames.Foid (FoidGame, FoidCard, SVConf(FoidConf)) where
 
 import AllGames.SetVariant
 import GHC.Generics
@@ -15,7 +15,7 @@ newtype Card = Card [(Int, Bool)] deriving (Eq, Generic, Show)
 makeCard ''Card
 
 instance SetVariant Card where
-    data SVConf Card = NoConf deriving Generic
+    data SVConf Card = FoidConf deriving Generic
     name _ = "FO1D"
     setSizes _ = [3,5]
     fullDeck _ = [Card [(i,b),((i+1)`mod`10,b)] | i <- [0..9], b <- [True,False]]

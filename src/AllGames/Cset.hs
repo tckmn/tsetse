@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.Cset (CsetGame, CsetCard) where
+module AllGames.Cset (CsetGame, CsetCard, SVConf(CsetConf)) where
 
 import AllGames.SetVariant
 import GHC.Generics
@@ -19,7 +19,7 @@ instance Monoid Card where
 makeCard ''Card
 
 instance SetVariant Card where
-    data SVConf Card = NoConf deriving Generic
+    data SVConf Card = CsetConf deriving Generic
     name _ = "C53T"
     setSizes _ = [5]
     fullDeck _ = [Card (i,j,k) | let r = [0..4], i <- r, j <- r, k <- r]

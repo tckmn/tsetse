@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.Cece (CeceGame, CeceCard) where
+module AllGames.Cece (CeceGame, CeceCard, SVConf(CeceConf)) where
 
 import AllGames.SetVariant
 import GHC.Generics
@@ -22,7 +22,7 @@ instance Torsor Card where
 makeCard ''Card
 
 instance SetVariant Card where
-    data SVConf Card = Conf { conf :: TorsorConf } deriving Generic
+    data SVConf Card = CeceConf { conf :: TorsorConf } deriving Generic
     name _ = "C3C3"
     setSizes = torsorSizes . conf
     fullDeck _ = [Card n (a,b,c) | n <- [0..2], a <- [0..2], b <- [0..2], c <- [0..2]]

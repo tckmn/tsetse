@@ -5,7 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.Sat (SatGame, SatCard, Cond(..), AssignMode(..)) where
+module AllGames.Sat (SatGame, SatCard, SVConf(SatConf), Cond(..), AssignMode(..)) where
 
 import AllGames.SetVariant
 import Data.List (sort, nub, subsequences)
@@ -34,7 +34,7 @@ makeCard ''Card
 
 -- is this set of cards satisfiable?
 sat :: SVConf Card -> [Card] -> Bool
-sat Conf{..} cards = any (allOf constraints . vsats) (pvars assignmode)
+sat SatConf{..} cards = any (allOf constraints . vsats) (pvars assignmode)
     where allOf = flip all
           arrs = (\(Card c) -> c) <$> cards
           constraints = filter (< big) <$> arrs
@@ -60,15 +60,15 @@ sat Conf{..} cards = any (allOf constraints . vsats) (pvars assignmode)
             | otherwise = (== m+n+1)
 
 instance SetVariant Card where
-    data SVConf Card = Conf { nvars :: Int
-                            , nclause :: [Int]
-                            , hasneg :: Bool
-                            , cond :: Cond
-                            , assignmode :: AssignMode
-                            } deriving Generic
+    data SVConf Card = SatConf { nvars :: Int
+                               , nclause :: [Int]
+                               , hasneg :: Bool
+                               , cond :: Cond
+                               , assignmode :: AssignMode
+                               } deriving Generic
     name _ = "SAT"
     setSizes _ = [2..99]
-    fullDeck Conf{..} = Card <$> (base >>= tass >>= tneg)
+    fullDeck SatConf{..} = Card <$> (base >>= tass >>= tneg)
         where base = filter (flip elem nclause . length) $ subsequences [1..nvars]
               donegs [] = [[]]
               donegs (x:xs) = (if x > big then [] else (-x:) <$> donegs xs) ++ ((x:) <$> donegs xs)
@@ -80,12 +80,12 @@ instance SetVariant Card where
               tass
                 | assignmode == FromCards = doass
                 | otherwise               = pure
-    checkSet conf@Conf{assignmode=FromCards} set = sat conf set
+    checkSet conf@SatConf{assignmode=FromCards} set = sat conf set
     checkSet conf set = not (sat conf set) && all (sat conf . flip deleteAt set) [0..length set-1]
         where deleteAt 0 (x:xs) = xs
               deleteAt i (x:xs) = x:deleteAt (i-1) xs
               deleteAt _ [] = []
-    noSets conf@Conf{assignmode=Exists} (_, cs) = sat conf cs
+    noSets conf@SatConf{assignmode=Exists} (_, cs) = sat conf cs
     noSets conf x = defaultNoSets conf x
 
 type SatGame = SetVariantGame Card

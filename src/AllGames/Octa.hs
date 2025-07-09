@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AllGames.Octa (OctaGame, OctaCard) where
+module AllGames.Octa (OctaGame, OctaCard, SVConf(OctaConf)) where
 
 import AllGames.SetVariant
 import Data.List (findIndex, permutations)
@@ -19,7 +19,7 @@ instance Torsor Card where
 makeCard ''Card
 
 instance SetVariant Card where
-    data SVConf Card = Conf { conf :: TorsorConf } deriving Generic
+    data SVConf Card = OctaConf { conf :: TorsorConf } deriving Generic
     name _ = "OCTA"
     setSizes = torsorSizes . conf
     fullDeck _ = [Card a b | a <- permutations [0..3], b <- [False,True]]
