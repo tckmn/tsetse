@@ -13,6 +13,7 @@ import Prelude hiding (log)
 import Control.Applicative
 import Control.Concurrent
 import Control.Exception
+import Control.Monad
 import Data.Char (isSpace)
 import Data.Maybe
 import Data.Tuple (swap)
@@ -128,111 +129,111 @@ connect state c = do
 
     -- main loop
     let loop = do
-        msg <- recvWS c
-        case decodeT msg of
-          Just JoinGame{..} -> return i_gid
-          Just (CreateGame gtype conf) ->
-              $(onGameType 'gtype (\t -> [|
-                  case fromJSON conf of
-                    Success conf -> do
-                        g <- new conf c
-                        case g of
-                          Right g -> do
-                              gid <- state .&++ nextGame
-                              now <- getCurrentTime
-                              overMVar state $ games.at gid .~
-                                  Just GeneralGame { _game = g :: $(t)
-                                                   , _gconf = conf
-                                                   , _creator = c^.cid
-                                                   , _creation = now
-                                                   , _dead = False
-                                                   }
-                              withMVar state runGameList
-                              return gid
-                          Left err -> do
-                              toast err
-                              loop
-                    _ -> do
-                        toast "malformed game config"
-                        loop
-                |]) [|
-                    do
-                        toast $ "unknown game type " <> unk
-                        loop
-                |])
-          Just ModifyGame{..} -> do
-              -- this level of abstract lensing is a little absurd to me
-              reqadmin c . modifyMVar_ state $ games.at i_gid._Just %%~ \GeneralGame{..} -> do
-                  conf <- case fromJSON i_conf of
-                            Success conf -> do
-                                -- TODO update clients
-                                toast "game config updated!"
-                                return conf
-                            _ -> do
-                                toast "malformed game config"
-                                return _gconf
-                  return $ GeneralGame { _game
-                                       , _gconf = conf
-                                       , _creator
-                                       , _creation
-                                       , _dead
-                                       }
-              loop
-          Just DeleteGame{..} -> do
-              who <- previewMVar state $ games.at i_gid._Just.creator
-              del <- withMVar state $ return . flip runDeletable i_gid
-              pwd <- viewMVar state $ password.to Just
-              let err
-                      | i_mpassword == pwd   = Nothing
-                      | who /= Just (c^.cid) = Just "you can only delete your own games"
-                      | not del              = Just "you can't delete a game that already started"
-                      | otherwise            = Nothing
-              case err of
-                Just e -> toast e
-                _ -> do overMVar state $ games.at i_gid .~ Nothing
-                        withMVar state runGameList
-              loop
-          Just GetScores -> do
-              let score GeneralGame{..} =
-                    amend (M.unionWith (+) (scores _game) . fromMaybe M.empty) (desc _game^._1)
-              let names s = mapKeys (\uid -> s^.byUid uid.uname)
-              withMVar state $ \s ->
-                  sendWS c . Scores . fmap (names s) $ M.foldr score M.empty (s^.games)
-              loop
-          Just Uname{..} -> do
-              isok <- nameok state i_uname
-              case isok of
-                (True, Nothing) -> do
-                    overMVar state $ byUid (c^.cid).uname .~ i_uname
-                    -- TODO notify other players
-                    sendWS c $ Identified i_uname
-                (_, Just _) -> toast "that name is already taken"
-                _ -> toast "that name is illegal"
-              loop
-          -- admin
-          Just (SaveState pwd) -> do
-              withMVar state $ \s ->
-                  if pwd == s^.password
-                     then do
-                         liftIO . B.encodeFile "state" $ s
-                         toast "saved!"
-                     else toast "wrong password"
-              loop
-          -- Nothing and unimplemented
-          _ -> do
-              let gamemsg msg = do
-                  post <- modifyMVar state $ \s -> runRecv c s msg
-                  case post of
-                    Done -> return ()
-                    NewDesc -> withMVar state runGameList
-                    Die -> do
-                        overMVar state $ cgame c._Just.dead .~ True
-                        withMVar state runGameList
-                    Delayed{..} -> void . forkIO $ do
-                        threadDelay delay
-                        gamemsg msg
-              gamemsg msg
-              loop
+         msg <- recvWS c
+         case decodeT msg of
+           Just JoinGame{..} -> return i_gid
+           Just (CreateGame gtype conf) ->
+               $(onGameType 'gtype (\t -> [|
+                   case fromJSON conf of
+                     Success conf -> do
+                         g <- new conf c
+                         case g of
+                           Right g -> do
+                               gid <- state .&++ nextGame
+                               now <- getCurrentTime
+                               overMVar state $ games.at gid .~
+                                   Just GeneralGame { _game = g :: $(t)
+                                                    , _gconf = conf
+                                                    , _creator = c^.cid
+                                                    , _creation = now
+                                                    , _dead = False
+                                                    }
+                               withMVar state runGameList
+                               return gid
+                           Left err -> do
+                               toast err
+                               loop
+                     _ -> do
+                         toast "malformed game config"
+                         loop
+                 |]) [|
+                     do
+                         toast $ "unknown game type " <> unk
+                         loop
+                 |])
+           Just ModifyGame{..} -> do
+               -- this level of abstract lensing is a little absurd to me
+               reqadmin c . modifyMVar_ state $ games.at i_gid._Just %%~ \GeneralGame{..} -> do
+                   conf <- case fromJSON i_conf of
+                             Success conf -> do
+                                 -- TODO update clients
+                                 toast "game config updated!"
+                                 return conf
+                             _ -> do
+                                 toast "malformed game config"
+                                 return _gconf
+                   return $ GeneralGame { _game
+                                        , _gconf = conf
+                                        , _creator
+                                        , _creation
+                                        , _dead
+                                        }
+               loop
+           Just DeleteGame{..} -> do
+               who <- previewMVar state $ games.at i_gid._Just.creator
+               del <- withMVar state $ return . flip runDeletable i_gid
+               pwd <- viewMVar state $ password.to Just
+               let err
+                       | i_mpassword == pwd   = Nothing
+                       | who /= Just (c^.cid) = Just "you can only delete your own games"
+                       | not del              = Just "you can't delete a game that already started"
+                       | otherwise            = Nothing
+               case err of
+                 Just e -> toast e
+                 _ -> do overMVar state $ games.at i_gid .~ Nothing
+                         withMVar state runGameList
+               loop
+           Just GetScores -> do
+               let score GeneralGame{..} =
+                     amend (M.unionWith (+) (scores _game) . fromMaybe M.empty) (desc _game^._1)
+               let names s = mapKeys (\uid -> s^.byUid uid.uname)
+               withMVar state $ \s ->
+                   sendWS c . Scores . fmap (names s) $ M.foldr score M.empty (s^.games)
+               loop
+           Just Uname{..} -> do
+               isok <- nameok state i_uname
+               case isok of
+                 (True, Nothing) -> do
+                     overMVar state $ byUid (c^.cid).uname .~ i_uname
+                     -- TODO notify other players
+                     sendWS c $ Identified i_uname
+                 (_, Just _) -> toast "that name is already taken"
+                 _ -> toast "that name is illegal"
+               loop
+           -- admin
+           Just (SaveState pwd) -> do
+               withMVar state $ \s ->
+                   if pwd == s^.password
+                      then do
+                          liftIO . B.encodeFile "state" $ s
+                          toast "saved!"
+                      else toast "wrong password"
+               loop
+           -- Nothing and unimplemented
+           _ -> do
+               let gamemsg msg = do
+                    post <- modifyMVar state $ \s -> runRecv c s msg
+                    case post of
+                      Done -> return ()
+                      NewDesc -> withMVar state runGameList
+                      Die -> do
+                          overMVar state $ cgame c._Just.dead .~ True
+                          withMVar state runGameList
+                      Delayed{..} -> void . forkIO $ do
+                          threadDelay delay
+                          gamemsg msg
+               gamemsg msg
+               loop
 
     loop
 
