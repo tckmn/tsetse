@@ -49,6 +49,12 @@ window.addEventListener('load', () => {
     card(ex, m.SET.render([1,1,1,1]));
     card(ex, m.SET.render([2,1,2,1]));
 
+    var ex = document.getElementById('PROex');
+    card(ex, m.PRO.render([true,true,false,false,true,true]));
+    card(ex, m.PRO.render([true,false,false,false,false,false]));
+    card(ex, m.PRO.render([false,true,true,true,false,true]));
+    card(ex, m.PRO.render([false,false,true,true,true,false]));
+
     var ex = document.getElementById('C53Tex');
     card(ex, m.C53T.render([0,2,0]));
     card(ex, m.C53T.render([1,4,2]));
