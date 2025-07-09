@@ -9,6 +9,7 @@ module AllGames.AllGames
     , module AllGames.OCon
     , module AllGames.Octa
     , module AllGames.Sat
+    , module AllGames.Set
     , module AllGames.Set2
     , onGameType
     ) where
@@ -21,6 +22,7 @@ import AllGames.Fold
 import AllGames.OCon
 import AllGames.Octa
 import AllGames.Sat
+import AllGames.Set
 import AllGames.Set2
 
 import qualified Types
@@ -37,6 +39,7 @@ namesToTypes = [ (T.unpack . fst $ Types.desc (undefined :: AssetGame), ''AssetG
                , (T.unpack . fst $ Types.desc (undefined :: OConGame),  ''OConGame)
                , (T.unpack . fst $ Types.desc (undefined :: OctaGame),  ''OctaGame)
                , (T.unpack . fst $ Types.desc (undefined :: SatGame),   ''SatGame)
+               , (T.unpack . fst $ Types.desc (undefined :: SetGame),   ''SetGame)
                , (T.unpack . fst $ Types.desc (undefined :: SectGame),  ''SectGame)
                ]
 
