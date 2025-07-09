@@ -5,5 +5,6 @@ with pkgs; mkShell {
       random websockets aeson lens
     ]))
     lighttpd
+    sassc
   ];
 }
