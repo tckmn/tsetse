@@ -12,12 +12,14 @@
 module AllGames.SetVariant where
 
 import Control.Applicative
+import Control.Monad
 import Data.Binary as B
 import Data.List (nub, subsequences, elemIndex, permutations)
 import Data.Maybe
 import Data.Functor
+import Data.Kind (Type)
 import GHC.Generics (Generic)
-import Language.Haskell.TH
+import Language.Haskell.TH hiding (Type)
 import qualified Data.HashMap.Strict as M
 import qualified Data.Text as T
 
@@ -38,7 +40,7 @@ rudebuf = 3
 rudetime = 10
 
 class (Eq card, ToJSON card, FromJSON card, ToJSON (SVConf card), FromJSON (SVConf card), Binary (SVConf card)) => SetVariant card where
-    data SVConf card :: *
+    data SVConf card :: Type
     name :: card -> Text
     setSizes :: SVConf card -> [Int]
     fullDeck :: SVConf card -> [card]
@@ -103,7 +105,7 @@ instance Binary TorsorConf
 makeJSON ''TorsorConf
 
 class Eq (GroupElement a) => Torsor a where
-    type GroupElement a :: *
+    type GroupElement a :: Type
     (@-) :: a -> a -> GroupElement a
 
 helpful :: Torsor a => (Int -> Bool) -> ([a] -> Bool) -> [a] -> Bool

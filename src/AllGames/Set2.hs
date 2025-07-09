@@ -7,6 +7,7 @@
 module AllGames.Set2 (SectGame, SectCard) where
 
 import AllGames.SetVariant
+import Control.Monad
 import Data.List (findIndex, permutations)
 import GHC.Generics
 import Types

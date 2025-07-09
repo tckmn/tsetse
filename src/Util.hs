@@ -26,9 +26,9 @@ import qualified Data.Text.Encoding as T
 import qualified Data.HashMap.Strict as M
 
 import qualified Data.Aeson as Ae
-(.>) :: (KeyValue kv, ToJSON v) => Key -> v -> kv
+(.>) :: (KeyValue e kv, ToJSON v) => Key -> v -> kv
 (.>) = (Ae..=)
-(.=>) :: KeyValue kv => Key -> Text -> kv
+(.=>) :: KeyValue e kv => Key -> Text -> kv
 (.=>) = (Ae..=)
 
 shuffle :: MonadIO m => [a] -> m [a]

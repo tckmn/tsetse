@@ -22,6 +22,7 @@ module Types
 
 import Control.Monad
 import Data.Functor
+import Data.Kind (Type)
 import Data.List (nub)
 import Data.Text (Text)
 import Data.HashMap.Strict (HashMap)
@@ -47,7 +48,7 @@ import Network
 
 import Data.Hashable (Hashable)
 import GHC.Generics (Generic)
-import Language.Haskell.TH
+import Language.Haskell.TH hiding (Type)
 
 -- main game monad
 type GameIO g = ReaderT (Client, ServerState, GConf g) (MaybeT (StateT g IO))
@@ -68,8 +69,8 @@ data PostAction = Done
 
 -- main game type
 class (Binary g, Binary (GConf g), FromJSON (GMsg g), ToJSON (GConf g), FromJSON (GConf g)) => Game g where
-    type GMsg g :: *
-    data GConf g :: *
+    type GMsg g :: Type
+    data GConf g :: Type
 
     new :: GConf g -> Client -> IO (Either Text g)
     catchup :: GameIO g ()

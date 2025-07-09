@@ -5,6 +5,7 @@
 module GameUtil where
 
 import Control.Applicative
+import Control.Monad
 import Data.Aeson
 import Data.Functor
 import Data.List (sortOn)
