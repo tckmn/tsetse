@@ -20,7 +20,7 @@ m.net = (function() {
             m.e.name.style.display = 'block';
             m.e.discon.style.display = 'none';
 
-            this.ws = new WebSocket('wss://' + location.hostname + '/ws/');
+            this.ws = new WebSocket(localStorage.ws || 'wss://' + location.hostname + '/ws/');
 
             this.ws.onopen = () => {
                 backoff = 1;

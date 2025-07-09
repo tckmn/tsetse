@@ -44,6 +44,11 @@ function card(ex, x) {
 
 window.addEventListener('load', () => {
 
+    var ex = document.getElementById('SETex');
+    card(ex, m.SET.render([0,1,0,1]));
+    card(ex, m.SET.render([1,1,1,1]));
+    card(ex, m.SET.render([2,1,2,1]));
+
     var ex = document.getElementById('C53Tex');
     card(ex, m.C53T.render([0,2,0]));
     card(ex, m.C53T.render([1,4,2]));

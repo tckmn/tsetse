@@ -35,7 +35,7 @@ m.e = (function() {
             });
 
             // TODO maybe this belongs elsewhere
-            'C53T FOLD FO1D OCTA A5SET S3CT C3C3 SAT OC'.split(' ').forEach(g => {
+            'SET C53T FOLD FO1D OCTA A5SET S3CT C3C3 SAT OC'.split(' ').forEach(g => {
                 var el = m.dom.el('div', {
                     children: [
                         m.dom.el('div', {
