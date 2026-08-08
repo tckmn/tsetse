@@ -50,3 +50,6 @@ to add a new game:
    * add it to the list of game types (ui/js/e.js)
 
    * add a help section (dist/help.html, dist/help.js)
+
+
+global m
